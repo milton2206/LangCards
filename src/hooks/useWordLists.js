@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 
-// Ключи в localStorage. Сохраняем, чтобы прогресс не терялся при перезагрузке.
+// Ключи в localStorage. Сохраняем, чтобы прогресс не терялся между заходами.
 const KEYS = {
   taken: "takenWords", // взятые на изучение
   known: "knownWords", // известные, исключены навсегда
-  skipped: "skippedWords", // отложенные (с меткой, когда вернуть)
-  seen: "seenCount", // счётчик действий — для возврата отложенных
+  skipped: "skippedWords", // отложенные (с датой возврата)
+  debugOffset: "debugDayOffset", // ВРЕМЕННО: отладочная прокрутка дней
 };
 
-// Через сколько действий отложенное слово вернётся в поток новых.
-export const RETURN_AFTER = 3;
+// На сколько дней «Пропустить» откладывает слово.
+export const SKIP_DAYS = 3;
 
 function load(key, fallback) {
   try {
@@ -20,34 +20,45 @@ function load(key, fallback) {
   }
 }
 
+// Ключ даты «YYYY-MM-DD» по локальному календарю — без времени суток,
+// чтобы сравнивать только по дню. Строки такого формата сравнимы напрямую.
+export function toDayKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function addDays(date, days) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
 /**
- * Выбирает текущую карточку из потока новых.
- * Исключает взятые (taken) и известные (known). Отложенные (skipped)
- * возвращаются, когда seenCount догоняет их returnAt. Если готовых нет,
- * но остались только отложенные — возвращаем ту, что должна вернуться раньше.
+ * Текущая карточка из потока новых.
+ * Исключены взятые (taken) и известные (known). Отложенное (skipped) НЕ
+ * показывается, пока не наступила его дата возврата. Сравнение — по дате
+ * (todayKey), без учёта времени суток. Если готовых карточек нет — done.
  */
 export function pickCurrentCard(cards, vocab) {
-  const { takenWords, knownWords, skippedWords, seenCount } = vocab;
+  const { takenWords, knownWords, skippedWords, todayKey } = vocab;
   const taken = new Set(takenWords);
   const known = new Set(knownWords);
-  const skipMap = new Map(skippedWords.map((s) => [s.word, s.returnAt]));
+  const skipMap = new Map(skippedWords.map((s) => [s.word, s.returnDate]));
 
   const remaining = cards.filter(
     (c) => !taken.has(c.word) && !known.has(c.word),
   );
-  if (remaining.length === 0) return { card: null, done: true };
 
   const ready = remaining.filter((c) => {
-    const returnAt = skipMap.get(c.word);
-    return returnAt === undefined || returnAt <= seenCount;
+    const returnDate = skipMap.get(c.word);
+    // не отложено ИЛИ дата возврата уже наступила/прошла
+    return returnDate === undefined || returnDate <= todayKey;
   });
-  if (ready.length > 0) return { card: ready[0], done: false };
 
-  // Все оставшиеся отложены — берём ближайшее к возврату.
-  const soonest = [...remaining].sort(
-    (a, b) => skipMap.get(a.word) - skipMap.get(b.word),
-  )[0];
-  return { card: soonest, done: false };
+  if (ready.length === 0) return { card: null, done: true };
+  return { card: ready[0], done: false };
 }
 
 /**
@@ -59,7 +70,8 @@ export function useWordLists() {
   const [skippedWords, setSkippedWords] = useState(() =>
     load(KEYS.skipped, []),
   );
-  const [seenCount, setSeenCount] = useState(() => load(KEYS.seen, 0));
+  // ВРЕМЕННО (отладка): сдвиг «сегодня» вперёд на N дней.
+  const [dayOffset, setDayOffset] = useState(() => load(KEYS.debugOffset, 0));
 
   useEffect(() => {
     localStorage.setItem(KEYS.taken, JSON.stringify(takenWords));
@@ -71,44 +83,49 @@ export function useWordLists() {
     localStorage.setItem(KEYS.skipped, JSON.stringify(skippedWords));
   }, [skippedWords]);
   useEffect(() => {
-    localStorage.setItem(KEYS.seen, JSON.stringify(seenCount));
-  }, [seenCount]);
+    localStorage.setItem(KEYS.debugOffset, JSON.stringify(dayOffset));
+  }, [dayOffset]);
+
+  // «Сегодня» с учётом отладочной прокрутки дней.
+  const todayKey = toDayKey(addDays(new Date(), dayOffset));
 
   // ВЗЯТЬ — в личный список изучения; убрать из отложенных.
   const take = useCallback((word) => {
     setTakenWords((prev) => (prev.includes(word) ? prev : [...prev, word]));
     setSkippedWords((prev) => prev.filter((s) => s.word !== word));
-    setSeenCount((n) => n + 1);
   }, []);
 
-  // ЗНАЮ — исключить навсегда отовсюду (в т.ч. из взятых и отложенных).
+  // ЗНАЮ — исключить навсегда (в т.ч. из взятых и отложенных).
   const markKnown = useCallback((word) => {
     setKnownWords((prev) => (prev.includes(word) ? prev : [...prev, word]));
     setTakenWords((prev) => prev.filter((w) => w !== word));
     setSkippedWords((prev) => prev.filter((s) => s.word !== word));
-    setSeenCount((n) => n + 1);
   }, []);
 
-  // ПРОПУСТИТЬ — отложить и вернуть в поток позже (не насовсем).
+  // ПРОПУСТИТЬ — отложить на SKIP_DAYS дней вперёд (по дате возврата).
   const skip = useCallback(
     (word) => {
-      const returnAt = seenCount + 1 + RETURN_AFTER;
+      const returnDate = toDayKey(addDays(new Date(), dayOffset + SKIP_DAYS));
       setSkippedWords((prev) => [
         ...prev.filter((s) => s.word !== word),
-        { word, returnAt },
+        { word, returnDate },
       ]);
-      setSeenCount((n) => n + 1);
     },
-    [seenCount],
+    [dayOffset],
   );
+
+  // ВРЕМЕННО (отладка): промотать один день вперёд.
+  const advanceDay = useCallback(() => setDayOffset((n) => n + 1), []);
 
   return {
     takenWords,
     knownWords,
     skippedWords,
-    seenCount,
+    todayKey,
+    dayOffset,
     take,
     markKnown,
     skip,
+    advanceDay,
   };
 }
