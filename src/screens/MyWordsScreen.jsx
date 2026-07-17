@@ -4,7 +4,12 @@ import "./MyWordsScreen.css";
 /**
  * Список слов, взятых на изучение (takenWords). Порядок — как добавляли.
  */
-export default function MyWordsScreen({ takenWords, knownCount, onBack }) {
+export default function MyWordsScreen({
+  takenWords,
+  knownCount,
+  onBack,
+  onOpenKnown,
+}) {
   const items = takenWords
     .map((word) => CARDS.find((c) => c.word === word))
     .filter(Boolean);
@@ -44,9 +49,10 @@ export default function MyWordsScreen({ takenWords, knownCount, onBack }) {
         </ul>
       )}
 
-      {knownCount > 0 && (
-        <p className="mywords__note">Отмечено «знаю»: {knownCount}</p>
-      )}
+      <button type="button" className="mywords__nav" onClick={onOpenKnown}>
+        <span>✅ Известные слова</span>
+        <span className="mywords__nav-count">{knownCount}</span>
+      </button>
     </section>
   );
 }

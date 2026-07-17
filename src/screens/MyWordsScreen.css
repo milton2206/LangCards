@@ -65,6 +65,34 @@
   border-radius: var(--radius-sm);
 }
 
+/* Элемент с действием справа (например, «Вернуть») */
+.mywords__item--row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mywords__item-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mywords__restore {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid rgba(108, 140, 255, 0.5);
+  border-radius: 8px;
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .mywords__word {
   font-size: 18px;
   font-weight: 600;
@@ -98,8 +126,34 @@
   max-width: 30ch;
 }
 
-.mywords__note {
-  color: var(--text-muted);
+/* ---------- Переход к другому списку ---------- */
+.mywords__nav {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mywords__nav-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background-color: var(--border);
+  color: var(--text);
   font-size: 13px;
-  text-align: center;
+  font-weight: 700;
 }

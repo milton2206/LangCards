@@ -4,6 +4,7 @@ import StartScreen from "./screens/StartScreen.jsx";
 import OnboardingScreen from "./screens/OnboardingScreen.jsx";
 import CardScreen from "./screens/CardScreen.jsx";
 import MyWordsScreen from "./screens/MyWordsScreen.jsx";
+import KnownWordsScreen from "./screens/KnownWordsScreen.jsx";
 import { EMPTY_SETTINGS } from "./data/onboarding.js";
 import { useWordLists } from "./hooks/useWordLists.js";
 
@@ -47,6 +48,17 @@ export default function App() {
           takenWords={vocab.takenWords}
           knownCount={vocab.knownWords.length}
           onBack={() => setScreen("cards")}
+          onOpenKnown={() => setScreen("known")}
+        />
+      )}
+
+      {screen === "known" && (
+        <KnownWordsScreen
+          knownWords={vocab.knownWords}
+          takenCount={vocab.takenWords.length}
+          onRestore={vocab.restoreToStudy}
+          onBack={() => setScreen("cards")}
+          onOpenMyWords={() => setScreen("mywords")}
         />
       )}
     </AppShell>

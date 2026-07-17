@@ -105,6 +105,12 @@ export function useWordLists() {
     ]);
   }, []);
 
+  // ВЕРНУТЬ В ИЗУЧЕНИЕ — из известных обратно в личный список.
+  const restoreToStudy = useCallback((word) => {
+    setKnownWords((prev) => prev.filter((w) => w !== word));
+    setTakenWords((prev) => (prev.includes(word) ? prev : [...prev, word]));
+  }, []);
+
   return {
     takenWords,
     knownWords,
@@ -113,5 +119,6 @@ export function useWordLists() {
     take,
     markKnown,
     skip,
+    restoreToStudy,
   };
 }
