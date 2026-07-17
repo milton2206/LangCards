@@ -1,49 +1,25 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { pickCurrentCard } from "../hooks/useWordLists.js";
-import { useCards } from "../hooks/useCards.js";
 import "./CardScreen.css";
 
 /**
- * Главный экран: карточки со словом в контексте, сгенерированные Claude API
- * (через серверную функцию /api/cards). Три действия: «Взять», «Пропустить»,
- * «Знаю». Взятые/известные и отложенные слова в поток не попадают.
+ * Главный экран. Карточки НЕ генерируются автоматически — только по кнопке
+ * «Сгенерировать новые карточки». Текущая порция берётся из props (persist
+ * в localStorage), позиция определяется списками taken/known/skipped.
  */
 export default function CardScreen({
   vocab,
-  settings,
+  cards,
+  loading,
+  error,
+  onGenerate,
+  onClearError,
   onOpenSettings,
   onOpenMyWords,
 }) {
-  const { takenWords, knownWords, skippedWords, todayKey } = vocab;
-  const { take, skip, markKnown, rememberCards } = vocab;
-  const { cards, loading, error, load } = useCards();
+  const { takenWords, knownWords, take, skip, markKnown, rememberCards } = vocab;
 
-  // Параметры запроса: тема/уровень/языки + исключения (взятые, известные,
-  // ещё не вернувшиеся отложенные).
-  function buildParams() {
-    const deferred = skippedWords
-      .filter((s) => (s.returnDate ?? "") > todayKey)
-      .map((s) => s.word);
-    return {
-      learnLang: settings.learnLang,
-      nativeLang: settings.nativeLang,
-      topic: settings.topic,
-      level: settings.level,
-      exclude: [...new Set([...takenWords, ...knownWords, ...deferred])],
-      count: 10,
-    };
-  }
-
-  // Первичная загрузка порции при входе на экран (один раз).
-  const startedRef = useRef(false);
-  useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-    load(buildParams());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Запоминаем данные полученных карточек для экранов списков.
+  // Запоминаем данные показанных карточек для экранов «Мои слова»/«Известные».
   useEffect(() => {
     if (cards.length) rememberCards(cards);
   }, [cards, rememberCards]);
@@ -66,22 +42,14 @@ export default function CardScreen({
         <div className="cards__status-emoji" aria-hidden="true">
           ⚠️
         </div>
-        <h1 className="cards__status-title">Не удалось загрузить</h1>
+        <h1 className="cards__status-title">Не удалось сгенерировать</h1>
         <p className="cards__status-hint">{error}</p>
         <div className="cards__status-actions">
-          <button
-            type="button"
-            className="cards__retry"
-            onClick={() => load(buildParams())}
-          >
+          <button type="button" className="cards__retry" onClick={onGenerate}>
             Повторить
           </button>
-          <button
-            type="button"
-            className="cards__ghost"
-            onClick={onOpenSettings}
-          >
-            Изменить настройки
+          <button type="button" className="cards__ghost" onClick={onClearError}>
+            Назад
           </button>
         </div>
       </section>
@@ -89,38 +57,77 @@ export default function CardScreen({
   }
 
   const { card, done } = pickCurrentCard(cards, vocab);
+  const empty = cards.length === 0;
   const total = cards.length;
   const learnedInBatch = cards.filter(
     (c) => takenWords.includes(c.word) || knownWords.includes(c.word),
   ).length;
   const remaining = total - learnedInBatch;
 
-  if (done) {
+  const topbar = (
+    <header className="cards__topbar">
+      <button
+        type="button"
+        className="cards__mywords"
+        onClick={onOpenMyWords}
+      >
+        📚 Мои слова
+        <span className="cards__badge">{takenWords.length}</span>
+      </button>
+      <button
+        type="button"
+        className="cards__settings"
+        onClick={onOpenSettings}
+        aria-label="Настройки"
+      >
+        ⚙️
+      </button>
+    </header>
+  );
+
+  // Нет текущей карточки: либо порция ещё не сгенерирована, либо разобрана.
+  if (empty || done) {
     return (
-      <section className="cards cards--status">
-        <div className="cards__status-emoji" aria-hidden="true">
-          🎉
-        </div>
-        <h1 className="cards__status-title">На сегодня всё</h1>
-        <p className="cards__status-hint">
-          Карточки из этой порции разобраны. Взято на изучение —{" "}
-          {takenWords.length}, отмечено «знаю» — {knownWords.length}.
-        </p>
-        <div className="cards__status-actions">
-          <button
-            type="button"
-            className="cards__retry"
-            onClick={() => load(buildParams())}
-          >
-            Загрузить ещё
-          </button>
-          <button
-            type="button"
-            className="cards__ghost"
-            onClick={onOpenMyWords}
-          >
-            📚 Мои слова
-          </button>
+      <section className="cards">
+        {topbar}
+        <div className="cards__center">
+          {empty ? (
+            <>
+              <div className="cards__status-emoji" aria-hidden="true">
+                🃏
+              </div>
+              <h1 className="cards__status-title">Пока нет карточек</h1>
+              <p className="cards__status-hint">
+                Нажмите «Сгенерировать новые карточки», чтобы получить порцию по
+                вашей теме и уровню.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="cards__status-emoji" aria-hidden="true">
+                🎉
+              </div>
+              <h1 className="cards__status-title">Порция разобрана</h1>
+              <p className="cards__status-hint">
+                Взято на изучение — {takenWords.length}, отмечено «знаю» —{" "}
+                {knownWords.length}. Сгенерируйте новую порцию.
+              </p>
+            </>
+          )}
+          <div className="cards__status-actions">
+            <button type="button" className="cards__retry" onClick={onGenerate}>
+              🔄 Сгенерировать новые карточки
+            </button>
+            {!empty && (
+              <button
+                type="button"
+                className="cards__ghost"
+                onClick={onOpenMyWords}
+              >
+                📚 Мои слова
+              </button>
+            )}
+          </div>
         </div>
       </section>
     );
@@ -128,24 +135,7 @@ export default function CardScreen({
 
   return (
     <section className="cards" aria-labelledby="card-word">
-      <header className="cards__topbar">
-        <button
-          type="button"
-          className="cards__mywords"
-          onClick={onOpenMyWords}
-        >
-          📚 Мои слова
-          <span className="cards__badge">{takenWords.length}</span>
-        </button>
-        <button
-          type="button"
-          className="cards__settings"
-          onClick={onOpenSettings}
-          aria-label="Настройки"
-        >
-          ⚙️
-        </button>
-      </header>
+      {topbar}
 
       <div className="cards__progressbar" aria-hidden="true">
         <span
@@ -210,6 +200,13 @@ export default function CardScreen({
             Знаю
           </button>
         </div>
+        <button
+          type="button"
+          className="cards__generate"
+          onClick={onGenerate}
+        >
+          🔄 Сгенерировать новые карточки
+        </button>
       </div>
     </section>
   );

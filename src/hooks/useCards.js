@@ -1,16 +1,34 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+
+// Порция карточек хранится в localStorage: при возврате на экран и после
+// перезагрузки показывается та же порция (позиция задаётся списками
+// taken/known/skipped, которые тоже персистятся).
+const KEY = "cardsBatch";
+
+function loadBatch() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
 
 /**
- * Загружает порцию карточек с серверной функции /api/cards.
- * Кэширует порцию в состоянии — новые карточки не дёргают API на каждый показ,
- * запрос идёт только при первичной загрузке и по кнопке «Загрузить ещё».
+ * Управляет текущей порцией карточек. Генерация происходит ТОЛЬКО по явному
+ * вызову generate() — автоматически ничего не запрашивается.
  */
 export function useCards() {
-  const [cards, setCards] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [cards, setCards] = useState(loadBatch);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const load = useCallback(async (params) => {
+  useEffect(() => {
+    localStorage.setItem(KEY, JSON.stringify(cards));
+  }, [cards]);
+
+  // Запрашивает полностью новую порцию и заменяет текущую.
+  const generate = useCallback(async (params) => {
     setLoading(true);
     setError(null);
     try {
@@ -36,18 +54,19 @@ export function useCards() {
       if (!Array.isArray(batch) || batch.length === 0) {
         throw new Error("Сервер не вернул карточек. Попробуйте ещё раз.");
       }
-      setCards(batch);
+      setCards(batch); // заменяем порцию; старую при ошибке НЕ трогаем
     } catch (e) {
-      setCards([]);
       setError(
         e.message === "Failed to fetch"
           ? "Нет соединения с сервером. Проверьте интернет и попробуйте снова."
-          : e.message || "Не удалось загрузить карточки.",
+          : e.message || "Не удалось сгенерировать карточки.",
       );
     } finally {
       setLoading(false);
     }
   }, []);
 
-  return { cards, loading, error, load };
+  const clearError = useCallback(() => setError(null), []);
+
+  return { cards, loading, error, generate, clearError };
 }
