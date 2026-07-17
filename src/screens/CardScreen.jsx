@@ -2,22 +2,6 @@ import { CARDS } from "../data/cards.js";
 import { pickCurrentCard } from "../hooks/useWordLists.js";
 import "./CardScreen.css";
 
-// ВРЕМЕННО (отладка): полоска для прокрутки дней вперёд, чтобы проверить
-// возврат отложенных слов, не дожидаясь реальных дней. Потом уберём.
-function DebugDayBar({ todayKey, dayOffset, onAdvance }) {
-  return (
-    <div className="cards__debug">
-      <span className="cards__debug-info">
-        🐛 Отладка · сегодня {todayKey}
-        {dayOffset > 0 ? ` (+${dayOffset} дн.)` : ""}
-      </span>
-      <button type="button" className="cards__debug-btn" onClick={onAdvance}>
-        ⏩ Промотать день вперёд
-      </button>
-    </div>
-  );
-}
-
 /**
  * Главный экран: карточки по одной со словом в контексте.
  * Три действия: «Взять» (в личный список), «Пропустить» (отложить на 3 дня
@@ -25,8 +9,8 @@ function DebugDayBar({ todayKey, dayOffset, onAdvance }) {
  * вернувшиеся отложенные в поток не попадают.
  */
 export default function CardScreen({ vocab, onOpenSettings, onOpenMyWords }) {
-  const { takenWords, knownWords, skippedWords, todayKey, dayOffset } = vocab;
-  const { take, skip, markKnown, advanceDay } = vocab;
+  const { takenWords, knownWords, skippedWords, todayKey } = vocab;
+  const { take, skip, markKnown } = vocab;
   const total = CARDS.length;
   const { card, done } = pickCurrentCard(CARDS, vocab);
 
@@ -46,43 +30,30 @@ export default function CardScreen({ vocab, onOpenSettings, onOpenMyWords }) {
   if (done) {
     return (
       <section className="cards cards--done">
-        <DebugDayBar
-          todayKey={todayKey}
-          dayOffset={dayOffset}
-          onAdvance={advanceDay}
-        />
-        <div className="cards__done-center">
-          <div className="cards__done-emoji" aria-hidden="true">
-            🎉
-          </div>
-          <h1 className="cards__done-title">На сегодня всё</h1>
-          <p className="cards__done-hint">
-            Новых карточек сейчас нет. Взято на изучение — {takenWords.length},
-            отмечено «знаю» — {knownWords.length}.
-            {deferredCount > 0
-              ? ` Отложено на потом — ${deferredCount} (вернутся в свой день).`
-              : ""}
-          </p>
-          <button
-            type="button"
-            className="cards__restart"
-            onClick={onOpenMyWords}
-          >
-            📚 Мои слова
-          </button>
+        <div className="cards__done-emoji" aria-hidden="true">
+          🎉
         </div>
+        <h1 className="cards__done-title">На сегодня всё</h1>
+        <p className="cards__done-hint">
+          Новых карточек сейчас нет. Взято на изучение — {takenWords.length},
+          отмечено «знаю» — {knownWords.length}.
+          {deferredCount > 0
+            ? ` Отложено на потом — ${deferredCount} (вернутся в свой день).`
+            : ""}
+        </p>
+        <button
+          type="button"
+          className="cards__restart"
+          onClick={onOpenMyWords}
+        >
+          📚 Мои слова
+        </button>
       </section>
     );
   }
 
   return (
     <section className="cards" aria-labelledby="card-word">
-      <DebugDayBar
-        todayKey={todayKey}
-        dayOffset={dayOffset}
-        onAdvance={advanceDay}
-      />
-
       <header className="cards__topbar">
         <button
           type="button"

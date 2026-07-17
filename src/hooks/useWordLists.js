@@ -5,7 +5,6 @@ const KEYS = {
   taken: "takenWords", // взятые на изучение
   known: "knownWords", // известные, исключены навсегда
   skipped: "skippedWords", // отложенные (с датой возврата)
-  debugOffset: "debugDayOffset", // ВРЕМЕННО: отладочная прокрутка дней
 };
 
 // На сколько дней «Пропустить» откладывает слово.
@@ -70,8 +69,6 @@ export function useWordLists() {
   const [skippedWords, setSkippedWords] = useState(() =>
     load(KEYS.skipped, []),
   );
-  // ВРЕМЕННО (отладка): сдвиг «сегодня» вперёд на N дней.
-  const [dayOffset, setDayOffset] = useState(() => load(KEYS.debugOffset, 0));
 
   useEffect(() => {
     localStorage.setItem(KEYS.taken, JSON.stringify(takenWords));
@@ -82,12 +79,9 @@ export function useWordLists() {
   useEffect(() => {
     localStorage.setItem(KEYS.skipped, JSON.stringify(skippedWords));
   }, [skippedWords]);
-  useEffect(() => {
-    localStorage.setItem(KEYS.debugOffset, JSON.stringify(dayOffset));
-  }, [dayOffset]);
 
-  // «Сегодня» с учётом отладочной прокрутки дней.
-  const todayKey = toDayKey(addDays(new Date(), dayOffset));
+  // «Сегодня» по реальной локальной дате.
+  const todayKey = toDayKey(new Date());
 
   // ВЗЯТЬ — в личный список изучения; убрать из отложенных.
   const take = useCallback((word) => {
@@ -103,29 +97,21 @@ export function useWordLists() {
   }, []);
 
   // ПРОПУСТИТЬ — отложить на SKIP_DAYS дней вперёд (по дате возврата).
-  const skip = useCallback(
-    (word) => {
-      const returnDate = toDayKey(addDays(new Date(), dayOffset + SKIP_DAYS));
-      setSkippedWords((prev) => [
-        ...prev.filter((s) => s.word !== word),
-        { word, returnDate },
-      ]);
-    },
-    [dayOffset],
-  );
-
-  // ВРЕМЕННО (отладка): промотать один день вперёд.
-  const advanceDay = useCallback(() => setDayOffset((n) => n + 1), []);
+  const skip = useCallback((word) => {
+    const returnDate = toDayKey(addDays(new Date(), SKIP_DAYS));
+    setSkippedWords((prev) => [
+      ...prev.filter((s) => s.word !== word),
+      { word, returnDate },
+    ]);
+  }, []);
 
   return {
     takenWords,
     knownWords,
     skippedWords,
     todayKey,
-    dayOffset,
     take,
     markKnown,
     skip,
-    advanceDay,
   };
 }

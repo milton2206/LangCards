@@ -5,34 +5,6 @@
   gap: 14px;
 }
 
-/* ---------- ВРЕМЕННО: отладочная полоска прокрутки дней ---------- */
-.cards__debug {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px 12px;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-sm);
-  background-color: rgba(255, 180, 0, 0.06);
-}
-
-.cards__debug-info {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.cards__debug-btn {
-  width: 100%;
-  min-height: 38px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background-color: var(--surface);
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 600;
-}
-
 /* ---------- Верхняя панель: «Мои слова» + настройки ---------- */
 .cards__topbar {
   display: flex;
@@ -242,11 +214,7 @@
 }
 
 /* ---------- Финальный экран «На сегодня всё» ---------- */
-/* Отладочная полоска остаётся сверху, а контент центрируется ниже. */
-.cards__done-center {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+.cards--done {
   align-items: center;
   justify-content: center;
   text-align: center;
