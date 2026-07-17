@@ -1,0 +1,105 @@
+.mywords {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mywords__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mywords__back {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.mywords__title {
+  flex: 1;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.mywords__count {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ---------- Список ---------- */
+.mywords__list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mywords__item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.mywords__word {
+  font-size: 18px;
+  font-weight: 600;
+  overflow-wrap: break-word;
+}
+
+.mywords__translation {
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+/* ---------- Пустое состояние ---------- */
+.mywords__empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.mywords__empty-emoji {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.mywords__empty-text {
+  color: var(--text-muted);
+  font-size: 16px;
+  max-width: 30ch;
+}
+
+.mywords__note {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}

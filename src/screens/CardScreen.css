@@ -2,22 +2,43 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
-/* ---------- Шапка: прогресс + настройки ---------- */
-.cards__header {
+/* ---------- Верхняя панель: «Мои слова» + настройки ---------- */
+.cards__topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.cards__progress {
-  color: var(--text-muted);
+.cards__mywords {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
   font-size: 14px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
+}
+
+.cards__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .cards__settings {
@@ -34,6 +55,7 @@
   font-size: 18px;
 }
 
+/* ---------- Прогресс ---------- */
 .cards__progressbar {
   height: 4px;
   border-radius: 999px;
@@ -47,6 +69,11 @@
   border-radius: 999px;
   background-color: var(--accent);
   transition: width 0.25s ease;
+}
+
+.cards__remaining {
+  color: var(--text-muted);
+  font-size: 13px;
 }
 
 /* ---------- Карточка ---------- */
@@ -92,7 +119,7 @@
   background-color: var(--border);
 }
 
-/* Пример — слово в контексте, выделен акцентной линией */
+/* Пример — слово в контексте */
 .cards__example {
   display: flex;
   flex-direction: column;
@@ -123,23 +150,67 @@
   overflow-wrap: break-word;
 }
 
-/* ---------- Футер ---------- */
-.cards__footer {
+/* ---------- Три действия ---------- */
+.cards__actions {
   position: sticky;
   bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   padding-top: 12px;
   padding-bottom: calc(4px + env(safe-area-inset-bottom));
 }
 
-.cards__next {
-  width: 100%;
+.cards__actions-row {
+  display: flex;
+  gap: 10px;
+}
+
+.cards__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   min-height: 52px;
-  border: none;
   border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-size: 16px;
+  font-weight: 700;
+  transition: transform 0.05s;
+}
+
+.cards__action:active {
+  transform: scale(0.98);
+}
+
+.cards__action-emoji {
+  font-size: 17px;
+  line-height: 1;
+}
+
+/* Взять — главное действие */
+.cards__action--take {
+  width: 100%;
   background-color: var(--accent);
   color: #0b0d12;
-  font-size: 17px;
-  font-weight: 700;
+}
+
+.cards__actions-row .cards__action {
+  flex: 1;
+}
+
+/* Пропустить — нейтральное */
+.cards__action--skip {
+  background-color: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+/* Знаю — «выучено», зелёный акцент */
+.cards__action--known {
+  background-color: rgba(53, 200, 139, 0.14);
+  border-color: rgba(53, 200, 139, 0.5);
+  color: #35c88b;
 }
 
 /* ---------- Финальный экран «На сегодня всё» ---------- */

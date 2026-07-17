@@ -3,13 +3,17 @@ import AppShell from "./components/AppShell.jsx";
 import StartScreen from "./screens/StartScreen.jsx";
 import OnboardingScreen from "./screens/OnboardingScreen.jsx";
 import CardScreen from "./screens/CardScreen.jsx";
+import MyWordsScreen from "./screens/MyWordsScreen.jsx";
 import { EMPTY_SETTINGS } from "./data/onboarding.js";
+import { useWordLists } from "./hooks/useWordLists.js";
 
 export default function App() {
-  // Простая навигация без роутера: 'start' | 'onboarding' | 'cards'
+  // Простая навигация без роутера: 'start' | 'onboarding' | 'cards' | 'mywords'
   const [screen, setScreen] = useState("start");
   // Выбор пользователя из онбординга: learnLang, nativeLang, topic, level
   const [settings, setSettings] = useState(EMPTY_SETTINGS);
+  // Личные списки слов (с сохранением в localStorage)
+  const vocab = useWordLists();
 
   function handleComplete(chosen) {
     setSettings(chosen);
@@ -31,7 +35,19 @@ export default function App() {
       )}
 
       {screen === "cards" && (
-        <CardScreen onOpenSettings={() => setScreen("onboarding")} />
+        <CardScreen
+          vocab={vocab}
+          onOpenSettings={() => setScreen("onboarding")}
+          onOpenMyWords={() => setScreen("mywords")}
+        />
+      )}
+
+      {screen === "mywords" && (
+        <MyWordsScreen
+          takenWords={vocab.takenWords}
+          knownCount={vocab.knownWords.length}
+          onBack={() => setScreen("cards")}
+        />
       )}
     </AppShell>
   );

@@ -1,18 +1,23 @@
-import { useState } from "react";
 import { CARDS } from "../data/cards.js";
+import { pickCurrentCard } from "../hooks/useWordLists.js";
 import "./CardScreen.css";
 
 /**
- * Главный экран: показывает карточки по одной.
- * Слово всегда даётся в контексте примера. Пока один переход — «Дальше»
- * (три действия взять/пропустить/знаю появятся в следующей фазе).
- * Когда карточки кончились — экран «На сегодня всё».
+ * Главный экран: показывает карточки по одной со словом в контексте.
+ * Три действия: «Взять» (в личный список), «Пропустить» (отложить и вернуть
+ * позже), «Знаю» (исключить навсегда). Взятые и известные не попадают в поток.
  */
-export default function CardScreen({ onOpenSettings }) {
-  const [index, setIndex] = useState(0);
+export default function CardScreen({ vocab, onOpenSettings, onOpenMyWords }) {
+  const { takenWords, knownWords, take, skip, markKnown } = vocab;
   const total = CARDS.length;
+  const { card, done } = pickCurrentCard(CARDS, vocab);
 
-  if (index >= total) {
+  const learnedCount = CARDS.filter(
+    (c) => takenWords.includes(c.word) || knownWords.includes(c.word),
+  ).length;
+  const remaining = total - learnedCount;
+
+  if (done) {
     return (
       <section className="cards cards--done">
         <div className="cards__done-emoji" aria-hidden="true">
@@ -20,28 +25,31 @@ export default function CardScreen({ onOpenSettings }) {
         </div>
         <h1 className="cards__done-title">На сегодня всё</h1>
         <p className="cards__done-hint">
-          Вы просмотрели все {total} карточек. Возвращайтесь завтра за новой
-          порцией слов!
+          Новых карточек по теме больше нет. Вы взяли на изучение{" "}
+          {takenWords.length}, отметили «знаю» — {knownWords.length}.
         </p>
         <button
           type="button"
           className="cards__restart"
-          onClick={() => setIndex(0)}
+          onClick={onOpenMyWords}
         >
-          Пройти заново
+          📚 Мои слова
         </button>
       </section>
     );
   }
 
-  const card = CARDS[index];
-
   return (
     <section className="cards" aria-labelledby="card-word">
-      <header className="cards__header">
-        <span className="cards__progress">
-          {index + 1} / {total}
-        </span>
+      <header className="cards__topbar">
+        <button
+          type="button"
+          className="cards__mywords"
+          onClick={onOpenMyWords}
+        >
+          📚 Мои слова
+          <span className="cards__badge">{takenWords.length}</span>
+        </button>
         <button
           type="button"
           className="cards__settings"
@@ -55,9 +63,10 @@ export default function CardScreen({ onOpenSettings }) {
       <div className="cards__progressbar" aria-hidden="true">
         <span
           className="cards__progressbar-fill"
-          style={{ width: `${((index + 1) / total) * 100}%` }}
+          style={{ width: `${(learnedCount / total) * 100}%` }}
         />
       </div>
+      <p className="cards__remaining">Осталось новых: {remaining}</p>
 
       <article className="cards__card">
         <div className="cards__word-block">
@@ -81,14 +90,39 @@ export default function CardScreen({ onOpenSettings }) {
         </div>
       </article>
 
-      <div className="cards__footer">
+      <div className="cards__actions">
         <button
           type="button"
-          className="cards__next"
-          onClick={() => setIndex((i) => i + 1)}
+          className="cards__action cards__action--take"
+          onClick={() => take(card.word)}
         >
-          Дальше
+          <span className="cards__action-emoji" aria-hidden="true">
+            ➕
+          </span>
+          Взять
         </button>
+        <div className="cards__actions-row">
+          <button
+            type="button"
+            className="cards__action cards__action--skip"
+            onClick={() => skip(card.word)}
+          >
+            <span className="cards__action-emoji" aria-hidden="true">
+              ⏭️
+            </span>
+            Пропустить
+          </button>
+          <button
+            type="button"
+            className="cards__action cards__action--known"
+            onClick={() => markKnown(card.word)}
+          >
+            <span className="cards__action-emoji" aria-hidden="true">
+              ✓
+            </span>
+            Знаю
+          </button>
+        </div>
       </div>
     </section>
   );
