@@ -38,11 +38,13 @@ export const ONBOARDING_STEPS = [
   {
     key: "level",
     title: "Уровень",
-    hint: "Насколько сложные карточки",
+    hint: "Уровень по шкале CEFR (A1 — начальный … C1 — продвинутый)",
     options: [
-      { id: "words", label: "Простые слова", emoji: "🔤" },
-      { id: "phrases", label: "Словосочетания и фразы", emoji: "🧩" },
-      { id: "idioms", label: "Идиомы и выражения носителей", emoji: "🎭" },
+      { id: "a1", label: "A1 — начальный", emoji: "🟢" },
+      { id: "a2", label: "A2 — элементарный", emoji: "🟢" },
+      { id: "b1", label: "B1 — средний", emoji: "🟡" },
+      { id: "b2", label: "B2 — выше среднего", emoji: "🟠" },
+      { id: "c1", label: "C1 — продвинутый", emoji: "🔴" },
     ],
   },
 ];
