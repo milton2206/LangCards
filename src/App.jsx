@@ -38,6 +38,7 @@ export default function App() {
       {screen === "cards" && (
         <CardScreen
           vocab={vocab}
+          settings={settings}
           onOpenSettings={() => setScreen("onboarding")}
           onOpenMyWords={() => setScreen("mywords")}
         />
@@ -47,6 +48,7 @@ export default function App() {
         <MyWordsScreen
           takenWords={vocab.takenWords}
           knownCount={vocab.knownWords.length}
+          wordInfo={vocab.wordInfo}
           onBack={() => setScreen("cards")}
           onOpenKnown={() => setScreen("known")}
         />
@@ -56,6 +58,7 @@ export default function App() {
         <KnownWordsScreen
           knownWords={vocab.knownWords}
           takenCount={vocab.takenWords.length}
+          wordInfo={vocab.wordInfo}
           onRestore={vocab.restoreToStudy}
           onBack={() => setScreen("cards")}
           onOpenMyWords={() => setScreen("mywords")}

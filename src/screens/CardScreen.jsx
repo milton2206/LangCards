@@ -1,53 +1,127 @@
-import { CARDS } from "../data/cards.js";
+import { useEffect, useRef } from "react";
 import { pickCurrentCard } from "../hooks/useWordLists.js";
+import { useCards } from "../hooks/useCards.js";
 import "./CardScreen.css";
 
 /**
- * Главный экран: карточки по одной со словом в контексте.
- * Три действия: «Взять» (в личный список), «Пропустить» (отложить на 3 дня
- * по дате), «Знаю» (исключить навсегда). Взятые/известные и ещё не
- * вернувшиеся отложенные в поток не попадают.
+ * Главный экран: карточки со словом в контексте, сгенерированные Claude API
+ * (через серверную функцию /api/cards). Три действия: «Взять», «Пропустить»,
+ * «Знаю». Взятые/известные и отложенные слова в поток не попадают.
  */
-export default function CardScreen({ vocab, onOpenSettings, onOpenMyWords }) {
+export default function CardScreen({
+  vocab,
+  settings,
+  onOpenSettings,
+  onOpenMyWords,
+}) {
   const { takenWords, knownWords, skippedWords, todayKey } = vocab;
-  const { take, skip, markKnown } = vocab;
-  const total = CARDS.length;
-  const { card, done } = pickCurrentCard(CARDS, vocab);
+  const { take, skip, markKnown, rememberCards } = vocab;
+  const { cards, loading, error, load } = useCards();
 
-  const learnedCount = CARDS.filter(
+  // Параметры запроса: тема/уровень/языки + исключения (взятые, известные,
+  // ещё не вернувшиеся отложенные).
+  function buildParams() {
+    const deferred = skippedWords
+      .filter((s) => (s.returnDate ?? "") > todayKey)
+      .map((s) => s.word);
+    return {
+      learnLang: settings.learnLang,
+      nativeLang: settings.nativeLang,
+      topic: settings.topic,
+      level: settings.level,
+      exclude: [...new Set([...takenWords, ...knownWords, ...deferred])],
+      count: 10,
+    };
+  }
+
+  // Первичная загрузка порции при входе на экран (один раз).
+  const startedRef = useRef(false);
+  useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    load(buildParams());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Запоминаем данные полученных карточек для экранов списков.
+  useEffect(() => {
+    if (cards.length) rememberCards(cards);
+  }, [cards, rememberCards]);
+
+  if (loading) {
+    return (
+      <section className="cards cards--status">
+        <div className="cards__spinner" aria-hidden="true" />
+        <h1 className="cards__status-title">Генерируем карточки…</h1>
+        <p className="cards__status-hint">
+          Подбираем слова по вашей теме и уровню с помощью ИИ.
+        </p>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="cards cards--status">
+        <div className="cards__status-emoji" aria-hidden="true">
+          ⚠️
+        </div>
+        <h1 className="cards__status-title">Не удалось загрузить</h1>
+        <p className="cards__status-hint">{error}</p>
+        <div className="cards__status-actions">
+          <button
+            type="button"
+            className="cards__retry"
+            onClick={() => load(buildParams())}
+          >
+            Повторить
+          </button>
+          <button
+            type="button"
+            className="cards__ghost"
+            onClick={onOpenSettings}
+          >
+            Изменить настройки
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  const { card, done } = pickCurrentCard(cards, vocab);
+  const total = cards.length;
+  const learnedInBatch = cards.filter(
     (c) => takenWords.includes(c.word) || knownWords.includes(c.word),
   ).length;
-  const remaining = total - learnedCount;
-
-  // Отложенные слова, которые ещё не вернулись (дата возврата в будущем).
-  const deferredCount = skippedWords.filter(
-    (s) =>
-      !takenWords.includes(s.word) &&
-      !knownWords.includes(s.word) &&
-      s.returnDate > todayKey,
-  ).length;
+  const remaining = total - learnedInBatch;
 
   if (done) {
     return (
-      <section className="cards cards--done">
-        <div className="cards__done-emoji" aria-hidden="true">
+      <section className="cards cards--status">
+        <div className="cards__status-emoji" aria-hidden="true">
           🎉
         </div>
-        <h1 className="cards__done-title">На сегодня всё</h1>
-        <p className="cards__done-hint">
-          Новых карточек сейчас нет. Взято на изучение — {takenWords.length},
-          отмечено «знаю» — {knownWords.length}.
-          {deferredCount > 0
-            ? ` Отложено на потом — ${deferredCount} (вернутся в свой день).`
-            : ""}
+        <h1 className="cards__status-title">На сегодня всё</h1>
+        <p className="cards__status-hint">
+          Карточки из этой порции разобраны. Взято на изучение —{" "}
+          {takenWords.length}, отмечено «знаю» — {knownWords.length}.
         </p>
-        <button
-          type="button"
-          className="cards__restart"
-          onClick={onOpenMyWords}
-        >
-          📚 Мои слова
-        </button>
+        <div className="cards__status-actions">
+          <button
+            type="button"
+            className="cards__retry"
+            onClick={() => load(buildParams())}
+          >
+            Загрузить ещё
+          </button>
+          <button
+            type="button"
+            className="cards__ghost"
+            onClick={onOpenMyWords}
+          >
+            📚 Мои слова
+          </button>
+        </div>
       </section>
     );
   }
@@ -76,10 +150,10 @@ export default function CardScreen({ vocab, onOpenSettings, onOpenMyWords }) {
       <div className="cards__progressbar" aria-hidden="true">
         <span
           className="cards__progressbar-fill"
-          style={{ width: `${(learnedCount / total) * 100}%` }}
+          style={{ width: `${(learnedInBatch / total) * 100}%` }}
         />
       </div>
-      <p className="cards__remaining">Осталось новых: {remaining}</p>
+      <p className="cards__remaining">Осталось в порции: {remaining}</p>
 
       <article className="cards__card">
         <div className="cards__word-block">

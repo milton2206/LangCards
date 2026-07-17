@@ -5,6 +5,7 @@ const KEYS = {
   taken: "takenWords", // взятые на изучение
   known: "knownWords", // известные, исключены навсегда
   skipped: "skippedWords", // отложенные (с датой возврата)
+  wordInfo: "wordInfo", // данные виденных карточек (для показа перевода в списках)
 };
 
 // На сколько дней «Пропустить» откладывает слово.
@@ -69,6 +70,9 @@ export function useWordLists() {
   const [skippedWords, setSkippedWords] = useState(() =>
     load(KEYS.skipped, []),
   );
+  // Словарь word -> { translit, translation, example, exampleTranslation }.
+  // Наполняется по мере показа карточек, чтобы списки могли показать перевод.
+  const [wordInfo, setWordInfo] = useState(() => load(KEYS.wordInfo, {}));
 
   useEffect(() => {
     localStorage.setItem(KEYS.taken, JSON.stringify(takenWords));
@@ -79,6 +83,9 @@ export function useWordLists() {
   useEffect(() => {
     localStorage.setItem(KEYS.skipped, JSON.stringify(skippedWords));
   }, [skippedWords]);
+  useEffect(() => {
+    localStorage.setItem(KEYS.wordInfo, JSON.stringify(wordInfo));
+  }, [wordInfo]);
 
   // «Сегодня» по реальной локальной дате.
   const todayKey = toDayKey(new Date());
@@ -111,14 +118,32 @@ export function useWordLists() {
     setTakenWords((prev) => (prev.includes(word) ? prev : [...prev, word]));
   }, []);
 
+  // Запомнить данные показанных карточек (для экранов «Мои слова» / «Известные»).
+  const rememberCards = useCallback((cards) => {
+    setWordInfo((prev) => {
+      const next = { ...prev };
+      for (const c of cards) {
+        next[c.word] = {
+          translit: c.translit,
+          translation: c.translation,
+          example: c.example,
+          exampleTranslation: c.exampleTranslation,
+        };
+      }
+      return next;
+    });
+  }, []);
+
   return {
     takenWords,
     knownWords,
     skippedWords,
+    wordInfo,
     todayKey,
     take,
     markKnown,
     skip,
     restoreToStudy,
+    rememberCards,
   };
 }

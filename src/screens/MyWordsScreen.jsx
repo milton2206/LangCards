@@ -1,18 +1,20 @@
-import { CARDS } from "../data/cards.js";
 import "./MyWordsScreen.css";
 
 /**
  * Список слов, взятых на изучение (takenWords). Порядок — как добавляли.
+ * Перевод берём из wordInfo (данные виденных карточек).
  */
 export default function MyWordsScreen({
   takenWords,
   knownCount,
+  wordInfo,
   onBack,
   onOpenKnown,
 }) {
-  const items = takenWords
-    .map((word) => CARDS.find((c) => c.word === word))
-    .filter(Boolean);
+  const items = takenWords.map((word) => ({
+    word,
+    translation: wordInfo[word]?.translation || "",
+  }));
 
   return (
     <section className="mywords">
@@ -40,10 +42,14 @@ export default function MyWordsScreen({
         </div>
       ) : (
         <ul className="mywords__list">
-          {items.map((card) => (
-            <li key={card.word} className="mywords__item">
-              <span className="mywords__word">{card.word}</span>
-              <span className="mywords__translation">{card.translation}</span>
+          {items.map((item) => (
+            <li key={item.word} className="mywords__item">
+              <span className="mywords__word">{item.word}</span>
+              {item.translation && (
+                <span className="mywords__translation">
+                  {item.translation}
+                </span>
+              )}
             </li>
           ))}
         </ul>

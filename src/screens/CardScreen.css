@@ -213,32 +213,73 @@
   color: #35c88b;
 }
 
-/* ---------- Финальный экран «На сегодня всё» ---------- */
-.cards--done {
+/* ---------- Экраны статуса: загрузка / ошибка / финал ---------- */
+.cards--status {
   align-items: center;
   justify-content: center;
   text-align: center;
   gap: 12px;
 }
 
-.cards__done-emoji {
+.cards__spinner {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent);
+  animation: cards-spin 0.9s linear infinite;
+  margin-bottom: 4px;
+}
+
+@keyframes cards-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cards__spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+.cards__status-emoji {
   font-size: 56px;
   line-height: 1;
 }
 
-.cards__done-title {
-  font-size: 28px;
+.cards__status-title {
+  font-size: 26px;
   font-weight: 700;
 }
 
-.cards__done-hint {
+.cards__status-hint {
   color: var(--text-muted);
   font-size: 16px;
-  max-width: 32ch;
+  max-width: 34ch;
 }
 
-.cards__restart {
-  margin-top: 16px;
+.cards__status-actions {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.cards__retry {
+  min-height: 48px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.cards__ghost {
   min-height: 48px;
   padding: 12px 24px;
   border: 1px solid var(--border);

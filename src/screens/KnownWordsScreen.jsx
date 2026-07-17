@@ -1,21 +1,22 @@
-import { CARDS } from "../data/cards.js";
 import "./MyWordsScreen.css";
 
 /**
  * Список известных слов (knownWords, отмеченных «Знаю»).
  * У каждого — кнопка «Вернуть»: слово уходит из известных обратно в изучение.
- * Оформление — по образцу экрана «Мои слова».
+ * Оформление — по образцу экрана «Мои слова». Перевод — из wordInfo.
  */
 export default function KnownWordsScreen({
   knownWords,
   takenCount,
+  wordInfo,
   onRestore,
   onBack,
   onOpenMyWords,
 }) {
-  const items = knownWords
-    .map((word) => CARDS.find((c) => c.word === word))
-    .filter(Boolean);
+  const items = knownWords.map((word) => ({
+    word,
+    translation: wordInfo[word]?.translation || "",
+  }));
 
   return (
     <section className="mywords">
@@ -43,18 +44,20 @@ export default function KnownWordsScreen({
         </div>
       ) : (
         <ul className="mywords__list">
-          {items.map((card) => (
-            <li key={card.word} className="mywords__item mywords__item--row">
+          {items.map((item) => (
+            <li key={item.word} className="mywords__item mywords__item--row">
               <div className="mywords__item-text">
-                <span className="mywords__word">{card.word}</span>
-                <span className="mywords__translation">
-                  {card.translation}
-                </span>
+                <span className="mywords__word">{item.word}</span>
+                {item.translation && (
+                  <span className="mywords__translation">
+                    {item.translation}
+                  </span>
+                )}
               </div>
               <button
                 type="button"
                 className="mywords__restore"
-                onClick={() => onRestore(card.word)}
+                onClick={() => onRestore(item.word)}
               >
                 ↩ Вернуть
               </button>
