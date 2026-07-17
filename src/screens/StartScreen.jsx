@@ -1,6 +1,6 @@
 import "./StartScreen.css";
 
-export default function StartScreen() {
+export default function StartScreen({ onStart }) {
   return (
     <section className="start" aria-labelledby="start-title">
       <div className="start__badge">🗂️ LangCards</div>
@@ -19,8 +19,8 @@ export default function StartScreen() {
         <span className="start__status" role="status">
           🚧 Приложение в разработке
         </span>
-        <button type="button" className="start__cta" disabled>
-          Скоро здесь появятся карточки
+        <button type="button" className="start__cta" onClick={onStart}>
+          Настроить обучение
         </button>
       </div>
     </section>
