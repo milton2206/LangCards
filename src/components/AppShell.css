@@ -1,0 +1,27 @@
+.app-shell {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 100dvh;
+}
+
+/* Контейнер: на мобильном во всю ширину, на десктопе ограничен max-width */
+.app-shell__inner {
+  width: 100%;
+  max-width: var(--maxw);
+  min-height: 100dvh;
+  padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+}
+
+/* На широких экранах добавляем рамку-«телефон», чтобы контейнер читался */
+@media (min-width: 520px) {
+  .app-shell__inner {
+    min-height: auto;
+    margin-block: 32px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--bg-elevated);
+  }
+}

@@ -1,0 +1,78 @@
+/* ---------- Дизайн-токены (тёмная тема) ---------- */
+:root {
+  --bg: #0f1115;
+  --bg-elevated: #171a21;
+  --surface: #1e222b;
+  --border: #2a2f3a;
+  --text: #f2f4f8;
+  --text-muted: #9aa4b2;
+  --accent: #6c8cff;
+  --accent-strong: #5477ff;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --tap-target: 44px; /* минимальная высота интерактивных элементов */
+  --maxw: 480px; /* контейнер для десктопа */
+
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  line-height: 1.5;
+}
+
+/* ---------- Глобальный сброс ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: hidden; /* никакого горизонтального скролла */
+  background-color: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Картинки/медиа не ломают ширину на узком экране */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* ---------- Интерактивные элементы (mobile-first) ---------- */
+button {
+  min-height: var(--tap-target);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* iOS не зумит поля при фокусе, если font-size >= 16px */
+input,
+textarea,
+select {
+  min-height: var(--tap-target);
+  font-family: inherit;
+  font-size: 16px;
+}
+
+a {
+  color: var(--accent);
+}
+
+#root {
+  min-height: 100dvh;
+}
