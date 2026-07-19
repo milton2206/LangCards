@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import AppShell from "./components/AppShell.jsx";
 import StartScreen from "./screens/StartScreen.jsx";
 import OnboardingScreen from "./screens/OnboardingScreen.jsx";
@@ -87,64 +88,67 @@ export default function App() {
   }
 
   return (
-    <AppShell>
-      {screen === "start" && (
-        <StartScreen onStart={() => setScreen("onboarding")} />
-      )}
+    <>
+      <Analytics />
+      <AppShell>
+        {screen === "start" && (
+          <StartScreen onStart={() => setScreen("onboarding")} />
+        )}
 
-      {screen === "onboarding" && (
-        <OnboardingScreen
-          initial={settings}
-          onComplete={handleComplete}
-          onBack={() => setScreen(settingsComplete ? "cards" : "start")}
-        />
-      )}
+        {screen === "onboarding" && (
+          <OnboardingScreen
+            initial={settings}
+            onComplete={handleComplete}
+            onBack={() => setScreen(settingsComplete ? "cards" : "start")}
+          />
+        )}
 
-      {screen === "cards" && (
-        <CardScreen
-          vocab={vocab}
-          cards={cards}
-          loading={loading}
-          error={error}
-          onGenerate={handleGenerate}
-          onClearError={clearError}
-          onOpenSettings={() => setScreen("settings")}
-          onOpenMyWords={() => setScreen("mywords")}
-        />
-      )}
+        {screen === "cards" && (
+          <CardScreen
+            vocab={vocab}
+            cards={cards}
+            loading={loading}
+            error={error}
+            onGenerate={handleGenerate}
+            onClearError={clearError}
+            onOpenSettings={() => setScreen("settings")}
+            onOpenMyWords={() => setScreen("mywords")}
+          />
+        )}
 
-      {screen === "mywords" && (
-        <MyWordsScreen
-          takenWords={vocab.takenWords}
-          knownCount={vocab.knownWords.length}
-          wordInfo={vocab.wordInfo}
-          onMarkKnown={vocab.markKnown}
-          onBack={() => setScreen("cards")}
-          onOpenKnown={() => setScreen("known")}
-        />
-      )}
+        {screen === "mywords" && (
+          <MyWordsScreen
+            takenWords={vocab.takenWords}
+            knownCount={vocab.knownWords.length}
+            wordInfo={vocab.wordInfo}
+            onMarkKnown={vocab.markKnown}
+            onBack={() => setScreen("cards")}
+            onOpenKnown={() => setScreen("known")}
+          />
+        )}
 
-      {screen === "known" && (
-        <KnownWordsScreen
-          knownWords={vocab.knownWords}
-          takenCount={vocab.takenWords.length}
-          wordInfo={vocab.wordInfo}
-          onRestore={vocab.restoreToStudy}
-          onBack={() => setScreen("cards")}
-          onOpenMyWords={() => setScreen("mywords")}
-        />
-      )}
+        {screen === "known" && (
+          <KnownWordsScreen
+            knownWords={vocab.knownWords}
+            takenCount={vocab.takenWords.length}
+            wordInfo={vocab.wordInfo}
+            onRestore={vocab.restoreToStudy}
+            onBack={() => setScreen("cards")}
+            onOpenMyWords={() => setScreen("mywords")}
+          />
+        )}
 
-      {screen === "settings" && (
-        <SettingsScreen
-          settings={settings}
-          onChange={updateSetting}
-          onBack={() => setScreen("cards")}
-          onOpenTutorial={() => setShowTutorial(true)}
-        />
-      )}
+        {screen === "settings" && (
+          <SettingsScreen
+            settings={settings}
+            onChange={updateSetting}
+            onBack={() => setScreen("cards")}
+            onOpenTutorial={() => setShowTutorial(true)}
+          />
+        )}
 
-      {showTutorial && <Tutorial onClose={closeTutorial} />}
-    </AppShell>
+        {showTutorial && <Tutorial onClose={closeTutorial} />}
+      </AppShell>
+    </>
   );
 }
