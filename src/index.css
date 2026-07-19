@@ -32,11 +32,14 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* убираем серую вспышку при тапе по элементам (нативное ощущение) */
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   min-height: 100dvh;
   overflow-x: hidden; /* никакого горизонтального скролла */
+  overscroll-behavior-y: none; /* без «резинки»/pull-to-refresh с белым фоном */
   background-color: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
@@ -58,6 +61,9 @@ button {
   min-height: var(--tap-target);
   font: inherit;
   cursor: pointer;
+  /* не выделять текст кнопки при быстрых/двойных тапах */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* iOS не зумит поля при фокусе, если font-size >= 16px */

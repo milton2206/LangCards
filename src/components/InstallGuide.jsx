@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import "./InstallGuide.css";
 
-// Определение устройства по user-agent. Экспортируется для проверки логики.
-export function detectPlatform(ua) {
+// Определение устройства по user-agent.
+function detectPlatform(ua) {
   const agent = ua ?? (typeof navigator !== "undefined" ? navigator.userAgent : "");
   const isIOS =
     /iphone|ipad|ipod/i.test(agent) ||
