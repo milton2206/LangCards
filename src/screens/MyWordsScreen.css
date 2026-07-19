@@ -58,16 +58,16 @@
 .mywords__item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
   padding: 14px 16px;
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
-/* Элемент с действием справа (например, «Вернуть») */
-.mywords__item--row {
-  flex-direction: row;
+/* Верхняя строка: слово+перевод слева, действие («Выучил»/«Вернуть») справа */
+.mywords__item-row {
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -110,12 +110,51 @@
 .mywords__word {
   font-size: 18px;
   font-weight: 600;
-  overflow-wrap: break-word;
+  /* корректный перенос длинных слов: по слогам (с дефисом), без разрыва
+     посреди буквы и без вылезания за экран */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.mywords__translit {
+  color: var(--accent);
+  font-size: 13px;
 }
 
 .mywords__translation {
   color: var(--text-muted);
   font-size: 15px;
+}
+
+/* ---------- Пример предложения (контекст слова) ---------- */
+.mywords__example {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent);
+  background-color: var(--bg-elevated);
+  border-radius: 0 8px 8px 0;
+}
+
+.mywords__example-text {
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.mywords__example-translation {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* ---------- Пустое состояние ---------- */

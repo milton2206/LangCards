@@ -3,19 +3,22 @@ import "./MyWordsScreen.css";
 /**
  * Список известных слов (knownWords, отмеченных «Знаю»).
  * У каждого — кнопка «Вернуть»: слово уходит из известных обратно в изучение.
- * Оформление — по образцу экрана «Мои слова». Перевод — из wordInfo.
+ * Оформление — по образцу экрана «Мои слова». Полные данные (перевод,
+ * транскрипция, пример) — из wordInfo.
  */
 export default function KnownWordsScreen({
   knownWords,
   takenCount,
   wordInfo,
+  learnLang,
+  nativeLang,
   onRestore,
   onBack,
   onOpenMyWords,
 }) {
   const items = knownWords.map((word) => ({
     word,
-    translation: wordInfo[word]?.translation || "",
+    ...wordInfo[word],
   }));
 
   return (
@@ -45,22 +48,47 @@ export default function KnownWordsScreen({
       ) : (
         <ul className="mywords__list">
           {items.map((item) => (
-            <li key={item.word} className="mywords__item mywords__item--row">
-              <div className="mywords__item-text">
-                <span className="mywords__word">{item.word}</span>
-                {item.translation && (
-                  <span className="mywords__translation">
-                    {item.translation}
+            <li key={item.word} className="mywords__item">
+              <div className="mywords__item-row">
+                <div className="mywords__item-text">
+                  <span className="mywords__word" lang={learnLang}>
+                    {item.word}
                   </span>
-                )}
+                  {item.translit && (
+                    <span className="mywords__translit">
+                      {item.translit}
+                    </span>
+                  )}
+                  {item.translation && (
+                    <span className="mywords__translation">
+                      {item.translation}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="mywords__restore"
+                  onClick={() => onRestore(item.word)}
+                >
+                  ↩ Вернуть
+                </button>
               </div>
-              <button
-                type="button"
-                className="mywords__restore"
-                onClick={() => onRestore(item.word)}
-              >
-                ↩ Вернуть
-              </button>
+
+              {item.example && (
+                <div className="mywords__example">
+                  <p className="mywords__example-text" lang={learnLang}>
+                    {item.example}
+                  </p>
+                  {item.exampleTranslation && (
+                    <p
+                      className="mywords__example-translation"
+                      lang={nativeLang}
+                    >
+                      {item.exampleTranslation}
+                    </p>
+                  )}
+                </div>
+              )}
             </li>
           ))}
         </ul>

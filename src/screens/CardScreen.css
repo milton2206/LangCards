@@ -96,11 +96,19 @@
 }
 
 .cards__word {
-  font-size: clamp(30px, 9vw, 38px);
+  /* чуть меньший минимум/предпочтительное значение — длинным составным
+     словам (нем. Ermessensspielraum) остаётся больше места на строку */
+  font-size: clamp(24px, 8vw, 38px);
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.2;
   letter-spacing: -0.5px;
-  overflow-wrap: break-word;
+  /* корректный перенос длинных слов без переполнения и без разрыва
+     посреди буквы: сначала пробуем перенос по слогам (с дефисом), затем
+     запасной вариант — перенос по границе символа */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
 }
 
 .cards__translit {
@@ -140,14 +148,18 @@
   font-size: 18px;
   line-height: 1.5;
   font-weight: 500;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
 }
 
 .cards__example-translation {
   font-size: 16px;
   line-height: 1.5;
   color: var(--text-muted);
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* ---------- Три действия ---------- */

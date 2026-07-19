@@ -12,6 +12,7 @@ export default function CardScreen({
   cards,
   loading,
   error,
+  learnLang,
   onGenerate,
   onClearError,
   onOpenSettings,
@@ -147,7 +148,7 @@ export default function CardScreen({
 
       <article className="cards__card">
         <div className="cards__word-block">
-          <h1 id="card-word" className="cards__word">
+          <h1 id="card-word" className="cards__word" lang={learnLang}>
             {card.word}
           </h1>
           {card.translit && (
@@ -160,7 +161,9 @@ export default function CardScreen({
 
         <div className="cards__example">
           <span className="cards__example-label">Пример</span>
-          <p className="cards__example-text">{card.example}</p>
+          <p className="cards__example-text" lang={learnLang}>
+            {card.example}
+          </p>
           <p className="cards__example-translation">
             {card.exampleTranslation}
           </p>

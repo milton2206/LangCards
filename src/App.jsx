@@ -109,6 +109,7 @@ export default function App() {
             cards={cards}
             loading={loading}
             error={error}
+            learnLang={settings.learnLang}
             onGenerate={handleGenerate}
             onClearError={clearError}
             onOpenSettings={() => setScreen("settings")}
@@ -121,6 +122,8 @@ export default function App() {
             takenWords={vocab.takenWords}
             knownCount={vocab.knownWords.length}
             wordInfo={vocab.wordInfo}
+            learnLang={settings.learnLang}
+            nativeLang={settings.nativeLang}
             onMarkKnown={vocab.markKnown}
             onBack={() => setScreen("cards")}
             onOpenKnown={() => setScreen("known")}
@@ -132,6 +135,8 @@ export default function App() {
             knownWords={vocab.knownWords}
             takenCount={vocab.takenWords.length}
             wordInfo={vocab.wordInfo}
+            learnLang={settings.learnLang}
+            nativeLang={settings.nativeLang}
             onRestore={vocab.restoreToStudy}
             onBack={() => setScreen("cards")}
             onOpenMyWords={() => setScreen("mywords")}
