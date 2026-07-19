@@ -1,0 +1,24 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LangCards">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6c8cff"/>
+      <stop offset="1" stop-color="#5477ff"/>
+    </linearGradient>
+  </defs>
+  <!-- Полноразмерный фон (без прозрачных углов — корректно для apple-touch и maskable) -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- Задняя карточка (эффект стопки) -->
+  <rect x="176" y="120" width="200" height="250" rx="26" fill="#ffffff" opacity="0.4"/>
+  <!-- Передняя карточка -->
+  <rect x="136" y="146" width="200" height="250" rx="26" fill="#ffffff"/>
+  <!-- Акцентная «плашка слова» -->
+  <rect x="166" y="186" width="90" height="20" rx="10" fill="#5477ff"/>
+  <!-- Строки перевода -->
+  <rect x="166" y="230" width="140" height="16" rx="8" fill="#c7cfe0"/>
+  <rect x="166" y="262" width="112" height="16" rx="8" fill="#dbe0ea"/>
+  <!-- Разделитель -->
+  <rect x="166" y="300" width="140" height="4" rx="2" fill="#e6e9f0"/>
+  <!-- Строки примера -->
+  <rect x="166" y="322" width="128" height="14" rx="7" fill="#dbe0ea"/>
+  <rect x="166" y="350" width="96" height="14" rx="7" fill="#e6e9f0"/>
+</svg>
