@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { ONBOARDING_STEPS } from "../data/onboarding.js";
+import InstallGuide from "../components/InstallGuide.jsx";
 import "./SettingsScreen.css";
 
 /**
@@ -7,6 +9,8 @@ import "./SettingsScreen.css";
  * нажатия «Сгенерировать новые карточки» на главном экране.
  */
 export default function SettingsScreen({ settings, onChange, onBack }) {
+  const [showInstall, setShowInstall] = useState(false);
+
   return (
     <section className="settings">
       <header className="settings__header">
@@ -53,6 +57,16 @@ export default function SettingsScreen({ settings, onChange, onBack }) {
       <button type="button" className="settings__done" onClick={onBack}>
         Готово
       </button>
+
+      <button
+        type="button"
+        className="settings__install"
+        onClick={() => setShowInstall(true)}
+      >
+        📲 Установить на телефон
+      </button>
+
+      {showInstall && <InstallGuide onClose={() => setShowInstall(false)} />}
     </section>
   );
 }
