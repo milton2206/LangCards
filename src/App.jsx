@@ -27,8 +27,14 @@ export default function App() {
   // Если настройки уже заданы — открываем сразу карточки (не онбординг).
   const [screen, setScreen] = useState(settingsComplete ? "cards" : "start");
 
-  const vocab = useWordLists();
-  const { cards, loading, error, generate, clearError } = useCards();
+  // Языковая пара: все списки и карточки привязаны к ней (напр. "de-ru").
+  const pairKey =
+    settings.learnLang && settings.nativeLang
+      ? `${settings.learnLang}-${settings.nativeLang}`
+      : "";
+
+  const vocab = useWordLists(pairKey);
+  const { cards, loading, error, generate, clearError } = useCards(pairKey);
 
   useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(settings));

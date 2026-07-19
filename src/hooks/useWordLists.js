@@ -1,17 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
 
-// Ключи в localStorage. Сохраняем, чтобы прогресс не терялся между заходами.
-const KEYS = {
-  taken: "takenWords", // взятые на изучение
-  known: "knownWords", // известные, исключены навсегда
-  skipped: "skippedWords", // отложенные (с датой возврата)
-  wordInfo: "wordInfo", // данные виденных карточек (для показа перевода в списках)
+// Всё хранится по языковым парам: { "de-ru": { takenWords, knownWords,
+// skippedWords, wordInfo }, "el-ru": {...} }. Слова разных языков не смешиваются.
+const STORE_KEY = "wordsByPair";
+
+// Старые «плоские» ключи (до разделения по парам) — для одноразовой миграции.
+const LEGACY = {
+  taken: "takenWords",
+  known: "knownWords",
+  skipped: "skippedWords",
+  info: "wordInfo",
 };
 
 // На сколько дней «Пропустить» откладывает слово.
 export const SKIP_DAYS = 3;
 
-function load(key, fallback) {
+function loadJSON(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
@@ -20,8 +24,59 @@ function load(key, fallback) {
   }
 }
 
-// Ключ даты «YYYY-MM-DD» по локальному календарю — без времени суток,
-// чтобы сравнивать только по дню. Строки такого формата сравнимы напрямую.
+const EMPTY_PAIR = {
+  takenWords: [],
+  knownWords: [],
+  skippedWords: [],
+  wordInfo: {},
+};
+
+// Загрузка хранилища с одноразовой миграцией старых общих списков.
+function loadStore() {
+  const existing = loadJSON(STORE_KEY, null);
+  if (existing) return existing;
+
+  const legacyTaken = loadJSON(LEGACY.taken, []);
+  const legacyKnown = loadJSON(LEGACY.known, []);
+  const legacySkipped = loadJSON(LEGACY.skipped, []);
+  const legacyInfo = loadJSON(LEGACY.info, {});
+  const hasLegacy =
+    legacyTaken.length ||
+    legacyKnown.length ||
+    legacySkipped.length ||
+    Object.keys(legacyInfo).length;
+
+  if (hasLegacy) {
+    // Привязываем старые слова к текущей паре из настроек, иначе к de-ru
+    // (не теряем существующий прогресс).
+    const settings = loadJSON("settings", {});
+    const key =
+      settings.learnLang && settings.nativeLang
+        ? `${settings.learnLang}-${settings.nativeLang}`
+        : "de-ru";
+    const store = {
+      [key]: {
+        takenWords: legacyTaken,
+        knownWords: legacyKnown,
+        skippedWords: legacySkipped,
+        wordInfo: legacyInfo,
+      },
+    };
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(store));
+      localStorage.removeItem(LEGACY.taken);
+      localStorage.removeItem(LEGACY.known);
+      localStorage.removeItem(LEGACY.skipped);
+      localStorage.removeItem(LEGACY.info);
+    } catch {
+      // ignore
+    }
+    return store;
+  }
+  return {};
+}
+
+// Ключ даты «YYYY-MM-DD» по локальному календарю (сравнение только по дню).
 export function toDayKey(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -36,10 +91,8 @@ function addDays(date, days) {
 }
 
 /**
- * Текущая карточка из потока новых.
- * Исключены взятые (taken) и известные (known). Отложенное (skipped) НЕ
- * показывается, пока не наступила его дата возврата. Сравнение — по дате
- * (todayKey), без учёта времени суток. Если готовых карточек нет — done.
+ * Текущая карточка из потока новых (см. прежнюю логику: исключены взятые и
+ * известные, отложенные скрыты до даты возврата).
  */
 export function pickCurrentCard(cards, vocab) {
   const { takenWords, knownWords, skippedWords, todayKey } = vocab;
@@ -53,7 +106,6 @@ export function pickCurrentCard(cards, vocab) {
 
   const ready = remaining.filter((c) => {
     const returnDate = skipMap.get(c.word);
-    // не отложено ИЛИ дата возврата уже наступила/прошла
     return returnDate === undefined || returnDate <= todayKey;
   });
 
@@ -62,77 +114,110 @@ export function pickCurrentCard(cards, vocab) {
 }
 
 /**
- * Управление личными списками слов с сохранением в localStorage.
+ * Списки слов, разделённые по языковой паре (pairKey, напр. "de-ru").
+ * Возвращает срезы ТОЛЬКО текущей пары; слова других пар сохраняются, но не
+ * показываются, пока не переключишься обратно.
  */
-export function useWordLists() {
-  const [takenWords, setTakenWords] = useState(() => load(KEYS.taken, []));
-  const [knownWords, setKnownWords] = useState(() => load(KEYS.known, []));
-  const [skippedWords, setSkippedWords] = useState(() =>
-    load(KEYS.skipped, []),
-  );
-  // Словарь word -> { translit, translation, example, exampleTranslation }.
-  // Наполняется по мере показа карточек, чтобы списки могли показать перевод.
-  const [wordInfo, setWordInfo] = useState(() => load(KEYS.wordInfo, {}));
+export function useWordLists(pairKey) {
+  const [store, setStore] = useState(loadStore);
 
   useEffect(() => {
-    localStorage.setItem(KEYS.taken, JSON.stringify(takenWords));
-  }, [takenWords]);
-  useEffect(() => {
-    localStorage.setItem(KEYS.known, JSON.stringify(knownWords));
-  }, [knownWords]);
-  useEffect(() => {
-    localStorage.setItem(KEYS.skipped, JSON.stringify(skippedWords));
-  }, [skippedWords]);
-  useEffect(() => {
-    localStorage.setItem(KEYS.wordInfo, JSON.stringify(wordInfo));
-  }, [wordInfo]);
+    localStorage.setItem(STORE_KEY, JSON.stringify(store));
+  }, [store]);
+
+  const current = store[pairKey] || EMPTY_PAIR;
+  const { takenWords, knownWords, skippedWords, wordInfo } = current;
 
   // «Сегодня» по реальной локальной дате.
   const todayKey = toDayKey(new Date());
 
+  // Обновляет срез текущей пары в общем хранилище.
+  const updatePair = useCallback(
+    (updater) => {
+      setStore((prev) => {
+        const cur = prev[pairKey] || EMPTY_PAIR;
+        return { ...prev, [pairKey]: updater(cur) };
+      });
+    },
+    [pairKey],
+  );
+
   // ВЗЯТЬ — в личный список изучения; убрать из отложенных.
-  const take = useCallback((word) => {
-    setTakenWords((prev) => (prev.includes(word) ? prev : [...prev, word]));
-    setSkippedWords((prev) => prev.filter((s) => s.word !== word));
-  }, []);
+  const take = useCallback(
+    (word) => {
+      updatePair((cur) => ({
+        ...cur,
+        takenWords: cur.takenWords.includes(word)
+          ? cur.takenWords
+          : [...cur.takenWords, word],
+        skippedWords: cur.skippedWords.filter((s) => s.word !== word),
+      }));
+    },
+    [updatePair],
+  );
 
   // ЗНАЮ — исключить навсегда (в т.ч. из взятых и отложенных).
-  const markKnown = useCallback((word) => {
-    setKnownWords((prev) => (prev.includes(word) ? prev : [...prev, word]));
-    setTakenWords((prev) => prev.filter((w) => w !== word));
-    setSkippedWords((prev) => prev.filter((s) => s.word !== word));
-  }, []);
+  const markKnown = useCallback(
+    (word) => {
+      updatePair((cur) => ({
+        ...cur,
+        knownWords: cur.knownWords.includes(word)
+          ? cur.knownWords
+          : [...cur.knownWords, word],
+        takenWords: cur.takenWords.filter((w) => w !== word),
+        skippedWords: cur.skippedWords.filter((s) => s.word !== word),
+      }));
+    },
+    [updatePair],
+  );
 
   // ПРОПУСТИТЬ — отложить на SKIP_DAYS дней вперёд (по дате возврата).
-  const skip = useCallback((word) => {
-    const returnDate = toDayKey(addDays(new Date(), SKIP_DAYS));
-    setSkippedWords((prev) => [
-      ...prev.filter((s) => s.word !== word),
-      { word, returnDate },
-    ]);
-  }, []);
+  const skip = useCallback(
+    (word) => {
+      const returnDate = toDayKey(addDays(new Date(), SKIP_DAYS));
+      updatePair((cur) => ({
+        ...cur,
+        skippedWords: [
+          ...cur.skippedWords.filter((s) => s.word !== word),
+          { word, returnDate },
+        ],
+      }));
+    },
+    [updatePair],
+  );
 
   // ВЕРНУТЬ В ИЗУЧЕНИЕ — из известных обратно в личный список.
-  const restoreToStudy = useCallback((word) => {
-    setKnownWords((prev) => prev.filter((w) => w !== word));
-    setTakenWords((prev) => (prev.includes(word) ? prev : [...prev, word]));
-  }, []);
+  const restoreToStudy = useCallback(
+    (word) => {
+      updatePair((cur) => ({
+        ...cur,
+        knownWords: cur.knownWords.filter((w) => w !== word),
+        takenWords: cur.takenWords.includes(word)
+          ? cur.takenWords
+          : [...cur.takenWords, word],
+      }));
+    },
+    [updatePair],
+  );
 
-  // Запомнить данные показанных карточек (для экранов «Мои слова» / «Известные»).
-  const rememberCards = useCallback((cards) => {
-    setWordInfo((prev) => {
-      const next = { ...prev };
-      for (const c of cards) {
-        next[c.word] = {
-          translit: c.translit,
-          translation: c.translation,
-          example: c.example,
-          exampleTranslation: c.exampleTranslation,
-        };
-      }
-      return next;
-    });
-  }, []);
+  // Запомнить данные показанных карточек (для экранов списков).
+  const rememberCards = useCallback(
+    (cards) => {
+      updatePair((cur) => {
+        const info = { ...cur.wordInfo };
+        for (const c of cards) {
+          info[c.word] = {
+            translit: c.translit,
+            translation: c.translation,
+            example: c.example,
+            exampleTranslation: c.exampleTranslation,
+          };
+        }
+        return { ...cur, wordInfo: info };
+      });
+    },
+    [updatePair],
+  );
 
   return {
     takenWords,
