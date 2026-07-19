@@ -97,6 +97,7 @@ export default function App() {
           takenWords={vocab.takenWords}
           knownCount={vocab.knownWords.length}
           wordInfo={vocab.wordInfo}
+          onMarkKnown={vocab.markKnown}
           onBack={() => setScreen("cards")}
           onOpenKnown={() => setScreen("known")}
         />

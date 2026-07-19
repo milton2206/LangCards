@@ -93,6 +93,20 @@
   font-weight: 600;
 }
 
+/* Кнопка «Выучил» — переносит слово в известные (зелёный акцент) */
+.mywords__learned {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid rgba(53, 200, 139, 0.5);
+  border-radius: 8px;
+  background-color: rgba(53, 200, 139, 0.14);
+  color: #35c88b;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .mywords__word {
   font-size: 18px;
   font-weight: 600;
