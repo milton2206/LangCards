@@ -6,6 +6,7 @@ import CardScreen from "./screens/CardScreen.jsx";
 import MyWordsScreen from "./screens/MyWordsScreen.jsx";
 import KnownWordsScreen from "./screens/KnownWordsScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
+import Tutorial from "./components/Tutorial.jsx";
 import { EMPTY_SETTINGS, SETTINGS_KEYS } from "./data/onboarding.js";
 import { useWordLists } from "./hooks/useWordLists.js";
 import { useCards } from "./hooks/useCards.js";
@@ -35,6 +36,20 @@ export default function App() {
 
   const vocab = useWordLists(pairKey);
   const { cards, loading, error, generate, clearError } = useCards(pairKey);
+
+  // Короткий туториал показывается ОДИН раз при первом запуске (по флагу).
+  const [showTutorial, setShowTutorial] = useState(
+    () => !localStorage.getItem("tutorialSeen"),
+  );
+
+  function closeTutorial() {
+    setShowTutorial(false);
+    try {
+      localStorage.setItem("tutorialSeen", "1");
+    } catch {
+      // ignore
+    }
+  }
 
   useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(settings));
@@ -125,8 +140,11 @@ export default function App() {
           settings={settings}
           onChange={updateSetting}
           onBack={() => setScreen("cards")}
+          onOpenTutorial={() => setShowTutorial(true)}
         />
       )}
+
+      {showTutorial && <Tutorial onClose={closeTutorial} />}
     </AppShell>
   );
 }

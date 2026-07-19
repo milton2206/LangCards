@@ -1,0 +1,179 @@
+.tutorial {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: rgba(15, 17, 21, 0.96);
+}
+
+.tutorial__box {
+  width: 100%;
+  max-width: 420px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.tutorial__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tutorial__step {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tutorial__skip {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ---------- Слайд ---------- */
+.tutorial__slide {
+  flex: 1;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.tutorial__emoji {
+  font-size: 56px;
+  line-height: 1;
+}
+
+.tutorial__title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.tutorial__text {
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1.5;
+  max-width: 32ch;
+}
+
+/* ---------- Слайд с тремя кнопками ---------- */
+.tutorial__actions {
+  list-style: none;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.tutorial__act {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.tutorial__act-label {
+  flex: 0 0 auto;
+  min-width: 108px;
+  text-align: center;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tutorial__act-label--take {
+  background-color: var(--accent);
+  color: #0b0d12;
+}
+
+.tutorial__act-label--skip {
+  background-color: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.tutorial__act-label--known {
+  background-color: rgba(53, 200, 139, 0.14);
+  border-color: rgba(53, 200, 139, 0.5);
+  color: #35c88b;
+}
+
+.tutorial__act-desc {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* ---------- Точки ---------- */
+.tutorial__dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tutorial__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--border);
+  transition: background-color 0.2s;
+}
+
+.tutorial__dot.is-active {
+  background-color: var(--accent);
+}
+
+/* ---------- Навигация ---------- */
+.tutorial__nav {
+  display: flex;
+  gap: 10px;
+}
+
+.tutorial__back {
+  flex: 0 0 auto;
+  min-height: 50px;
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.tutorial__next {
+  flex: 1;
+  min-height: 50px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 16px;
+  font-weight: 700;
+}

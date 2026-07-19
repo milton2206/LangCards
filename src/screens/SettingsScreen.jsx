@@ -8,7 +8,12 @@ import "./SettingsScreen.css";
  * тему. Изменения сохраняются сразу; новые карточки появятся только после
  * нажатия «Сгенерировать новые карточки» на главном экране.
  */
-export default function SettingsScreen({ settings, onChange, onBack }) {
+export default function SettingsScreen({
+  settings,
+  onChange,
+  onBack,
+  onOpenTutorial,
+}) {
   const [showInstall, setShowInstall] = useState(false);
 
   return (
@@ -60,7 +65,15 @@ export default function SettingsScreen({ settings, onChange, onBack }) {
 
       <button
         type="button"
-        className="settings__install"
+        className="settings__secondary"
+        onClick={onOpenTutorial}
+      >
+        ❓ Как пользоваться
+      </button>
+
+      <button
+        type="button"
+        className="settings__secondary"
         onClick={() => setShowInstall(true)}
       >
         📲 Установить на телефон

@@ -93,8 +93,8 @@
   font-weight: 700;
 }
 
-/* Ненавязчивый пункт «Установить на телефон» */
-.settings__install {
+/* Ненавязчивые пункты («Как пользоваться», «Установить на телефон») */
+.settings__secondary {
   width: 100%;
   min-height: 48px;
   border: 1px solid var(--border);
