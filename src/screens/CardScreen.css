@@ -151,30 +151,30 @@
   will-change: transform;
 }
 
-/* Штампы «ВЗЯТЬ»/«ПРОПУСТИТЬ», проявляющиеся по мере свайпа */
-.cards__stamp {
+/* Подсказки направлений свайпа «← Знаю» / «Взять →». Всегда видны (управление
+   без кнопок неочевидно), при свайпе к своей стороне разгораются. */
+.cards__swipe-hint {
   position: absolute;
-  top: 18px;
+  top: 16px;
   z-index: 1;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 999px;
-  border: 2px solid currentColor;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
+  border: 1.5px solid currentColor;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
   pointer-events: none;
+  transition: opacity 0.15s;
 }
 
-.cards__stamp--take {
-  left: 18px;
+.cards__swipe-hint--know {
+  left: 14px;
+  color: #35c88b;
+}
+
+.cards__swipe-hint--take {
+  right: 14px;
   color: var(--accent);
-  transform: rotate(-8deg);
-}
-
-.cards__stamp--skip {
-  right: 18px;
-  color: var(--text-muted);
-  transform: rotate(8deg);
 }
 
 .cards__word-block {
@@ -335,16 +335,12 @@
   gap: 12px;
 }
 
-.cards__actions-row {
-  display: flex;
-  gap: 10px;
-}
-
 .cards__action {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 2px;
   min-height: 52px;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
@@ -357,34 +353,29 @@
   transform: scale(0.98);
 }
 
+.cards__action-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .cards__action-emoji {
   font-size: 17px;
   line-height: 1;
 }
 
-/* Взять — главное действие */
-.cards__action--take {
-  width: 100%;
-  background-color: var(--accent);
-  color: #0b0d12;
+/* Маленькая подпись под названием действия («вернётся позже») */
+.cards__action-hint {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.7;
 }
 
-.cards__actions-row .cards__action {
-  flex: 1;
-}
-
-/* Пропустить — нейтральное */
+/* Пропустить — единственная кнопка (Взять/Знаю теперь только свайпом) */
 .cards__action--skip {
   background-color: var(--surface);
   border-color: var(--border);
   color: var(--text);
-}
-
-/* Знаю — «выучено», зелёный акцент */
-.cards__action--known {
-  background-color: rgba(53, 200, 139, 0.14);
-  border-color: rgba(53, 200, 139, 0.5);
-  color: #35c88b;
 }
 
 /* ---------- Экраны статуса: загрузка / ошибка / финал ---------- */

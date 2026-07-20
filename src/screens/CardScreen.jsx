@@ -77,15 +77,29 @@ export default function CardScreen({
   const { card, done } = pickCurrentCard(cards, vocab);
   const empty = cards.length === 0;
 
-  // Свайп — дополнение к кнопкам, не замена: вправо = Взять, влево =
-  // Пропустить. Активен только когда есть текущая карточка.
+  // Свайп — ОСНОВНОЙ способ разобрать новое слово (кнопок «Взять»/«Знаю»
+  // больше нет): вправо = Взять (в изучение), влево = Знаю (навсегда).
+  // «Пропустить» осталось отдельной кнопкой. Активно при наличии карточки.
   const swipe = useSwipeCard({
     enabled: Boolean(card),
     onSwipeRight: () => card && handleTake(card.word),
-    onSwipeLeft: () => card && skip(card.word),
+    onSwipeLeft: () => card && markKnown(card.word),
   });
   const swipeRightProgress = Math.max(0, Math.min(swipe.dragX / SWIPE_THRESHOLD, 1));
   const swipeLeftProgress = Math.max(0, Math.min(-swipe.dragX / SWIPE_THRESHOLD, 1));
+  // Подсветка стороны, к которой тянут карточку: зелёный (Знаю) слева,
+  // акцент (Взять) справа — чтобы было понятно действие ДО отпускания.
+  const swipeGlow =
+    swipe.dragX > 0
+      ? `108, 140, 255` // Взять — акцент
+      : `53, 200, 139`; // Знаю — зелёный
+  const swipeGlowStrength = Math.max(swipeRightProgress, swipeLeftProgress);
+  const cardStyle = {
+    ...swipe.style,
+    boxShadow: swipeGlowStrength
+      ? `0 0 0 2px rgba(${swipeGlow}, ${swipeGlowStrength}), 0 12px 32px rgba(${swipeGlow}, ${swipeGlowStrength * 0.4})`
+      : undefined,
+  };
 
   if (loading) {
     return (
@@ -255,21 +269,30 @@ export default function CardScreen({
       <article
         className="cards__card"
         ref={swipe.cardRef}
-        style={swipe.style}
+        style={cardStyle}
       >
+        {/* Подсказки направлений: без кнопок «Взять»/«Знаю» это единственный
+            способ понять управление. Всегда видны приглушённо, при свайпе к
+            своей стороне разгораются — показывают действие до отпускания. */}
         <span
-          className="cards__stamp cards__stamp--take"
-          style={{ opacity: swipeRightProgress }}
+          className="cards__swipe-hint cards__swipe-hint--know"
+          style={{
+            opacity: 0.5 + 0.5 * swipeLeftProgress,
+            backgroundColor: `rgba(53, 200, 139, ${0.12 + 0.3 * swipeLeftProgress})`,
+          }}
           aria-hidden="true"
         >
-          ➕ ВЗЯТЬ
+          ← Знаю
         </span>
         <span
-          className="cards__stamp cards__stamp--skip"
-          style={{ opacity: swipeLeftProgress }}
+          className="cards__swipe-hint cards__swipe-hint--take"
+          style={{
+            opacity: 0.5 + 0.5 * swipeRightProgress,
+            backgroundColor: `rgba(108, 140, 255, ${0.12 + 0.3 * swipeRightProgress})`,
+          }}
           aria-hidden="true"
         >
-          ⏭️ ПРОПУСТИТЬ
+          Взять →
         </span>
         <div className="cards__word-block">
           <h1 id="card-word" className="cards__word" lang={learnLang}>
@@ -303,36 +326,17 @@ export default function CardScreen({
         )}
         <button
           type="button"
-          className="cards__action cards__action--take"
-          onClick={() => handleTake(card.word)}
+          className="cards__action cards__action--skip"
+          onClick={() => skip(card.word)}
         >
-          <span className="cards__action-emoji" aria-hidden="true">
-            ➕
-          </span>
-          Взять
-        </button>
-        <div className="cards__actions-row">
-          <button
-            type="button"
-            className="cards__action cards__action--skip"
-            onClick={() => skip(card.word)}
-          >
+          <span className="cards__action-main">
             <span className="cards__action-emoji" aria-hidden="true">
               ⏭️
             </span>
             Пропустить
-          </button>
-          <button
-            type="button"
-            className="cards__action cards__action--known"
-            onClick={() => markKnown(card.word)}
-          >
-            <span className="cards__action-emoji" aria-hidden="true">
-              ✓
-            </span>
-            Знаю
-          </button>
-        </div>
+          </span>
+          <span className="cards__action-hint">вернётся позже</span>
+        </button>
         <GenerateCountPicker
           value={generateCount}
           onChange={onChangeGenerateCount}
