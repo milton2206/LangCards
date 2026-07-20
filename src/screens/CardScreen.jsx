@@ -266,34 +266,35 @@ export default function CardScreen({
       </div>
       <p className="cards__remaining">Осталось в порции: {remaining}</p>
 
-      <article
-        className="cards__card"
-        ref={swipe.cardRef}
-        style={cardStyle}
-      >
-        {/* Подсказки направлений: без кнопок «Взять»/«Знаю» это единственный
-            способ понять управление. Всегда видны приглушённо, при свайпе к
-            своей стороне разгораются — показывают действие до отпускания. */}
+      {/* Подсказки направлений — НАД карточкой, вне зоны текста: без кнопок
+          «Взять»/«Знаю» это единственный способ понять управление. Всегда
+          видны приглушённо, при свайпе к своей стороне разгораются. */}
+      <div className="cards__swipe-hints" aria-hidden="true">
         <span
           className="cards__swipe-hint cards__swipe-hint--know"
           style={{
-            opacity: 0.5 + 0.5 * swipeLeftProgress,
+            opacity: 0.55 + 0.45 * swipeLeftProgress,
             backgroundColor: `rgba(53, 200, 139, ${0.12 + 0.3 * swipeLeftProgress})`,
           }}
-          aria-hidden="true"
         >
           ← Знаю
         </span>
         <span
           className="cards__swipe-hint cards__swipe-hint--take"
           style={{
-            opacity: 0.5 + 0.5 * swipeRightProgress,
+            opacity: 0.55 + 0.45 * swipeRightProgress,
             backgroundColor: `rgba(108, 140, 255, ${0.12 + 0.3 * swipeRightProgress})`,
           }}
-          aria-hidden="true"
         >
           Взять →
         </span>
+      </div>
+
+      <article
+        className="cards__card"
+        ref={swipe.cardRef}
+        style={cardStyle}
+      >
         <div className="cards__word-block">
           <h1 id="card-word" className="cards__word" lang={learnLang}>
             {card.word}

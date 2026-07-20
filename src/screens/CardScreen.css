@@ -133,9 +133,37 @@
   font-size: 13px;
 }
 
+/* ---------- Подсказки свайпа (НАД карточкой, вне зоны текста) ---------- */
+/* «← Знаю» / «Взять →». Всегда видны (управление без кнопок неочевидно),
+   при свайпе к своей стороне разгораются. Не перекрывают контент карточки. */
+.cards__swipe-hints {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cards__swipe-hint {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1.5px solid currentColor;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.cards__swipe-hint--know {
+  color: #35c88b;
+}
+
+.cards__swipe-hint--take {
+  color: var(--accent);
+}
+
 /* ---------- Карточка ---------- */
 .cards__card {
-  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -149,32 +177,6 @@
      свайп перехватывается вручную в useSwipeCard */
   touch-action: pan-y;
   will-change: transform;
-}
-
-/* Подсказки направлений свайпа «← Знаю» / «Взять →». Всегда видны (управление
-   без кнопок неочевидно), при свайпе к своей стороне разгораются. */
-.cards__swipe-hint {
-  position: absolute;
-  top: 16px;
-  z-index: 1;
-  padding: 5px 12px;
-  border-radius: 999px;
-  border: 1.5px solid currentColor;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  pointer-events: none;
-  transition: opacity 0.15s;
-}
-
-.cards__swipe-hint--know {
-  left: 14px;
-  color: #35c88b;
-}
-
-.cards__swipe-hint--take {
-  right: 14px;
-  color: var(--accent);
 }
 
 .cards__word-block {
