@@ -8,6 +8,7 @@ import MyWordsScreen from "./screens/MyWordsScreen.jsx";
 import KnownWordsScreen from "./screens/KnownWordsScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
 import ReviewScreen from "./screens/ReviewScreen.jsx";
+import StatsScreen from "./screens/StatsScreen.jsx";
 import Tutorial from "./components/Tutorial.jsx";
 import { EMPTY_SETTINGS, SETTINGS_KEYS } from "./data/onboarding.js";
 import { useWordLists, getDueWords } from "./hooks/useWordLists.js";
@@ -129,6 +130,17 @@ export default function App() {
             onOpenSettings={() => setScreen("settings")}
             onOpenMyWords={() => setScreen("mywords")}
             onOpenReview={() => setScreen("review")}
+            onOpenStats={() => setScreen("stats")}
+          />
+        )}
+
+        {screen === "stats" && (
+          <StatsScreen
+            takenCount={vocab.takenWords.length}
+            knownCount={vocab.knownWords.length}
+            learnLang={settings.learnLang}
+            nativeLang={settings.nativeLang}
+            onBack={() => setScreen("cards")}
           />
         )}
 

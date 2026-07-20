@@ -48,6 +48,7 @@ export default function CardScreen({
   onOpenSettings,
   onOpenMyWords,
   onOpenReview,
+  onOpenStats,
 }) {
   const { takenWords, knownWords, take, skip, markKnown, rememberCards } = vocab;
 
@@ -119,6 +120,14 @@ export default function CardScreen({
       >
         📚 Мои слова
         <span className="cards__badge">{takenWords.length}</span>
+      </button>
+      <button
+        type="button"
+        className="cards__settings"
+        onClick={onOpenStats}
+        aria-label="Статистика"
+      >
+        📊
       </button>
       <button
         type="button"
