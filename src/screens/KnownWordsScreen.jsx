@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import "./MyWordsScreen.css";
 
 /**
@@ -21,6 +23,19 @@ export default function KnownWordsScreen({
     ...wordInfo[word],
   }));
 
+  // Мягкое сообщение, если «Вернуть» упирается в лимит активных слов.
+  const [limitNotice, setLimitNotice] = useState(false);
+  useEffect(() => {
+    if (!limitNotice) return;
+    const timer = setTimeout(() => setLimitNotice(false), 4000);
+    return () => clearTimeout(timer);
+  }, [limitNotice]);
+
+  function handleRestore(word) {
+    const ok = onRestore(word);
+    if (!ok) setLimitNotice(true);
+  }
+
   return (
     <section className="mywords">
       <header className="mywords__header">
@@ -35,6 +50,13 @@ export default function KnownWordsScreen({
         <h1 className="mywords__title">Известные слова</h1>
         <span className="mywords__count">{items.length}</span>
       </header>
+
+      {limitNotice && (
+        <p className="mywords__limit-notice" role="status">
+          ⚠️ Сначала повтори или выучи слова из активных — в изучении уже{" "}
+          {MAX_ACTIVE_WORDS} слов.
+        </p>
+      )}
 
       {items.length === 0 ? (
         <div className="mywords__empty">
@@ -68,7 +90,7 @@ export default function KnownWordsScreen({
                 <button
                   type="button"
                   className="mywords__restore"
-                  onClick={() => onRestore(item.word)}
+                  onClick={() => handleRestore(item.word)}
                 >
                   ↩ Вернуть
                 </button>

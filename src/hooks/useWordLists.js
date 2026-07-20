@@ -15,6 +15,11 @@ const LEGACY = {
 // На сколько дней «Пропустить» откладывает слово.
 export const SKIP_DAYS = 3;
 
+// Максимум слов в активном изучении одновременно (takenWords). Легко менять —
+// одна константа. При достижении лимита новые слова не добавляются, пока
+// часть активных не перейдёт в «Знаю» (или не будет временно возвращена).
+export const MAX_ACTIVE_WORDS = 50;
+
 function loadJSON(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
@@ -260,8 +265,14 @@ export function useWordLists(pairKey) {
 
   // ВЗЯТЬ — в личный список изучения; убрать из отложенных.
   // Заодно заводим стартовую запись интервального повторения для этого слова.
+  // При достижении MAX_ACTIVE_WORDS новое слово не добавляется — вызывающий
+  // код (UI) сам решает, как мягко об этом сообщить (по возвращаемому false).
   const take = useCallback(
     (word) => {
+      const alreadyTaken = takenWords.includes(word);
+      if (!alreadyTaken && takenWords.length >= MAX_ACTIVE_WORDS) {
+        return false;
+      }
       const today = toDayKey(new Date());
       updatePair((cur) => {
         const srs = cur.srsByWord || {};
@@ -274,8 +285,9 @@ export function useWordLists(pairKey) {
           srsByWord: srs[word] ? srs : { ...srs, [word]: startSrs(today) },
         };
       });
+      return true;
     },
-    [updatePair],
+    [updatePair, takenWords],
   );
 
   // ЗНАЮ — исключить навсегда (в т.ч. из взятых и отложенных).
@@ -312,8 +324,16 @@ export function useWordLists(pairKey) {
 
   // ВЕРНУТЬ В ИЗУЧЕНИЕ — из известных обратно в личный список.
   // Гарантируем srs-запись (если её ещё нет) — слово снова участвует в повторе.
+  // Тот же лимит MAX_ACTIVE_WORDS, что и для «Взять» — иначе лимит можно
+  // было бы обойти, массово возвращая известные слова обратно.
   const restoreToStudy = useCallback(
     (word) => {
+      if (
+        !takenWords.includes(word) &&
+        takenWords.length >= MAX_ACTIVE_WORDS
+      ) {
+        return false;
+      }
       const today = toDayKey(new Date());
       updatePair((cur) => {
         const srs = cur.srsByWord || {};
@@ -326,8 +346,9 @@ export function useWordLists(pairKey) {
           srsByWord: srs[word] ? srs : { ...srs, [word]: startSrs(today) },
         };
       });
+      return true;
     },
-    [updatePair],
+    [updatePair, takenWords],
   );
 
   // ПОВТОР — применить самооценку к взятому слову (интервальное повторение).

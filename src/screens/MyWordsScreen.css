@@ -31,6 +31,17 @@
   letter-spacing: -0.3px;
 }
 
+/* Мягкое сообщение о лимите активных слов — не блокировка, просто подсказка */
+.mywords__limit-notice {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 176, 32, 0.4);
+  background-color: rgba(255, 176, 32, 0.12);
+  color: #ffb020;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .mywords__count {
   flex: 0 0 auto;
   display: inline-flex;

@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { pickCurrentCard } from "../hooks/useWordLists.js";
+import { useEffect, useState } from "react";
+import { pickCurrentCard, MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { pluralRu } from "../lib/humanizeInterval.js";
 import "./CardScreen.css";
 
@@ -22,6 +22,20 @@ export default function CardScreen({
   onOpenReview,
 }) {
   const { takenWords, knownWords, take, skip, markKnown, rememberCards } = vocab;
+
+  // Мягкое сообщение при достижении лимита активных слов (см. MAX_ACTIVE_WORDS
+  // в useWordLists.js) — не блокировка, просто понятная подсказка на пару секунд.
+  const [limitNotice, setLimitNotice] = useState(false);
+  useEffect(() => {
+    if (!limitNotice) return;
+    const timer = setTimeout(() => setLimitNotice(false), 4000);
+    return () => clearTimeout(timer);
+  }, [limitNotice]);
+
+  function handleTake(word) {
+    const ok = take(word);
+    if (!ok) setLimitNotice(true);
+  }
 
   // Запоминаем данные показанных карточек для экранов «Мои слова»/«Известные».
   useEffect(() => {
@@ -208,10 +222,16 @@ export default function CardScreen({
       </article>
 
       <div className="cards__actions">
+        {limitNotice && (
+          <p className="cards__limit-notice" role="status">
+            ⚠️ Сначала повтори или выучи слова из активных — в изучении уже{" "}
+            {MAX_ACTIVE_WORDS} слов.
+          </p>
+        )}
         <button
           type="button"
           className="cards__action cards__action--take"
-          onClick={() => take(card.word)}
+          onClick={() => handleTake(card.word)}
         >
           <span className="cards__action-emoji" aria-hidden="true">
             ➕
