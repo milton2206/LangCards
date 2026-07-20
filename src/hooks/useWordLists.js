@@ -29,51 +29,91 @@ const EMPTY_PAIR = {
   knownWords: [],
   skippedWords: [],
   wordInfo: {},
+  // Состояние интервального повторения по каждому взятому слову.
+  srsByWord: {},
 };
 
-// Загрузка хранилища с одноразовой миграцией старых общих списков.
-function loadStore() {
-  const existing = loadJSON(STORE_KEY, null);
-  if (existing) return existing;
+// Стартовые значения интервального повторения для только что взятого слова.
+// (Сам алгоритм повторения здесь НЕ реализуется — только структура данных.)
+function startSrs() {
+  return {
+    interval: 0, // текущий интервал в днях
+    nextReviewDate: toDayKey(new Date()), // когда показать на повтор (старт: сегодня)
+    ease: 2.5, // коэффициент лёгкости (старт: среднее значение)
+    repetitions: 0, // сколько раз успешно повторено подряд
+    lastReviewed: null, // дата последнего повтора (старт: null)
+  };
+}
 
-  const legacyTaken = loadJSON(LEGACY.taken, []);
-  const legacyKnown = loadJSON(LEGACY.known, []);
-  const legacySkipped = loadJSON(LEGACY.skipped, []);
-  const legacyInfo = loadJSON(LEGACY.info, {});
-  const hasLegacy =
-    legacyTaken.length ||
-    legacyKnown.length ||
-    legacySkipped.length ||
-    Object.keys(legacyInfo).length;
-
-  if (hasLegacy) {
-    // Привязываем старые слова к текущей паре из настроек, иначе к de-ru
-    // (не теряем существующий прогресс).
-    const settings = loadJSON("settings", {});
-    const key =
-      settings.learnLang && settings.nativeLang
-        ? `${settings.learnLang}-${settings.nativeLang}`
-        : "de-ru";
-    const store = {
-      [key]: {
-        takenWords: legacyTaken,
-        knownWords: legacyKnown,
-        skippedWords: legacySkipped,
-        wordInfo: legacyInfo,
-      },
-    };
-    try {
-      localStorage.setItem(STORE_KEY, JSON.stringify(store));
-      localStorage.removeItem(LEGACY.taken);
-      localStorage.removeItem(LEGACY.known);
-      localStorage.removeItem(LEGACY.skipped);
-      localStorage.removeItem(LEGACY.info);
-    } catch {
-      // ignore
+// Гарантирует, что у каждого ВЗЯТОГО слова есть поля интервального повторения.
+// Идемпотентно; не трогает knownWords / skippedWords / wordInfo и уже
+// существующие srs-записи (не теряет прогресс).
+function ensureSrsFields(store) {
+  let changed = false;
+  const next = {};
+  for (const [pair, data] of Object.entries(store)) {
+    const srs = { ...(data.srsByWord || {}) };
+    let pairChanged = !data.srsByWord;
+    for (const word of data.takenWords || []) {
+      if (!srs[word]) {
+        srs[word] = startSrs();
+        pairChanged = true;
+      }
     }
-    return store;
+    next[pair] = pairChanged ? { ...data, srsByWord: srs } : data;
+    if (pairChanged) changed = true;
   }
-  return {};
+  return changed ? next : store;
+}
+
+// Загрузка хранилища: миграция старых общих списков + добавление полей
+// интервального повторения ко взятым словам.
+function loadStore() {
+  let store = loadJSON(STORE_KEY, null);
+
+  if (!store) {
+    // Миграция старых «плоских» ключей (до разделения по парам).
+    const legacyTaken = loadJSON(LEGACY.taken, []);
+    const legacyKnown = loadJSON(LEGACY.known, []);
+    const legacySkipped = loadJSON(LEGACY.skipped, []);
+    const legacyInfo = loadJSON(LEGACY.info, {});
+    const hasLegacy =
+      legacyTaken.length ||
+      legacyKnown.length ||
+      legacySkipped.length ||
+      Object.keys(legacyInfo).length;
+
+    if (hasLegacy) {
+      // Привязываем старые слова к текущей паре из настроек, иначе к de-ru
+      // (не теряем существующий прогресс).
+      const settings = loadJSON("settings", {});
+      const key =
+        settings.learnLang && settings.nativeLang
+          ? `${settings.learnLang}-${settings.nativeLang}`
+          : "de-ru";
+      store = {
+        [key]: {
+          takenWords: legacyTaken,
+          knownWords: legacyKnown,
+          skippedWords: legacySkipped,
+          wordInfo: legacyInfo,
+        },
+      };
+      try {
+        localStorage.removeItem(LEGACY.taken);
+        localStorage.removeItem(LEGACY.known);
+        localStorage.removeItem(LEGACY.skipped);
+        localStorage.removeItem(LEGACY.info);
+      } catch {
+        // ignore
+      }
+    } else {
+      store = {};
+    }
+  }
+
+  // Добавляем srs-поля ко всем взятым словам (для новых и мигрированных пар).
+  return ensureSrsFields(store);
 }
 
 // Ключ даты «YYYY-MM-DD» по локальному календарю (сравнение только по дню).
@@ -126,7 +166,7 @@ export function useWordLists(pairKey) {
   }, [store]);
 
   const current = store[pairKey] || EMPTY_PAIR;
-  const { takenWords, knownWords, skippedWords, wordInfo } = current;
+  const { takenWords, knownWords, skippedWords, wordInfo, srsByWord } = current;
 
   // «Сегодня» по реальной локальной дате.
   const todayKey = toDayKey(new Date());
@@ -143,15 +183,20 @@ export function useWordLists(pairKey) {
   );
 
   // ВЗЯТЬ — в личный список изучения; убрать из отложенных.
+  // Заодно заводим стартовую запись интервального повторения для этого слова.
   const take = useCallback(
     (word) => {
-      updatePair((cur) => ({
-        ...cur,
-        takenWords: cur.takenWords.includes(word)
-          ? cur.takenWords
-          : [...cur.takenWords, word],
-        skippedWords: cur.skippedWords.filter((s) => s.word !== word),
-      }));
+      updatePair((cur) => {
+        const srs = cur.srsByWord || {};
+        return {
+          ...cur,
+          takenWords: cur.takenWords.includes(word)
+            ? cur.takenWords
+            : [...cur.takenWords, word],
+          skippedWords: cur.skippedWords.filter((s) => s.word !== word),
+          srsByWord: srs[word] ? srs : { ...srs, [word]: startSrs() },
+        };
+      });
     },
     [updatePair],
   );
@@ -187,15 +232,20 @@ export function useWordLists(pairKey) {
   );
 
   // ВЕРНУТЬ В ИЗУЧЕНИЕ — из известных обратно в личный список.
+  // Гарантируем srs-запись (если её ещё нет) — слово снова участвует в повторе.
   const restoreToStudy = useCallback(
     (word) => {
-      updatePair((cur) => ({
-        ...cur,
-        knownWords: cur.knownWords.filter((w) => w !== word),
-        takenWords: cur.takenWords.includes(word)
-          ? cur.takenWords
-          : [...cur.takenWords, word],
-      }));
+      updatePair((cur) => {
+        const srs = cur.srsByWord || {};
+        return {
+          ...cur,
+          knownWords: cur.knownWords.filter((w) => w !== word),
+          takenWords: cur.takenWords.includes(word)
+            ? cur.takenWords
+            : [...cur.takenWords, word],
+          srsByWord: srs[word] ? srs : { ...srs, [word]: startSrs() },
+        };
+      });
     },
     [updatePair],
   );
@@ -224,6 +274,7 @@ export function useWordLists(pairKey) {
     knownWords,
     skippedWords,
     wordInfo,
+    srsByWord, // состояние интервального повторения по слову (для Этапа 2)
     todayKey,
     take,
     markKnown,
