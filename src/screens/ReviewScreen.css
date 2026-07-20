@@ -142,11 +142,26 @@
 }
 
 .review__grade {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   min-height: 52px;
+  padding: 8px 6px;
   border-radius: var(--radius-sm);
   border: 1.5px solid transparent;
+}
+
+.review__grade-label {
   font-size: 15px;
   font-weight: 700;
+}
+
+.review__grade-interval {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.75;
 }
 
 .review__grade--again {

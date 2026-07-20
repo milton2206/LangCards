@@ -127,6 +127,8 @@ export default function App() {
           <ReviewScreen
             dueWords={dueWords}
             wordInfo={vocab.wordInfo}
+            srsByWord={vocab.srsByWord}
+            todayKey={vocab.todayKey}
             learnLang={settings.learnLang}
             nativeLang={settings.nativeLang}
             onReview={vocab.reviewWord}

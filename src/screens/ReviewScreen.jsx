@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { highlightWordInExample } from "../lib/highlightWord.js";
+import { humanizeInterval } from "../lib/humanizeInterval.js";
+import { nextSrs } from "../hooks/useWordLists.js";
 import "./ReviewScreen.css";
 
 const GRADES = [
@@ -26,6 +28,8 @@ const GRADES = [
 export default function ReviewScreen({
   dueWords,
   wordInfo,
+  srsByWord,
+  todayKey,
   learnLang,
   nativeLang,
   onReview,
@@ -72,6 +76,15 @@ export default function ReviewScreen({
   const segments = hasExample
     ? highlightWordInExample(info.example, currentWord)
     : [];
+
+  // Какой интервал реально применится при каждой оценке — считаем той же
+  // функцией, что и на самом нажатии (nextSrs), с текущими параметрами
+  // ИМЕННО этого слова, поэтому у разных слов подписи разные.
+  const currentSrs = srsByWord[currentWord];
+  const gradesWithInterval = GRADES.map((g) => ({
+    ...g,
+    interval: nextSrs(currentSrs, g.grade, todayKey).interval,
+  }));
 
   return (
     <section className="review" aria-labelledby="review-word">
@@ -150,14 +163,17 @@ export default function ReviewScreen({
 
       {revealed && (
         <div className="review__grades">
-          {GRADES.map(({ grade, label, cls }) => (
+          {gradesWithInterval.map(({ grade, label, cls, interval }) => (
             <button
               key={grade}
               type="button"
               className={`review__grade review__grade--${cls}`}
               onClick={() => onReview(currentWord, grade)}
             >
-              {label}
+              <span className="review__grade-label">{label}</span>
+              <span className="review__grade-interval">
+                {humanizeInterval(interval)}
+              </span>
             </button>
           ))}
         </div>
