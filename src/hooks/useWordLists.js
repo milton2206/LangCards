@@ -130,6 +130,70 @@ function addDays(date, days) {
   return next;
 }
 
+// Прибавляет дни к ключу даты "YYYY-MM-DD" (по локальному календарю).
+function addDaysToKey(dayKey, days) {
+  const [y, m, d] = dayKey.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + days);
+  return toDayKey(date);
+}
+
+// ---------- Алгоритм интервального повторения (упрощённый SM-2) ----------
+const MIN_EASE = 1.3; // ниже не опускаем, чтобы трудные слова не застревали
+const EASE_DELTA = { again: -0.2, hard: -0.15, good: 0, easy: 0.15 };
+const HARD_FACTOR = 1.2; // «Трудно»: небольшой рост интервала
+const EASY_BONUS = 1.15; // «Легко»: рост больше обычного
+const FIRST_INTERVAL = 1; // первый успешный повтор → 1 день
+
+/**
+ * Пересчёт состояния повторения после самооценки.
+ * grade: "again" | "hard" | "good" | "easy".
+ * Правила интервала: 1-й успех → 1 день, дальше interval × множитель
+ * ("Нормально" → × ease, "Трудно" → ×1.2, "Легко" → × ease × 1.15).
+ * "Не помню" сбрасывает серию (завтра, repetitions = 0). ease меняется по grade,
+ * не опускаясь ниже 1.3. Возвращает новую srs-запись (чистая функция).
+ */
+export function nextSrs(srs, grade, todayKey) {
+  const prevEase = typeof srs?.ease === "number" ? srs.ease : 2.5;
+  const prevInterval = typeof srs?.interval === "number" ? srs.interval : 0;
+  const prevReps = typeof srs?.repetitions === "number" ? srs.repetitions : 0;
+
+  let ease = prevEase + (EASE_DELTA[grade] ?? 0);
+  if (ease < MIN_EASE) ease = MIN_EASE;
+  ease = Math.round(ease * 100) / 100;
+
+  let interval;
+  let repetitions;
+
+  if (grade === "again") {
+    // «Не помню» — сброс: показать завтра, серия обнулена.
+    repetitions = 0;
+    interval = 1;
+  } else {
+    repetitions = prevReps + 1;
+    if (repetitions === 1) {
+      interval = FIRST_INTERVAL; // первый успешный повтор
+    } else {
+      const factor =
+        grade === "hard"
+          ? HARD_FACTOR
+          : grade === "easy"
+            ? ease * EASY_BONUS
+            : ease; // "good"
+      // растём минимум на 1 день, чтобы «Трудно» тоже двигалось вперёд
+      interval = Math.max(prevInterval + 1, Math.round(prevInterval * factor));
+    }
+  }
+
+  return {
+    interval,
+    ease,
+    repetitions,
+    nextReviewDate: addDaysToKey(todayKey, interval),
+    lastReviewed: todayKey,
+  };
+}
+
 /**
  * Текущая карточка из потока новых (см. прежнюю логику: исключены взятые и
  * известные, отложенные скрыты до даты возврата).
@@ -250,6 +314,24 @@ export function useWordLists(pairKey) {
     [updatePair],
   );
 
+  // ПОВТОР — применить самооценку к взятому слову (интервальное повторение).
+  // grade: "again" | "hard" | "good" | "easy". Пересчитывает только srs-запись,
+  // членство в списках (taken/known/skipped) не трогает.
+  const reviewWord = useCallback(
+    (word, grade) => {
+      const today = toDayKey(new Date());
+      updatePair((cur) => {
+        const srs = cur.srsByWord || {};
+        const prev = srs[word] || startSrs();
+        return {
+          ...cur,
+          srsByWord: { ...srs, [word]: nextSrs(prev, grade, today) },
+        };
+      });
+    },
+    [updatePair],
+  );
+
   // Запомнить данные показанных карточек (для экранов списков).
   const rememberCards = useCallback(
     (cards) => {
@@ -280,6 +362,7 @@ export function useWordLists(pairKey) {
     markKnown,
     skip,
     restoreToStudy,
+    reviewWord, // самооценка при интервальном повторении (Этап 2)
     rememberCards,
   };
 }
