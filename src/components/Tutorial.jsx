@@ -9,13 +9,14 @@ const SLIDES = [
     text: "Каждое слово — с примером в предложении. Так они запоминаются лучше, чем по отдельности.",
   },
   {
-    emoji: "🎯",
-    title: "Три кнопки на карточке",
-    actions: [
-      { label: "Взять", desc: "слово идёт в изучение — будешь повторять", cls: "take" },
-      { label: "Пропустить", desc: "пока не хочешь — слово вернётся позже", cls: "skip" },
-      { label: "Знаю", desc: "уже знаешь — слово больше не появится", cls: "known" },
-    ],
+    emoji: "🃏",
+    title: "Управляй карточкой свайпом",
+    text: "Кнопок «Взять»/«Знаю» на карточке больше нет — двигай её пальцем.",
+    swipe: {
+      left: { arrow: "←", label: "Знаю", desc: "уже знакомо — убрать навсегда", cls: "known" },
+      right: { arrow: "→", label: "Взять", desc: "в изучение — будешь повторять", cls: "take" },
+      skip: { label: "Пропустить", desc: "кнопкой — слово вернётся позже", cls: "skip" },
+    },
   },
   {
     emoji: "✨",
@@ -106,19 +107,53 @@ export default function Tutorial({ onClose }) {
 
           {slide.text && <p className="tutorial__text">{slide.text}</p>}
 
-          {slide.actions && (
-            <ul className="tutorial__actions">
-              {slide.actions.map((a) => (
-                <li key={a.label} className="tutorial__act">
-                  <span
-                    className={`tutorial__act-label tutorial__act-label--${a.cls}`}
-                  >
-                    {a.label}
+          {slide.swipe && (
+            <div className="tutorial__swipe">
+              <div className="tutorial__swipe-row">
+                <div className="tutorial__swipe-side tutorial__swipe-side--left">
+                  <span className="tutorial__swipe-arrow">
+                    {slide.swipe.left.arrow}
                   </span>
-                  <span className="tutorial__act-desc">{a.desc}</span>
-                </li>
-              ))}
-            </ul>
+                  <span
+                    className={`tutorial__act-label tutorial__act-label--${slide.swipe.left.cls}`}
+                  >
+                    {slide.swipe.left.label}
+                  </span>
+                  <span className="tutorial__swipe-desc">
+                    {slide.swipe.left.desc}
+                  </span>
+                </div>
+
+                <div className="tutorial__swipe-card" aria-hidden="true">
+                  🃏
+                </div>
+
+                <div className="tutorial__swipe-side tutorial__swipe-side--right">
+                  <span className="tutorial__swipe-arrow">
+                    {slide.swipe.right.arrow}
+                  </span>
+                  <span
+                    className={`tutorial__act-label tutorial__act-label--${slide.swipe.right.cls}`}
+                  >
+                    {slide.swipe.right.label}
+                  </span>
+                  <span className="tutorial__swipe-desc">
+                    {slide.swipe.right.desc}
+                  </span>
+                </div>
+              </div>
+
+              <div className="tutorial__swipe-skip">
+                <span
+                  className={`tutorial__act-label tutorial__act-label--${slide.swipe.skip.cls}`}
+                >
+                  {slide.swipe.skip.label}
+                </span>
+                <span className="tutorial__act-desc">
+                  {slide.swipe.skip.desc}
+                </span>
+              </div>
+            </div>
           )}
         </div>
 

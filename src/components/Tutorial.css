@@ -130,6 +130,75 @@
   line-height: 1.4;
 }
 
+/* ---------- Слайд со свайпами ---------- */
+.tutorial__swipe {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.tutorial__swipe-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tutorial__swipe-side {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.tutorial__swipe-arrow {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+.tutorial__swipe-side--left .tutorial__swipe-arrow {
+  color: #35c88b;
+}
+
+.tutorial__swipe-side--right .tutorial__swipe-arrow {
+  color: var(--accent);
+}
+
+.tutorial__swipe-card {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background-color: var(--surface);
+}
+
+.tutorial__swipe-desc {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.35;
+  max-width: 15ch;
+}
+
+.tutorial__swipe-skip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  text-align: left;
+}
+
 /* ---------- Точки ---------- */
 .tutorial__dots {
   display: flex;
