@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { pickCurrentCard, MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
+import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
 import { GENERATE_COUNT_OPTIONS } from "../lib/generateCount.js";
 import { pluralRu } from "../lib/humanizeInterval.js";
 import "./CardScreen.css";
@@ -71,6 +72,21 @@ export default function CardScreen({
     if (cards.length) rememberCards(cards);
   }, [cards, rememberCards]);
 
+  // pickCurrentCard/swipe вызываются ДО ранних return (loading/error) —
+  // хуки должны отрабатывать в одном порядке на каждый рендер.
+  const { card, done } = pickCurrentCard(cards, vocab);
+  const empty = cards.length === 0;
+
+  // Свайп — дополнение к кнопкам, не замена: вправо = Взять, влево =
+  // Пропустить. Активен только когда есть текущая карточка.
+  const swipe = useSwipeCard({
+    enabled: Boolean(card),
+    onSwipeRight: () => card && handleTake(card.word),
+    onSwipeLeft: () => card && skip(card.word),
+  });
+  const swipeRightProgress = Math.max(0, Math.min(swipe.dragX / SWIPE_THRESHOLD, 1));
+  const swipeLeftProgress = Math.max(0, Math.min(-swipe.dragX / SWIPE_THRESHOLD, 1));
+
   if (loading) {
     return (
       <section className="cards cards--status">
@@ -103,8 +119,6 @@ export default function CardScreen({
     );
   }
 
-  const { card, done } = pickCurrentCard(cards, vocab);
-  const empty = cards.length === 0;
   const total = cards.length;
   const learnedInBatch = cards.filter(
     (c) => takenWords.includes(c.word) || knownWords.includes(c.word),
@@ -238,7 +252,25 @@ export default function CardScreen({
       </div>
       <p className="cards__remaining">Осталось в порции: {remaining}</p>
 
-      <article className="cards__card">
+      <article
+        className="cards__card"
+        ref={swipe.cardRef}
+        style={swipe.style}
+      >
+        <span
+          className="cards__stamp cards__stamp--take"
+          style={{ opacity: swipeRightProgress }}
+          aria-hidden="true"
+        >
+          ➕ ВЗЯТЬ
+        </span>
+        <span
+          className="cards__stamp cards__stamp--skip"
+          style={{ opacity: swipeLeftProgress }}
+          aria-hidden="true"
+        >
+          ⏭️ ПРОПУСТИТЬ
+        </span>
         <div className="cards__word-block">
           <h1 id="card-word" className="cards__word" lang={learnLang}>
             {card.word}

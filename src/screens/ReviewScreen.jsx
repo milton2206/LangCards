@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { highlightWordInExample } from "../lib/highlightWord.js";
 import { humanizeInterval } from "../lib/humanizeInterval.js";
 import { nextSrs } from "../hooks/useWordLists.js";
+import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
 import "./ReviewScreen.css";
 
 const GRADES = [
@@ -43,6 +44,17 @@ export default function ReviewScreen({
   useEffect(() => {
     setRevealed(false);
   }, [currentWord]);
+
+  // Свайп — дополнение к кнопкам самооценки: вправо = «Легко», влево =
+  // «Не помню». Активен только когда ответ уже открыт (иначе непонятно,
+  // за что жест — сначала нужно увидеть перевод).
+  const swipe = useSwipeCard({
+    enabled: revealed && Boolean(currentWord),
+    onSwipeRight: () => currentWord && onReview(currentWord, "easy"),
+    onSwipeLeft: () => currentWord && onReview(currentWord, "again"),
+  });
+  const swipeRightProgress = Math.max(0, Math.min(swipe.dragX / SWIPE_THRESHOLD, 1));
+  const swipeLeftProgress = Math.max(0, Math.min(-swipe.dragX / SWIPE_THRESHOLD, 1));
 
   if (!currentWord) {
     return (
@@ -100,7 +112,29 @@ export default function ReviewScreen({
         <span className="review__remaining">Осталось повторить: {total}</span>
       </header>
 
-      <article className="review__card">
+      <article
+        className="review__card"
+        ref={swipe.cardRef}
+        style={swipe.style}
+      >
+        {revealed && (
+          <>
+            <span
+              className="review__stamp review__stamp--easy"
+              style={{ opacity: swipeRightProgress }}
+              aria-hidden="true"
+            >
+              🙂 ЛЕГКО
+            </span>
+            <span
+              className="review__stamp review__stamp--again"
+              style={{ opacity: swipeLeftProgress }}
+              aria-hidden="true"
+            >
+              😵 НЕ ПОМНЮ
+            </span>
+          </>
+        )}
         {/* Лицо: предложение целиком, изучаемое слово выделено */}
         {hasExample ? (
           <p className="review__sentence" lang={learnLang}>
