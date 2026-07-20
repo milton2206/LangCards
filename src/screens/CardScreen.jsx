@@ -1,7 +1,33 @@
 import { useEffect, useState } from "react";
 import { pickCurrentCard, MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
+import { GENERATE_COUNT_OPTIONS } from "../lib/generateCount.js";
 import { pluralRu } from "../lib/humanizeInterval.js";
 import "./CardScreen.css";
+
+// Переключатель «сколько карточек генерировать за раз» (5/10/20) — рядом с
+// кнопкой генерации в обоих местах, где она встречается на этом экране.
+function GenerateCountPicker({ value, onChange }) {
+  return (
+    <div className="cards__count-picker">
+      <span className="cards__count-label">Сколько карточек:</span>
+      <div className="cards__count-options">
+        {GENERATE_COUNT_OPTIONS.map((n) => (
+          <button
+            key={n}
+            type="button"
+            className={
+              "cards__count-chip" + (value === n ? " is-active" : "")
+            }
+            aria-pressed={value === n}
+            onClick={() => onChange(n)}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /**
  * Главный экран. Карточки НЕ генерируются автоматически — только по кнопке
@@ -15,6 +41,8 @@ export default function CardScreen({
   error,
   learnLang,
   dueCount,
+  generateCount,
+  onChangeGenerateCount,
   onGenerate,
   onClearError,
   onOpenSettings,
@@ -166,6 +194,10 @@ export default function CardScreen({
             </>
           )}
           <div className="cards__status-actions">
+            <GenerateCountPicker
+              value={generateCount}
+              onChange={onChangeGenerateCount}
+            />
             <button type="button" className="cards__retry" onClick={onGenerate}>
               🔄 Сгенерировать новые карточки
             </button>
@@ -260,6 +292,10 @@ export default function CardScreen({
             Знаю
           </button>
         </div>
+        <GenerateCountPicker
+          value={generateCount}
+          onChange={onChangeGenerateCount}
+        />
         <button
           type="button"
           className="cards__generate"

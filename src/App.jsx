@@ -12,6 +12,7 @@ import Tutorial from "./components/Tutorial.jsx";
 import { EMPTY_SETTINGS, SETTINGS_KEYS } from "./data/onboarding.js";
 import { useWordLists, getDueWords } from "./hooks/useWordLists.js";
 import { useCards } from "./hooks/useCards.js";
+import { loadGenerateCount } from "./lib/generateCount.js";
 
 function loadSettings() {
   try {
@@ -38,6 +39,12 @@ export default function App() {
 
   const vocab = useWordLists(pairKey);
   const { cards, loading, error, generate, clearError } = useCards(pairKey);
+
+  // Сколько карточек генерировать за раз — сохраняется между сессиями.
+  const [generateCount, setGenerateCount] = useState(loadGenerateCount);
+  useEffect(() => {
+    localStorage.setItem("generateCount", String(generateCount));
+  }, [generateCount]);
 
   // Слова, которым сегодня пора на повтор (отдельно от потока новых карточек).
   const dueWords = getDueWords(vocab.takenWords, vocab.srsByWord, vocab.todayKey);
@@ -74,7 +81,7 @@ export default function App() {
       exclude: [
         ...new Set([...vocab.takenWords, ...vocab.knownWords, ...deferred]),
       ],
-      count: 10,
+      count: generateCount,
     };
   }
 
@@ -115,6 +122,8 @@ export default function App() {
             error={error}
             learnLang={settings.learnLang}
             dueCount={dueWords.length}
+            generateCount={generateCount}
+            onChangeGenerateCount={setGenerateCount}
             onGenerate={handleGenerate}
             onClearError={clearError}
             onOpenSettings={() => setScreen("settings")}
