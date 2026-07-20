@@ -115,8 +115,6 @@ export default function App() {
             error={error}
             learnLang={settings.learnLang}
             dueCount={dueWords.length}
-            dayOffset={vocab.dayOffset}
-            onAdvanceDay={vocab.advanceDay}
             onGenerate={handleGenerate}
             onClearError={clearError}
             onOpenSettings={() => setScreen("settings")}

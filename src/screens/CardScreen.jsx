@@ -14,8 +14,6 @@ export default function CardScreen({
   error,
   learnLang,
   dueCount,
-  dayOffset,
-  onAdvanceDay,
   onGenerate,
   onClearError,
   onOpenSettings,
@@ -106,27 +104,12 @@ export default function CardScreen({
       <p className="cards__review-empty">🔁 Повторять пока нечего</p>
     );
 
-  // ВРЕМЕННО (Этап 2, отладка): прокрутка дня — проверить отсрочку и
-  // повторение без ожидания реальных дней. См. Этап 1 (аналогичный приём).
-  const debugBar = (
-    <div className="cards__debug">
-      <span className="cards__debug-info">
-        🐛 Отладка · сегодня {vocab.todayKey}
-        {dayOffset > 0 ? ` (+${dayOffset} дн.)` : ""}
-      </span>
-      <button type="button" className="cards__debug-btn" onClick={onAdvanceDay}>
-        ⏩ Промотать день вперёд
-      </button>
-    </div>
-  );
-
   // Нет текущей карточки: либо порция ещё не сгенерирована, либо разобрана.
   if (empty || done) {
     return (
       <section className="cards">
         {topbar}
         {reviewBanner}
-        {debugBar}
         <div className="cards__center">
           {empty ? (
             <>
@@ -174,7 +157,6 @@ export default function CardScreen({
     <section className="cards" aria-labelledby="card-word">
       {topbar}
       {reviewBanner}
-      {debugBar}
 
       <div className="cards__progressbar" aria-hidden="true">
         <span

@@ -12,11 +12,6 @@ const LEGACY = {
   info: "wordInfo",
 };
 
-// ВРЕМЕННО (Этап 2, отладка): ключ сдвига «сегодня» вперёд на N дней — чтобы
-// проверять отсрочку («Пропустить») и повторение (SRS) без ожидания реальных
-// дней. Аналогично механизму из Этапа 1.
-const DEBUG_OFFSET_KEY = "debugDayOffset";
-
 // На сколько дней «Пропустить» откладывает слово.
 export const SKIP_DAYS = 3;
 
@@ -118,10 +113,7 @@ function loadStore() {
   }
 
   // Добавляем srs-поля ко всем взятым словам (для новых и мигрированных пар).
-  // Учитываем отладочный сдвиг дня, если он активен (см. DEBUG_OFFSET_KEY).
-  const debugOffset = loadJSON(DEBUG_OFFSET_KEY, 0);
-  const todayAtLoad = toDayKey(addDays(new Date(), debugOffset));
-  return ensureSrsFields(store, todayAtLoad);
+  return ensureSrsFields(store, toDayKey(new Date()));
 }
 
 // Ключ даты «YYYY-MM-DD» по локальному календарю (сравнение только по дню).
@@ -252,18 +244,8 @@ export function useWordLists(pairKey) {
   const current = store[pairKey] || EMPTY_PAIR;
   const { takenWords, knownWords, skippedWords, wordInfo, srsByWord } = current;
 
-  // ВРЕМЕННО (Этап 2, отладка): сдвиг «сегодня» вперёд на N дней — чтобы
-  // проверять отсрочку и повторение без ожидания реальных дней.
-  const [dayOffset, setDayOffset] = useState(() =>
-    loadJSON(DEBUG_OFFSET_KEY, 0),
-  );
-  useEffect(() => {
-    localStorage.setItem(DEBUG_OFFSET_KEY, JSON.stringify(dayOffset));
-  }, [dayOffset]);
-  const advanceDay = useCallback(() => setDayOffset((n) => n + 1), []);
-
-  // «Сегодня» с учётом отладочного сдвига (в норме сдвиг = 0).
-  const todayKey = toDayKey(addDays(new Date(), dayOffset));
+  // «Сегодня» по реальной локальной дате.
+  const todayKey = toDayKey(new Date());
 
   // Обновляет срез текущей пары в общем хранилище.
   const updatePair = useCallback(
@@ -280,7 +262,7 @@ export function useWordLists(pairKey) {
   // Заодно заводим стартовую запись интервального повторения для этого слова.
   const take = useCallback(
     (word) => {
-      const today = toDayKey(addDays(new Date(), dayOffset));
+      const today = toDayKey(new Date());
       updatePair((cur) => {
         const srs = cur.srsByWord || {};
         return {
@@ -293,7 +275,7 @@ export function useWordLists(pairKey) {
         };
       });
     },
-    [updatePair, dayOffset],
+    [updatePair],
   );
 
   // ЗНАЮ — исключить навсегда (в т.ч. из взятых и отложенных).
@@ -316,7 +298,7 @@ export function useWordLists(pairKey) {
   // НЕ взятых новых карточек (skippedWords), не трогает srsByWord.
   const skip = useCallback(
     (word) => {
-      const returnDate = toDayKey(addDays(new Date(), dayOffset + SKIP_DAYS));
+      const returnDate = toDayKey(addDays(new Date(), SKIP_DAYS));
       updatePair((cur) => ({
         ...cur,
         skippedWords: [
@@ -325,14 +307,14 @@ export function useWordLists(pairKey) {
         ],
       }));
     },
-    [updatePair, dayOffset],
+    [updatePair],
   );
 
   // ВЕРНУТЬ В ИЗУЧЕНИЕ — из известных обратно в личный список.
   // Гарантируем srs-запись (если её ещё нет) — слово снова участвует в повторе.
   const restoreToStudy = useCallback(
     (word) => {
-      const today = toDayKey(addDays(new Date(), dayOffset));
+      const today = toDayKey(new Date());
       updatePair((cur) => {
         const srs = cur.srsByWord || {};
         return {
@@ -345,7 +327,7 @@ export function useWordLists(pairKey) {
         };
       });
     },
-    [updatePair, dayOffset],
+    [updatePair],
   );
 
   // ПОВТОР — применить самооценку к взятому слову (интервальное повторение).
@@ -353,7 +335,7 @@ export function useWordLists(pairKey) {
   // членство в списках (taken/known/skipped) не трогает — ОТДЕЛЬНО от «Пропустить».
   const reviewWord = useCallback(
     (word, grade) => {
-      const today = toDayKey(addDays(new Date(), dayOffset));
+      const today = toDayKey(new Date());
       updatePair((cur) => {
         const srs = cur.srsByWord || {};
         const prev = srs[word] || startSrs(today);
@@ -363,7 +345,7 @@ export function useWordLists(pairKey) {
         };
       });
     },
-    [updatePair, dayOffset],
+    [updatePair],
   );
 
   // Запомнить данные показанных карточек (для экранов списков).
@@ -392,8 +374,6 @@ export function useWordLists(pairKey) {
     wordInfo,
     srsByWord, // состояние интервального повторения по слову (для Этапа 2)
     todayKey,
-    dayOffset, // ВРЕМЕННО (отладка): текущий сдвиг «сегодня» в днях
-    advanceDay, // ВРЕМЕННО (отладка): промотать «сегодня» на 1 день вперёд
     take,
     markKnown,
     skip,
