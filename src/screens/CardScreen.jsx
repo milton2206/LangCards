@@ -13,10 +13,14 @@ export default function CardScreen({
   loading,
   error,
   learnLang,
+  dueCount,
+  dayOffset,
+  onAdvanceDay,
   onGenerate,
   onClearError,
   onOpenSettings,
   onOpenMyWords,
+  onOpenReview,
 }) {
   const { takenWords, knownWords, take, skip, markKnown, rememberCards } = vocab;
 
@@ -86,11 +90,43 @@ export default function CardScreen({
     </header>
   );
 
+  // Режим «Повторить»: сколько взятых слов ждут повтора сегодня. Счётчик
+  // всегда виден — так понятно, нужно ли сейчас повторять (даже если 0).
+  const reviewBanner =
+    dueCount > 0 ? (
+      <button
+        type="button"
+        className="cards__review-banner"
+        onClick={onOpenReview}
+      >
+        🔁 Повторить
+        <span className="cards__review-count">{dueCount}</span>
+      </button>
+    ) : (
+      <p className="cards__review-empty">🔁 Повторять пока нечего</p>
+    );
+
+  // ВРЕМЕННО (Этап 2, отладка): прокрутка дня — проверить отсрочку и
+  // повторение без ожидания реальных дней. См. Этап 1 (аналогичный приём).
+  const debugBar = (
+    <div className="cards__debug">
+      <span className="cards__debug-info">
+        🐛 Отладка · сегодня {vocab.todayKey}
+        {dayOffset > 0 ? ` (+${dayOffset} дн.)` : ""}
+      </span>
+      <button type="button" className="cards__debug-btn" onClick={onAdvanceDay}>
+        ⏩ Промотать день вперёд
+      </button>
+    </div>
+  );
+
   // Нет текущей карточки: либо порция ещё не сгенерирована, либо разобрана.
   if (empty || done) {
     return (
       <section className="cards">
         {topbar}
+        {reviewBanner}
+        {debugBar}
         <div className="cards__center">
           {empty ? (
             <>
@@ -137,6 +173,8 @@ export default function CardScreen({
   return (
     <section className="cards" aria-labelledby="card-word">
       {topbar}
+      {reviewBanner}
+      {debugBar}
 
       <div className="cards__progressbar" aria-hidden="true">
         <span

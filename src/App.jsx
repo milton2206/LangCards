@@ -7,9 +7,10 @@ import CardScreen from "./screens/CardScreen.jsx";
 import MyWordsScreen from "./screens/MyWordsScreen.jsx";
 import KnownWordsScreen from "./screens/KnownWordsScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
+import ReviewScreen from "./screens/ReviewScreen.jsx";
 import Tutorial from "./components/Tutorial.jsx";
 import { EMPTY_SETTINGS, SETTINGS_KEYS } from "./data/onboarding.js";
-import { useWordLists } from "./hooks/useWordLists.js";
+import { useWordLists, getDueWords } from "./hooks/useWordLists.js";
 import { useCards } from "./hooks/useCards.js";
 
 function loadSettings() {
@@ -37,6 +38,9 @@ export default function App() {
 
   const vocab = useWordLists(pairKey);
   const { cards, loading, error, generate, clearError } = useCards(pairKey);
+
+  // Слова, которым сегодня пора на повтор (отдельно от потока новых карточек).
+  const dueWords = getDueWords(vocab.takenWords, vocab.srsByWord, vocab.todayKey);
 
   // Короткий туториал показывается ОДИН раз при первом запуске (по флагу).
   const [showTutorial, setShowTutorial] = useState(
@@ -110,10 +114,25 @@ export default function App() {
             loading={loading}
             error={error}
             learnLang={settings.learnLang}
+            dueCount={dueWords.length}
+            dayOffset={vocab.dayOffset}
+            onAdvanceDay={vocab.advanceDay}
             onGenerate={handleGenerate}
             onClearError={clearError}
             onOpenSettings={() => setScreen("settings")}
             onOpenMyWords={() => setScreen("mywords")}
+            onOpenReview={() => setScreen("review")}
+          />
+        )}
+
+        {screen === "review" && (
+          <ReviewScreen
+            dueWords={dueWords}
+            wordInfo={vocab.wordInfo}
+            learnLang={settings.learnLang}
+            nativeLang={settings.nativeLang}
+            onReview={vocab.reviewWord}
+            onBack={() => setScreen("cards")}
           />
         )}
 

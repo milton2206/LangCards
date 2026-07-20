@@ -1,0 +1,224 @@
+.review {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.review__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.review__back {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.review__remaining {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ---------- Карточка ---------- */
+.review__card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 32px 22px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.review__word {
+  font-size: clamp(26px, 8vw, 36px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.review__reveal {
+  min-height: 52px;
+  padding: 12px 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-elevated);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.review__divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--border);
+}
+
+.review__answer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.review__translit {
+  color: var(--accent);
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+.review__translation {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.review__example {
+  width: 100%;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  text-align: left;
+  border-left: 3px solid var(--accent);
+  background-color: var(--bg-elevated);
+  border-radius: 0 8px 8px 0;
+}
+
+.review__example-label {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.review__example-text {
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.review__example-translation {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ---------- Самооценка: 2×2 сетка ---------- */
+.review__grades {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom));
+}
+
+.review__grade {
+  min-height: 52px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid transparent;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.review__grade--again {
+  background-color: rgba(255, 107, 107, 0.14);
+  border-color: rgba(255, 107, 107, 0.5);
+  color: #ff8a8a;
+}
+
+.review__grade--hard {
+  background-color: rgba(255, 176, 32, 0.14);
+  border-color: rgba(255, 176, 32, 0.5);
+  color: #ffb020;
+}
+
+.review__grade--good {
+  background-color: rgba(108, 140, 255, 0.14);
+  border-color: rgba(108, 140, 255, 0.5);
+  color: var(--accent);
+}
+
+.review__grade--easy {
+  background-color: rgba(53, 200, 139, 0.14);
+  border-color: rgba(53, 200, 139, 0.5);
+  color: #35c88b;
+}
+
+/* ---------- Экран «Повторение завершено» ---------- */
+.review--status {
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.review__back-corner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.review__status-emoji {
+  font-size: 56px;
+  line-height: 1;
+}
+
+.review__status-title {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.review__status-hint {
+  color: var(--text-muted);
+  font-size: 15px;
+  max-width: 30ch;
+}
+
+.review__done {
+  margin-top: 12px;
+  min-height: 48px;
+  padding: 12px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+}

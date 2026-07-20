@@ -13,6 +13,70 @@
   gap: 12px;
 }
 
+/* ---------- Баннер режима «Повторить» ---------- */
+.cards__review-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 176, 32, 0.4);
+  border-radius: var(--radius-sm);
+  background-color: rgba(255, 176, 32, 0.12);
+  color: #ffb020;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cards__review-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background-color: #ffb020;
+  color: #1a1300;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cards__review-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ВРЕМЕННО (Этап 2, отладка): прокрутка дня — убрать по отдельному запросу */
+.cards__debug {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  background-color: rgba(255, 180, 0, 0.06);
+}
+
+.cards__debug-info {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.cards__debug-btn {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .cards__mywords {
   display: inline-flex;
   align-items: center;
