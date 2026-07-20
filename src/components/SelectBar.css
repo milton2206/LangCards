@@ -1,0 +1,101 @@
+/* ---------- Нижняя панель режима выбора ---------- */
+.selectbar {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  display: flex;
+  gap: 10px;
+  padding-top: 12px;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom));
+  background-color: var(--bg);
+}
+
+.selectbar__cancel {
+  flex: 0 0 auto;
+  min-height: 52px;
+  padding: 0 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.selectbar__delete {
+  flex: 1;
+  min-height: 52px;
+  border: 1px solid rgba(255, 107, 107, 0.5);
+  border-radius: var(--radius-sm);
+  background-color: rgba(255, 107, 107, 0.16);
+  color: #ff8a8a;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.selectbar__delete:disabled {
+  opacity: 0.5;
+}
+
+/* ---------- Окно подтверждения удаления ---------- */
+.selectbar__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.selectbar__dialog {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px 20px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.selectbar__dialog-title {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.selectbar__dialog-text {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.selectbar__dialog-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+}
+
+.selectbar__dialog-cancel {
+  flex: 1;
+  min-height: 48px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.selectbar__dialog-ok {
+  flex: 1;
+  min-height: 48px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: #ff6b6b;
+  color: #1a0b0b;
+  font-size: 16px;
+  font-weight: 700;
+}

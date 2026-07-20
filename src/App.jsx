@@ -165,6 +165,7 @@ export default function App() {
             learnLang={settings.learnLang}
             nativeLang={settings.nativeLang}
             onMarkKnown={vocab.markKnown}
+            onDelete={vocab.deleteWords}
             onBack={() => setScreen("cards")}
             onOpenKnown={() => setScreen("known")}
           />
@@ -178,6 +179,7 @@ export default function App() {
             learnLang={settings.learnLang}
             nativeLang={settings.nativeLang}
             onRestore={vocab.restoreToStudy}
+            onDelete={vocab.deleteWords}
             onBack={() => setScreen("cards")}
             onOpenMyWords={() => setScreen("mywords")}
           />

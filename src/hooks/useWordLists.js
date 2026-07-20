@@ -369,6 +369,34 @@ export function useWordLists(pairKey) {
     [updatePair],
   );
 
+  // УДАЛИТЬ СОВСЕМ — полностью убрать слова из пары: из всех списков
+  // (taken/known/skipped) и из сопутствующих данных (wordInfo, srsByWord).
+  // Принимает массив слов (режим выбора в списках). Изменение сохраняется в
+  // localStorage через общий эффект — удалённое не вернётся после перезагрузки.
+  const deleteWords = useCallback(
+    (words) => {
+      const toDelete = new Set(words);
+      if (toDelete.size === 0) return;
+      updatePair((cur) => {
+        const info = { ...cur.wordInfo };
+        const srs = { ...(cur.srsByWord || {}) };
+        for (const w of toDelete) {
+          delete info[w];
+          delete srs[w];
+        }
+        return {
+          ...cur,
+          takenWords: cur.takenWords.filter((w) => !toDelete.has(w)),
+          knownWords: cur.knownWords.filter((w) => !toDelete.has(w)),
+          skippedWords: cur.skippedWords.filter((s) => !toDelete.has(s.word)),
+          wordInfo: info,
+          srsByWord: srs,
+        };
+      });
+    },
+    [updatePair],
+  );
+
   // Запомнить данные показанных карточек (для экранов списков).
   const rememberCards = useCallback(
     (cards) => {
@@ -401,5 +429,6 @@ export function useWordLists(pairKey) {
     restoreToStudy,
     reviewWord, // самооценка при интервальном повторении (Этап 2)
     rememberCards,
+    deleteWords, // полное удаление слов (режим выбора в списках)
   };
 }

@@ -57,6 +57,19 @@
   font-weight: 700;
 }
 
+/* Кнопка входа в режим выбора */
+.mywords__select {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+}
+
 /* ---------- Список ---------- */
 .mywords__list {
   list-style: none;
@@ -74,6 +87,42 @@
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+}
+
+/* Режим выбора: карточка кликабельна целиком, выбранная — подсвечена */
+.mywords__item--selectable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 0.12s,
+    background-color 0.12s;
+}
+
+.mywords__item.is-selected {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.12);
+}
+
+/* Чекбокс слева от текста слова */
+.mywords__checkbox {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  background-color: var(--bg-elevated);
+  color: #0b0d12;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.mywords__checkbox.is-checked {
+  border-color: var(--accent);
+  background-color: var(--accent);
 }
 
 /* Верхняя строка: слово+перевод слева, действие («Выучил»/«Вернуть») справа */

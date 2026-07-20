@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
+import { useWordSelection } from "../hooks/useWordSelection.js";
+import SelectBar from "../components/SelectBar.jsx";
 import "./MyWordsScreen.css";
 
 /**
@@ -7,6 +9,9 @@ import "./MyWordsScreen.css";
  * У каждого — кнопка «Вернуть»: слово уходит из известных обратно в изучение.
  * Оформление — по образцу экрана «Мои слова». Полные данные (перевод,
  * транскрипция, пример) — из wordInfo.
+ *
+ * Режим выбора («Выбрать») позволяет отметить слова чекбоксами и удалить
+ * их совсем (из списков и хранилища) с подтверждением.
  */
 export default function KnownWordsScreen({
   knownWords,
@@ -15,6 +20,7 @@ export default function KnownWordsScreen({
   learnLang,
   nativeLang,
   onRestore,
+  onDelete,
   onBack,
   onOpenMyWords,
 }) {
@@ -36,6 +42,13 @@ export default function KnownWordsScreen({
     if (!ok) setLimitNotice(true);
   }
 
+  const sel = useWordSelection();
+
+  function handleConfirmDelete() {
+    onDelete(Array.from(sel.selected));
+    sel.cancel();
+  }
+
   return (
     <section className="mywords">
       <header className="mywords__header">
@@ -49,6 +62,15 @@ export default function KnownWordsScreen({
         </button>
         <h1 className="mywords__title">Известные слова</h1>
         <span className="mywords__count">{items.length}</span>
+        {items.length > 0 && !sel.selectMode && (
+          <button
+            type="button"
+            className="mywords__select"
+            onClick={sel.enter}
+          >
+            Выбрать
+          </button>
+        )}
       </header>
 
       {limitNotice && (
@@ -69,57 +91,93 @@ export default function KnownWordsScreen({
         </div>
       ) : (
         <ul className="mywords__list">
-          {items.map((item) => (
-            <li key={item.word} className="mywords__item">
-              <div className="mywords__item-row">
-                <div className="mywords__item-text">
-                  <span className="mywords__word" lang={learnLang}>
-                    {item.word}
-                  </span>
-                  {item.translit && (
-                    <span className="mywords__translit">
-                      {item.translit}
-                    </span>
-                  )}
-                  {item.translation && (
-                    <span className="mywords__translation">
-                      {item.translation}
-                    </span>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  className="mywords__restore"
-                  onClick={() => handleRestore(item.word)}
-                >
-                  ↩ Вернуть
-                </button>
-              </div>
-
-              {item.example && (
-                <div className="mywords__example">
-                  <p className="mywords__example-text" lang={learnLang}>
-                    {item.example}
-                  </p>
-                  {item.exampleTranslation && (
-                    <p
-                      className="mywords__example-translation"
-                      lang={nativeLang}
+          {items.map((item) => {
+            const checked = sel.selected.has(item.word);
+            return (
+              <li
+                key={item.word}
+                className={
+                  "mywords__item" +
+                  (sel.selectMode ? " mywords__item--selectable" : "") +
+                  (checked ? " is-selected" : "")
+                }
+                onClick={
+                  sel.selectMode ? () => sel.toggle(item.word) : undefined
+                }
+              >
+                <div className="mywords__item-row">
+                  {sel.selectMode && (
+                    <span
+                      className={
+                        "mywords__checkbox" + (checked ? " is-checked" : "")
+                      }
+                      aria-hidden="true"
                     >
-                      {item.exampleTranslation}
-                    </p>
+                      {checked ? "✓" : ""}
+                    </span>
+                  )}
+                  <div className="mywords__item-text">
+                    <span className="mywords__word" lang={learnLang}>
+                      {item.word}
+                    </span>
+                    {item.translit && (
+                      <span className="mywords__translit">
+                        {item.translit}
+                      </span>
+                    )}
+                    {item.translation && (
+                      <span className="mywords__translation">
+                        {item.translation}
+                      </span>
+                    )}
+                  </div>
+                  {!sel.selectMode && (
+                    <button
+                      type="button"
+                      className="mywords__restore"
+                      onClick={() => handleRestore(item.word)}
+                    >
+                      ↩ Вернуть
+                    </button>
                   )}
                 </div>
-              )}
-            </li>
-          ))}
+
+                {item.example && (
+                  <div className="mywords__example">
+                    <p className="mywords__example-text" lang={learnLang}>
+                      {item.example}
+                    </p>
+                    {item.exampleTranslation && (
+                      <p
+                        className="mywords__example-translation"
+                        lang={nativeLang}
+                      >
+                        {item.exampleTranslation}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
 
-      <button type="button" className="mywords__nav" onClick={onOpenMyWords}>
-        <span>📚 Мои слова</span>
-        <span className="mywords__nav-count">{takenCount}</span>
-      </button>
+      {sel.selectMode ? (
+        <SelectBar
+          count={sel.selected.size}
+          confirmOpen={sel.confirmOpen}
+          onCancel={sel.cancel}
+          onRequestDelete={sel.openConfirm}
+          onConfirmDelete={handleConfirmDelete}
+          onCloseConfirm={sel.closeConfirm}
+        />
+      ) : (
+        <button type="button" className="mywords__nav" onClick={onOpenMyWords}>
+          <span>📚 Мои слова</span>
+          <span className="mywords__nav-count">{takenCount}</span>
+        </button>
+      )}
     </section>
   );
 }
