@@ -5,12 +5,21 @@
   gap: 14px;
 }
 
-/* ---------- Верхняя панель: «Мои слова» + настройки ---------- */
+/* ---------- Верхняя панель: «Мои слова» + иконки (единый стиль) ---------- */
+/* Слева — «Мои слова», справа — сгруппированные иконки. Все элементы одной
+   высоты (44px), с одинаковыми рамкой/фоном/скруглением — единая сетка. */
 .cards__topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  margin-bottom: 4px;
+}
+
+.cards__topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* ---------- Ежедневная сводка: ведёт пользователя, приоритет повтору ---------- */
@@ -74,14 +83,19 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 8px 14px;
+  height: 44px;
+  padding: 0 16px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background-color: var(--surface);
   color: var(--text);
   font-size: 14px;
   font-weight: 600;
+}
+
+.cards__mywords-icon {
+  font-size: 18px;
+  line-height: 1;
 }
 
 .cards__badge {
@@ -98,18 +112,23 @@
   font-weight: 700;
 }
 
-.cards__settings {
+/* Иконочные кнопки (статистика, настройки) — единый размер и стиль,
+   круглые в тон скруглению «Мои слова». */
+.cards__icon-btn {
   flex: 0 0 auto;
   width: 44px;
   height: 44px;
-  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
   background-color: var(--surface);
+}
+
+.cards__icon-btn-glyph {
   font-size: 18px;
+  line-height: 1;
 }
 
 /* ---------- Прогресс ---------- */

@@ -146,25 +146,34 @@ export default function CardScreen({
         className="cards__mywords"
         onClick={onOpenMyWords}
       >
-        📚 Мои слова
+        <span className="cards__mywords-icon" aria-hidden="true">
+          📚
+        </span>
+        Мои слова
         <span className="cards__badge">{takenWords.length}</span>
       </button>
-      <button
-        type="button"
-        className="cards__settings"
-        onClick={onOpenStats}
-        aria-label="Статистика"
-      >
-        📊
-      </button>
-      <button
-        type="button"
-        className="cards__settings"
-        onClick={onOpenSettings}
-        aria-label="Настройки"
-      >
-        ⚙️
-      </button>
+      <div className="cards__topbar-actions">
+        <button
+          type="button"
+          className="cards__icon-btn"
+          onClick={onOpenStats}
+          aria-label="Статистика"
+        >
+          <span className="cards__icon-btn-glyph" aria-hidden="true">
+            📊
+          </span>
+        </button>
+        <button
+          type="button"
+          className="cards__icon-btn"
+          onClick={onOpenSettings}
+          aria-label="Настройки"
+        >
+          <span className="cards__icon-btn-glyph" aria-hidden="true">
+            ⚙️
+          </span>
+        </button>
+      </div>
     </header>
   );
 
