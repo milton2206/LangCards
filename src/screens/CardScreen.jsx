@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { pickCurrentCard } from "../hooks/useWordLists.js";
+import { pluralRu } from "../lib/humanizeInterval.js";
 import "./CardScreen.css";
 
 /**
@@ -88,20 +89,36 @@ export default function CardScreen({
     </header>
   );
 
-  // Режим «Повторить»: сколько взятых слов ждут повтора сегодня. Счётчик
-  // всегда виден — так понятно, нужно ли сейчас повторять (даже если 0).
-  const reviewBanner =
+  // Ежедневная сводка: ведём пользователя, а не заставляем решать самому.
+  // Приоритет — повтору (закрепить выученное раньше, чем брать новое),
+  // но выбор всегда за пользователем: ни то, ни другое не запускается само.
+  const dailySummary =
     dueCount > 0 ? (
-      <button
-        type="button"
-        className="cards__review-banner"
-        onClick={onOpenReview}
-      >
-        🔁 Повторить
-        <span className="cards__review-count">{dueCount}</span>
-      </button>
+      <div className="cards__daily cards__daily--due">
+        <div className="cards__daily-text">
+          <p className="cards__daily-title">
+            На сегодня: {dueCount}{" "}
+            {pluralRu(dueCount, "слово", "слова", "слов")} повторить
+          </p>
+          <p className="cards__daily-hint">
+            Сначала закрепим то, что уже учили
+          </p>
+        </div>
+        <button
+          type="button"
+          className="cards__daily-cta"
+          onClick={onOpenReview}
+        >
+          🔁 Повторить сейчас
+        </button>
+      </div>
     ) : (
-      <p className="cards__review-empty">🔁 Повторять пока нечего</p>
+      <div className="cards__daily cards__daily--clear">
+        <p className="cards__daily-title">✅ На сегодня всё повторено</p>
+        <p className="cards__daily-hint">
+          Можешь взять новые слова, если есть настроение — торопиться некуда.
+        </p>
+      </div>
     );
 
   // Нет текущей карточки: либо порция ещё не сгенерирована, либо разобрана.
@@ -109,7 +126,7 @@ export default function CardScreen({
     return (
       <section className="cards">
         {topbar}
-        {reviewBanner}
+        {dailySummary}
         <div className="cards__center">
           {empty ? (
             <>
@@ -156,7 +173,7 @@ export default function CardScreen({
   return (
     <section className="cards" aria-labelledby="card-word">
       {topbar}
-      {reviewBanner}
+      {dailySummary}
 
       <div className="cards__progressbar" aria-hidden="true">
         <span

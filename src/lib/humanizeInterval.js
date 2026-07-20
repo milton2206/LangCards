@@ -1,5 +1,5 @@
 // Склонение русского существительного по числу: 1 день, 2 дня, 5 дней.
-function pluralRu(n, one, few, many) {
+export function pluralRu(n, one, few, many) {
   const mod10 = n % 10;
   const mod100 = n % 100;
   if (mod10 === 1 && mod100 !== 11) return one;

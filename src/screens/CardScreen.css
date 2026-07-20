@@ -13,40 +13,61 @@
   gap: 12px;
 }
 
-/* ---------- Баннер режима «Повторить» ---------- */
-.cards__review-banner {
+/* ---------- Ежедневная сводка: ведёт пользователя, приоритет повтору ---------- */
+.cards__daily {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
+  gap: 12px;
   width: 100%;
-  min-height: 48px;
-  padding: 10px 16px;
-  border: 1px solid rgba(255, 176, 32, 0.4);
+  padding: 14px 16px;
   border-radius: var(--radius-sm);
-  background-color: rgba(255, 176, 32, 0.12);
-  color: #ffb020;
-  font-size: 15px;
+  border: 1px solid transparent;
+}
+
+.cards__daily-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cards__daily-title {
+  font-size: 16px;
   font-weight: 700;
 }
 
-.cards__review-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 26px;
-  height: 26px;
-  padding: 0 8px;
-  border-radius: 999px;
+.cards__daily-hint {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* Есть что повторять — заметно, но не тревожно (янтарный акцент) */
+.cards__daily--due {
+  border-color: rgba(255, 176, 32, 0.4);
+  background-color: rgba(255, 176, 32, 0.1);
+  color: #ffb020;
+}
+
+.cards__daily-cta {
+  width: 100%;
+  min-height: 52px;
+  border: none;
+  border-radius: var(--radius-sm);
   background-color: #ffb020;
   color: #1a1300;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 800;
 }
 
-.cards__review-empty {
+/* Повторять нечего — спокойный, доброжелательный тон (зелёный) */
+.cards__daily--clear {
+  border-color: rgba(53, 200, 139, 0.35);
+  background-color: rgba(53, 200, 139, 0.08);
+  color: #35c88b;
+}
+
+.cards__daily--clear .cards__daily-hint {
   color: var(--text-muted);
-  font-size: 13px;
+  opacity: 1;
 }
 
 .cards__mywords {
