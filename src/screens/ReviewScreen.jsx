@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { highlightWordInExample } from "../lib/highlightWord.js";
 import "./ReviewScreen.css";
 
 const GRADES = [
@@ -10,9 +11,13 @@ const GRADES = [
 
 /**
  * Экран повторения ВЗЯТЫХ слов (интервальное повторение) — отдельный режим
- * от потока новых карточек. Показывает слово; по тапу открывается перевод
- * и пример, затем самооценка (4 кнопки) пересчитывает интервал повтора
- * (см. nextSrs в useWordLists.js) и переходит к следующему слову.
+ * от потока новых карточек (Взять/Пропустить/Знаю там не трогаем).
+ *
+ * Лицо карточки — пример предложения целиком, с выделенным изучаемым словом
+ * (учим слово в контексте, а не изолированно). По тапу «Показать перевод»
+ * открывается само слово, транскрипция, перевод слова и перевод предложения,
+ * затем самооценка (4 кнопки) пересчитывает интервал повтора (см. nextSrs
+ * в useWordLists.js) и переходит к следующему слову.
  *
  * dueWords — живой список слов «пора повторить» (пересчитывается в App.jsx
  * после каждой оценки: слово с обновлённым nextReviewDate уходит из очереди
@@ -63,6 +68,10 @@ export default function ReviewScreen({
   }
 
   const info = wordInfo[currentWord] || {};
+  const hasExample = Boolean(info.example);
+  const segments = hasExample
+    ? highlightWordInExample(info.example, currentWord)
+    : [];
 
   return (
     <section className="review" aria-labelledby="review-word">
@@ -79,34 +88,51 @@ export default function ReviewScreen({
       </header>
 
       <article className="review__card">
-        <h1 id="review-word" className="review__word" lang={learnLang}>
-          {currentWord}
-        </h1>
+        {/* Лицо: предложение целиком, изучаемое слово выделено */}
+        {hasExample ? (
+          <p className="review__sentence" lang={learnLang}>
+            {segments.map((seg, i) =>
+              seg.highlight ? (
+                <mark key={i} className="review__highlight">
+                  {seg.text}
+                </mark>
+              ) : (
+                <span key={i}>{seg.text}</span>
+              ),
+            )}
+          </p>
+        ) : (
+          // Нет сохранённого примера (редкий случай для старых данных) —
+          // показываем хотя бы само слово, чтобы экран оставался рабочим.
+          <p className="review__sentence" lang={learnLang}>
+            {currentWord}
+          </p>
+        )}
 
         {revealed ? (
           <>
             <div className="review__divider" />
             <div className="review__answer">
+              <h1 id="review-word" className="review__word" lang={learnLang}>
+                {currentWord}
+              </h1>
               {info.translit && (
                 <p className="review__translit">{info.translit}</p>
               )}
               {info.translation && (
                 <p className="review__translation">{info.translation}</p>
               )}
-              {info.example && (
-                <div className="review__example">
-                  <span className="review__example-label">Пример</span>
-                  <p className="review__example-text" lang={learnLang}>
-                    {info.example}
+              {info.exampleTranslation && (
+                <div className="review__sentence-translation-block">
+                  <span className="review__sentence-translation-label">
+                    Перевод примера
+                  </span>
+                  <p
+                    className="review__sentence-translation"
+                    lang={nativeLang}
+                  >
+                    {info.exampleTranslation}
                   </p>
-                  {info.exampleTranslation && (
-                    <p
-                      className="review__example-translation"
-                      lang={nativeLang}
-                    >
-                      {info.exampleTranslation}
-                    </p>
-                  )}
                 </div>
               )}
             </div>
