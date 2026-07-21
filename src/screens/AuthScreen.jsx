@@ -11,8 +11,8 @@ function translateError(message) {
     return "Такой email уже зарегистрирован. Войдите.";
   if (m.includes("password should be at least"))
     return "Пароль слишком короткий (минимум 6 символов).";
-  if (m.includes("unable to validate email") || m.includes("invalid email"))
-    return "Некорректный email.";
+  if (m.includes("email") && m.includes("invalid"))
+    return "Некорректный email. Проверьте адрес и попробуйте снова.";
   if (m.includes("rate limit") || m.includes("too many"))
     return "Слишком много попыток. Подождите немного и попробуйте снова.";
   if (m.includes("failed to fetch") || m.includes("network"))
