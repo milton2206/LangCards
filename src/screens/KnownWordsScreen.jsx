@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useWordSelection } from "../hooks/useWordSelection.js";
 import SelectBar from "../components/SelectBar.jsx";
+import WordListTabs from "../components/WordListTabs.jsx";
 import "./MyWordsScreen.css";
 
 /**
@@ -29,6 +30,12 @@ export default function KnownWordsScreen({
     ...wordInfo[word],
   }));
 
+  // Открываем список с начала: при переключении вкладок сверху не остаёмся
+  // прокрученными в середину нового (другого по длине) списка.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Мягкое сообщение, если «Вернуть» упирается в лимит активных слов.
   const [limitNotice, setLimitNotice] = useState(false);
   useEffect(() => {
@@ -51,34 +58,42 @@ export default function KnownWordsScreen({
 
   return (
     <section className="mywords">
-      <header className="mywords__header">
-        <button
-          type="button"
-          className="mywords__back"
-          onClick={onBack}
-          aria-label="Назад"
-        >
-          ←
-        </button>
-        <h1 className="mywords__title">Известные слова</h1>
-        <span className="mywords__count">{items.length}</span>
-        {items.length > 0 && !sel.selectMode && (
+      <div className="mywords__top">
+        <header className="mywords__header">
           <button
             type="button"
-            className="mywords__select"
-            onClick={sel.enter}
+            className="mywords__back"
+            onClick={onBack}
+            aria-label="Назад"
           >
-            Выбрать
+            ←
           </button>
-        )}
-      </header>
+          <h1 className="mywords__title">Известные слова</h1>
+          {items.length > 0 && !sel.selectMode && (
+            <button
+              type="button"
+              className="mywords__select"
+              onClick={sel.enter}
+            >
+              Выбрать
+            </button>
+          )}
+        </header>
 
-      {limitNotice && (
-        <p className="mywords__limit-notice" role="status">
-          Сначала повтори или выучи слова из активных — в изучении уже{" "}
-          {MAX_ACTIVE_WORDS} слов.
-        </p>
-      )}
+        <WordListTabs
+          active="known"
+          takenCount={takenCount}
+          knownCount={items.length}
+          onOpenMyWords={onOpenMyWords}
+        />
+
+        {limitNotice && (
+          <p className="mywords__limit-notice" role="status">
+            Сначала повтори или выучи слова из активных — в изучении уже{" "}
+            {MAX_ACTIVE_WORDS} слов.
+          </p>
+        )}
+      </div>
 
       {items.length === 0 ? (
         <div className="mywords__empty">
@@ -163,7 +178,7 @@ export default function KnownWordsScreen({
         </ul>
       )}
 
-      {sel.selectMode ? (
+      {sel.selectMode && (
         <SelectBar
           count={sel.selected.size}
           confirmOpen={sel.confirmOpen}
@@ -172,11 +187,6 @@ export default function KnownWordsScreen({
           onConfirmDelete={handleConfirmDelete}
           onCloseConfirm={sel.closeConfirm}
         />
-      ) : (
-        <button type="button" className="mywords__nav" onClick={onOpenMyWords}>
-          <span>Мои слова</span>
-          <span className="mywords__nav-count">{takenCount}</span>
-        </button>
       )}
     </section>
   );

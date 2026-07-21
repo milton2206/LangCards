@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { useWordSelection } from "../hooks/useWordSelection.js";
 import SelectBar from "../components/SelectBar.jsx";
+import WordListTabs from "../components/WordListTabs.jsx";
 import "./MyWordsScreen.css";
 
 /**
@@ -26,6 +28,12 @@ export default function MyWordsScreen({
     ...wordInfo[word],
   }));
 
+  // Открываем список с начала: при переключении вкладок сверху не остаёмся
+  // прокрученными в середину нового (другого по длине) списка.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const sel = useWordSelection();
 
   function handleConfirmDelete() {
@@ -35,27 +43,35 @@ export default function MyWordsScreen({
 
   return (
     <section className="mywords">
-      <header className="mywords__header">
-        <button
-          type="button"
-          className="mywords__back"
-          onClick={onBack}
-          aria-label="Назад"
-        >
-          ←
-        </button>
-        <h1 className="mywords__title">Мои слова</h1>
-        <span className="mywords__count">{items.length}</span>
-        {items.length > 0 && !sel.selectMode && (
+      <div className="mywords__top">
+        <header className="mywords__header">
           <button
             type="button"
-            className="mywords__select"
-            onClick={sel.enter}
+            className="mywords__back"
+            onClick={onBack}
+            aria-label="Назад"
           >
-            Выбрать
+            ←
           </button>
-        )}
-      </header>
+          <h1 className="mywords__title">Мои слова</h1>
+          {items.length > 0 && !sel.selectMode && (
+            <button
+              type="button"
+              className="mywords__select"
+              onClick={sel.enter}
+            >
+              Выбрать
+            </button>
+          )}
+        </header>
+
+        <WordListTabs
+          active="mine"
+          takenCount={items.length}
+          knownCount={knownCount}
+          onOpenKnown={onOpenKnown}
+        />
+      </div>
 
       {items.length === 0 ? (
         <div className="mywords__empty">
@@ -140,7 +156,7 @@ export default function MyWordsScreen({
         </ul>
       )}
 
-      {sel.selectMode ? (
+      {sel.selectMode && (
         <SelectBar
           count={sel.selected.size}
           confirmOpen={sel.confirmOpen}
@@ -149,11 +165,6 @@ export default function MyWordsScreen({
           onConfirmDelete={handleConfirmDelete}
           onCloseConfirm={sel.closeConfirm}
         />
-      ) : (
-        <button type="button" className="mywords__nav" onClick={onOpenKnown}>
-          <span>Известные слова</span>
-          <span className="mywords__nav-count">{knownCount}</span>
-        </button>
       )}
     </section>
   );
