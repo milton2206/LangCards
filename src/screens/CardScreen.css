@@ -155,7 +155,7 @@
   flex-direction: column;
   justify-content: center;
   gap: 24px;
-  padding: 28px 34px;
+  padding: 28px 22px;
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -165,59 +165,10 @@
   will-change: transform;
 }
 
-/* Стрелки на КРАЮ самой карточки — не отдельная плашка над ней, а часть
-   карточки: читается как «потяни край», а не «нажми кнопку». Разгораются по
-   мере того как тянешь в свою сторону (пороговое значение — см. JSX). */
-.cards__edge-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1;
-  pointer-events: none;
-}
-
-.cards__edge-arrow--know {
-  left: 10px;
-  color: #35c88b;
-}
-
-.cards__edge-arrow--take {
-  right: 10px;
-  color: var(--accent);
-}
-
-/* Штамп действия при активном перетаскивании — существует ТОЛЬКО пока палец
-   на карточке (в покое элемента нет в DOM вообще), поэтому не может быть
-   принят за кнопку. */
-.cards__drag-stamp {
-  position: absolute;
-  top: 20px;
-  padding: 5px 14px;
-  border: 3px solid currentColor;
-  border-radius: 10px;
-  font-size: 18px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  pointer-events: none;
-}
-
-.cards__drag-stamp--know {
-  left: 20px;
-  color: #35c88b;
-  transform: rotate(-10deg);
-}
-
-.cards__drag-stamp--take {
-  right: 20px;
-  color: var(--accent);
-  transform: rotate(10deg);
-}
-
-/* Лёгкое покачивание при первом появлении карточки — физически показывает,
-   что её можно двигать пальцем. Один раз за всё время (см. showWiggle в JSX). */
+/* Лёгкое покачивание при ПОЯВЛЕНИИ каждой новой карточки — физически намекает,
+   что её можно двигать пальцем. Проигрывается заново на каждую карточку за счёт
+   key={card.word} в JSX (свежий монтаж узла). Во время самого свайпа гасится
+   инлайновым animation-name: none, чтобы не мешать жесту. */
 @keyframes cards-wiggle {
   0%,
   100% {
@@ -245,19 +196,6 @@
   .cards__card--wiggle {
     animation: none;
   }
-}
-
-/* Инструкция текстом под карточкой — просто подпись, без рамки/фона кнопки. */
-.cards__swipe-caption {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.cards__swipe-caption strong {
-  color: var(--text);
-  font-weight: 700;
 }
 
 .cards__word-block {
@@ -418,42 +356,45 @@
   gap: 12px;
 }
 
-.cards__action {
+/* Три кнопки-дубля свайпа: Знаю (синий) · Пропустить (нейтральный) · Взять
+   (зелёный). Цвета совпадают с переливом рамки при свайпе в ту же сторону. */
+.cards__swipe-buttons {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  min-height: 52px;
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  font-size: 16px;
-  font-weight: 700;
-  transition: transform 0.05s;
-}
-
-.cards__action:active {
-  transform: scale(0.98);
-}
-
-.cards__action-main {
-  display: inline-flex;
-  align-items: center;
   gap: 8px;
 }
 
-/* Маленькая подпись под названием действия («вернётся позже») */
-.cards__action-hint {
-  font-size: 12px;
-  font-weight: 500;
-  opacity: 0.7;
+.cards__swipe-btn {
+  flex: 1;
+  min-width: 0;
+  min-height: 52px;
+  padding: 8px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 700;
+  transition:
+    transform 0.05s,
+    filter 0.15s;
 }
 
-/* Пропустить — единственная кнопка (Взять/Знаю теперь только свайпом) */
-.cards__action--skip {
+.cards__swipe-btn:active {
+  transform: scale(0.97);
+}
+
+.cards__swipe-btn--know {
+  background-color: #6c8cff; /* синий */
+  color: #0b0d12;
+}
+
+.cards__swipe-btn--skip {
   background-color: var(--surface);
   border-color: var(--border);
-  color: var(--text);
+  color: var(--text-muted);
+}
+
+.cards__swipe-btn--take {
+  background-color: #35c88b; /* зелёный */
+  color: #08130d;
 }
 
 /* ---------- Экраны статуса: загрузка / ошибка / финал ---------- */

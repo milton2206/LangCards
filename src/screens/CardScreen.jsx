@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { pickCurrentCard, MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
 import { GENERATE_COUNT_OPTIONS } from "../lib/generateCount.js";
@@ -77,9 +77,8 @@ export default function CardScreen({
   const { card, done } = pickCurrentCard(cards, vocab);
   const empty = cards.length === 0;
 
-  // Свайп — ОСНОВНОЙ способ разобрать новое слово (кнопок «Взять»/«Знаю»
-  // больше нет): вправо = Взять (в изучение), влево = Знаю (навсегда).
-  // «Пропустить» осталось отдельной кнопкой. Активно при наличии карточки.
+  // Свайп — ОСНОВНОЙ способ разобрать новое слово: вправо = Взять (в изучение),
+  // влево = Знаю (навсегда). Три кнопки внизу дублируют жест теми же цветами.
   const swipe = useSwipeCard({
     enabled: Boolean(card),
     onSwipeRight: () => card && handleTake(card.word),
@@ -87,53 +86,28 @@ export default function CardScreen({
   });
   const swipeRightProgress = Math.max(0, Math.min(swipe.dragX / SWIPE_THRESHOLD, 1));
   const swipeLeftProgress = Math.max(0, Math.min(-swipe.dragX / SWIPE_THRESHOLD, 1));
-  // Подсветка стороны, к которой тянут карточку: зелёный (Знаю) слева,
-  // акцент (Взять) справа — чтобы было понятно действие ДО отпускания.
-  const swipeGlow =
-    swipe.dragX > 0
-      ? `108, 140, 255` // Взять — акцент
-      : `53, 200, 139`; // Знаю — зелёный
-  const swipeGlowStrength = Math.max(swipeRightProgress, swipeLeftProgress);
+  const swipeProgress = Math.max(swipeRightProgress, swipeLeftProgress);
+  // Цвет действия совпадает с цветом кнопки: вправо = Взять = зелёный,
+  // влево = Знаю = синий. Рамка окрашивается и разгорается по мере натяжения,
+  // вокруг карточки — лёгкое свечение того же цвета. В покое — нейтрально.
+  const TAKE_RGB = "53, 200, 139"; // зелёный
+  const KNOW_RGB = "108, 140, 255"; // синий
+  const swipeRgb = swipe.dragX > 0 ? TAKE_RGB : KNOW_RGB;
   const cardStyle = {
     ...swipe.style,
-    boxShadow: swipeGlowStrength
-      ? `0 0 0 2px rgba(${swipeGlow}, ${swipeGlowStrength}), 0 12px 32px rgba(${swipeGlow}, ${swipeGlowStrength * 0.4})`
+    borderColor: swipeProgress
+      ? `rgba(${swipeRgb}, ${0.35 + 0.65 * swipeProgress})`
       : undefined,
+    boxShadow: swipeProgress
+      ? `0 0 ${10 + 26 * swipeProgress}px rgba(${swipeRgb}, ${0.5 * swipeProgress})`
+      : undefined,
+    // На отпускании плавно гасим цвет рамки и свечение (перемещение — своя анимация).
+    transition: swipe.dragging
+      ? "none"
+      : "transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease",
+    // Пока тянем — покачивание не должно мешать жесту управлять карточкой.
+    animationName: swipe.dragging ? "none" : undefined,
   };
-
-  // Тестеры принимали статичные подсказки-«таблетки» над карточкой за кнопки
-  // и пытались их нажать. Вместо этого один раз показываем физическое
-  // покачивание САМОЙ карточки — так сразу понятно, что её можно двигать
-  // пальцем. Срабатывает один раз за всё время (флаг в localStorage).
-  //
-  // «Годен ли показ» читаем ОДИН раз в ref ДО эффекта (не внутри него) —
-  // иначе в React StrictMode (dev) эффект вызывается дважды подряд при
-  // монтировании: первый вызов сам же выставляет флаг, второй вызов читает
-  // уже выставленный им флаг и решает, что показывать не надо, а его же
-  // таймер скрытия к этому моменту уже отменён cleanup'ом первого вызова —
-  // подсказка застревает включённой навсегда. Ref со значением, вычисленным
-  // до этой гонки, одинаков в обоих вызовах — гонки нет.
-  const wiggleEligibleRef = useRef(null);
-  if (wiggleEligibleRef.current === null) {
-    try {
-      wiggleEligibleRef.current = !localStorage.getItem("swipeWiggleSeen");
-    } catch {
-      wiggleEligibleRef.current = false;
-    }
-  }
-  const [showWiggle, setShowWiggle] = useState(false);
-  useEffect(() => {
-    if (!card || !wiggleEligibleRef.current) return;
-    setShowWiggle(true);
-    const timer = setTimeout(() => setShowWiggle(false), 900);
-    try {
-      localStorage.setItem("swipeWiggleSeen", "1");
-    } catch {
-      // ignore
-    }
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   if (loading) {
     return (
@@ -306,46 +280,15 @@ export default function CardScreen({
       </div>
       <p className="cards__remaining">Осталось в порции: {remaining}</p>
 
-      {/* Стрелки-«края» ПРЯМО НА карточке (не отдельные плашки-«кнопки» над
-          ней) — читаются как «потяни край», а не «нажми». Всегда чуть видны,
-          разгораются по мере того как тянешь в свою сторону. */}
+      {/* Чистая карточка: никаких наложений на текст. Подсказка жеста — это
+          сама карточка (покачивание при появлении + перелив рамки при свайпе).
+          key={card.word} — новая карточка = свежий монтаж = покачивание заново. */}
       <article
-        className={"cards__card" + (showWiggle ? " cards__card--wiggle" : "")}
+        key={card.word}
+        className="cards__card cards__card--wiggle"
         ref={swipe.cardRef}
         style={cardStyle}
       >
-        <span
-          className="cards__edge-arrow cards__edge-arrow--know"
-          aria-hidden="true"
-          style={{ opacity: 0.3 + 0.55 * swipeLeftProgress }}
-        >
-          ←
-        </span>
-        <span
-          className="cards__edge-arrow cards__edge-arrow--take"
-          aria-hidden="true"
-          style={{ opacity: 0.3 + 0.55 * swipeRightProgress }}
-        >
-          →
-        </span>
-
-        {/* Штамп действия — виден ТОЛЬКО во время активного жеста (в покое
-            его нет вообще), поэтому его невозможно принять за кнопку. */}
-        {swipeGlowStrength > 0 && (
-          <span
-            className={
-              "cards__drag-stamp " +
-              (swipe.dragX > 0
-                ? "cards__drag-stamp--take"
-                : "cards__drag-stamp--know")
-            }
-            aria-hidden="true"
-            style={{ opacity: swipeGlowStrength }}
-          >
-            {swipe.dragX > 0 ? "Взять" : "Знаю"}
-          </span>
-        )}
-
         <div className="cards__word-block">
           <h1 id="card-word" className="cards__word" lang={learnLang}>
             {card.word}
@@ -369,12 +312,6 @@ export default function CardScreen({
         </div>
       </article>
 
-      {/* Инструкция текстом — не кнопка, просто подпись под карточкой. */}
-      <p className="cards__swipe-caption">
-        Смахни карточку: <strong>вправо</strong> — Взять,{" "}
-        <strong>влево</strong> — Знаю
-      </p>
-
       <div className="cards__actions">
         {limitNotice && (
           <p className="cards__limit-notice" role="status">
@@ -382,14 +319,32 @@ export default function CardScreen({
             {MAX_ACTIVE_WORDS} слов.
           </p>
         )}
-        <button
-          type="button"
-          className="cards__action cards__action--skip"
-          onClick={() => skip(card.word)}
-        >
-          <span className="cards__action-main">Пропустить</span>
-          <span className="cards__action-hint">вернётся позже</span>
-        </button>
+        {/* Три кнопки дублируют свайп. Цвета совпадают со стороной жеста:
+            влево = Знаю (синий), вправо = Взять (зелёный), Пропустить —
+            нейтральная. Порядок слева-направо повторяет направления свайпа. */}
+        <div className="cards__swipe-buttons">
+          <button
+            type="button"
+            className="cards__swipe-btn cards__swipe-btn--know"
+            onClick={() => markKnown(card.word)}
+          >
+            Знаю
+          </button>
+          <button
+            type="button"
+            className="cards__swipe-btn cards__swipe-btn--skip"
+            onClick={() => skip(card.word)}
+          >
+            Пропустить
+          </button>
+          <button
+            type="button"
+            className="cards__swipe-btn cards__swipe-btn--take"
+            onClick={() => handleTake(card.word)}
+          >
+            Взять
+          </button>
+        </div>
         <GenerateCountPicker
           value={generateCount}
           onChange={onChangeGenerateCount}
