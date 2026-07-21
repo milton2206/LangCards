@@ -105,8 +105,6 @@ export default function CardScreen({
     transition: swipe.dragging
       ? "none"
       : "transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease",
-    // Пока тянем — покачивание не должно мешать жесту управлять карточкой.
-    animationName: swipe.dragging ? "none" : undefined,
   };
 
   if (loading) {
@@ -281,10 +279,15 @@ export default function CardScreen({
       <p className="cards__remaining">Осталось в порции: {remaining}</p>
 
       {/* Чистая карточка: никаких наложений на текст. Подсказка жеста — это
-          сама карточка (покачивание при появлении + перелив рамки при свайпе).
-          key={card.word} — новая карточка = свежий монтаж = покачивание заново. */}
+          сама карточка (перелив рамки при свайпе + покачивание при входе).
+          БЕЗ key: узел стабилен между свайпами внутри пачки, поэтому анимация
+          покачивания НЕ повторяется на каждом слове. Она проигрывается только
+          когда article реально (пере)монтируется — а это ровно «входные»
+          моменты: заход/возврат на экран (монтаж CardScreen) и генерация новой
+          пачки (article временно исчезает под экраном загрузки и монтируется
+          заново). Листание свайпами перемонтажа не вызывает — второе и далее
+          слова не качаются. */}
       <article
-        key={card.word}
         className="cards__card cards__card--wiggle"
         ref={swipe.cardRef}
         style={cardStyle}
