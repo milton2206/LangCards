@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { pickCurrentCard, MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
 import { GENERATE_COUNT_OPTIONS } from "../lib/generateCount.js";
@@ -100,6 +100,40 @@ export default function CardScreen({
       ? `0 0 0 2px rgba(${swipeGlow}, ${swipeGlowStrength}), 0 12px 32px rgba(${swipeGlow}, ${swipeGlowStrength * 0.4})`
       : undefined,
   };
+
+  // Тестеры принимали статичные подсказки-«таблетки» над карточкой за кнопки
+  // и пытались их нажать. Вместо этого один раз показываем физическое
+  // покачивание САМОЙ карточки — так сразу понятно, что её можно двигать
+  // пальцем. Срабатывает один раз за всё время (флаг в localStorage).
+  //
+  // «Годен ли показ» читаем ОДИН раз в ref ДО эффекта (не внутри него) —
+  // иначе в React StrictMode (dev) эффект вызывается дважды подряд при
+  // монтировании: первый вызов сам же выставляет флаг, второй вызов читает
+  // уже выставленный им флаг и решает, что показывать не надо, а его же
+  // таймер скрытия к этому моменту уже отменён cleanup'ом первого вызова —
+  // подсказка застревает включённой навсегда. Ref со значением, вычисленным
+  // до этой гонки, одинаков в обоих вызовах — гонки нет.
+  const wiggleEligibleRef = useRef(null);
+  if (wiggleEligibleRef.current === null) {
+    try {
+      wiggleEligibleRef.current = !localStorage.getItem("swipeWiggleSeen");
+    } catch {
+      wiggleEligibleRef.current = false;
+    }
+  }
+  const [showWiggle, setShowWiggle] = useState(false);
+  useEffect(() => {
+    if (!card || !wiggleEligibleRef.current) return;
+    setShowWiggle(true);
+    const timer = setTimeout(() => setShowWiggle(false), 900);
+    try {
+      localStorage.setItem("swipeWiggleSeen", "1");
+    } catch {
+      // ignore
+    }
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) {
     return (
@@ -272,35 +306,46 @@ export default function CardScreen({
       </div>
       <p className="cards__remaining">Осталось в порции: {remaining}</p>
 
-      {/* Подсказки направлений — НАД карточкой, вне зоны текста: без кнопок
-          «Взять»/«Знаю» это единственный способ понять управление. Всегда
-          видны приглушённо, при свайпе к своей стороне разгораются. */}
-      <div className="cards__swipe-hints" aria-hidden="true">
-        <span
-          className="cards__swipe-hint cards__swipe-hint--know"
-          style={{
-            opacity: 0.55 + 0.45 * swipeLeftProgress,
-            backgroundColor: `rgba(53, 200, 139, ${0.12 + 0.3 * swipeLeftProgress})`,
-          }}
-        >
-          ← Знаю
-        </span>
-        <span
-          className="cards__swipe-hint cards__swipe-hint--take"
-          style={{
-            opacity: 0.55 + 0.45 * swipeRightProgress,
-            backgroundColor: `rgba(108, 140, 255, ${0.12 + 0.3 * swipeRightProgress})`,
-          }}
-        >
-          Взять →
-        </span>
-      </div>
-
+      {/* Стрелки-«края» ПРЯМО НА карточке (не отдельные плашки-«кнопки» над
+          ней) — читаются как «потяни край», а не «нажми». Всегда чуть видны,
+          разгораются по мере того как тянешь в свою сторону. */}
       <article
-        className="cards__card"
+        className={"cards__card" + (showWiggle ? " cards__card--wiggle" : "")}
         ref={swipe.cardRef}
         style={cardStyle}
       >
+        <span
+          className="cards__edge-arrow cards__edge-arrow--know"
+          aria-hidden="true"
+          style={{ opacity: 0.3 + 0.55 * swipeLeftProgress }}
+        >
+          ←
+        </span>
+        <span
+          className="cards__edge-arrow cards__edge-arrow--take"
+          aria-hidden="true"
+          style={{ opacity: 0.3 + 0.55 * swipeRightProgress }}
+        >
+          →
+        </span>
+
+        {/* Штамп действия — виден ТОЛЬКО во время активного жеста (в покое
+            его нет вообще), поэтому его невозможно принять за кнопку. */}
+        {swipeGlowStrength > 0 && (
+          <span
+            className={
+              "cards__drag-stamp " +
+              (swipe.dragX > 0
+                ? "cards__drag-stamp--take"
+                : "cards__drag-stamp--know")
+            }
+            aria-hidden="true"
+            style={{ opacity: swipeGlowStrength }}
+          >
+            {swipe.dragX > 0 ? "Взять" : "Знаю"}
+          </span>
+        )}
+
         <div className="cards__word-block">
           <h1 id="card-word" className="cards__word" lang={learnLang}>
             {card.word}
@@ -323,6 +368,12 @@ export default function CardScreen({
           </p>
         </div>
       </article>
+
+      {/* Инструкция текстом — не кнопка, просто подпись под карточкой. */}
+      <p className="cards__swipe-caption">
+        Смахни карточку: <strong>вправо</strong> — Взять,{" "}
+        <strong>влево</strong> — Знаю
+      </p>
 
       <div className="cards__actions">
         {limitNotice && (
