@@ -17,7 +17,7 @@ export default function StartScreen({ onStart }) {
 
       <div className="start__footer">
         <span className="start__status" role="status">
-          🚧 Приложение в разработке
+          Приложение в разработке
         </span>
         <button type="button" className="start__cta" onClick={onStart}>
           Настроить обучение

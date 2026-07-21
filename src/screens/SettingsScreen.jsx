@@ -121,7 +121,7 @@ export default function SettingsScreen({
         className="settings__secondary"
         onClick={onOpenTutorial}
       >
-        ❓ Как пользоваться
+        Как пользоваться
       </button>
 
       <button
@@ -129,7 +129,7 @@ export default function SettingsScreen({
         className="settings__secondary"
         onClick={() => setShowInstall(true)}
       >
-        📲 Установить на телефон
+        Установить на телефон
       </button>
 
       {showInstall && <InstallGuide onClose={() => setShowInstall(false)} />}
@@ -141,7 +141,7 @@ export default function SettingsScreen({
 function SyncStatus({ status, error, onRetry }) {
   const map = {
     syncing: { cls: "is-syncing", text: "Синхронизация…" },
-    synced: { cls: "is-synced", text: "Прогресс синхронизирован ✓" },
+    synced: { cls: "is-synced", text: "Прогресс синхронизирован" },
     offline: { cls: "is-offline", text: error || "Оффлайн — синхронизируем позже." },
     error: { cls: "is-error", text: error || "Ошибка синхронизации." },
   };

@@ -62,7 +62,7 @@ export default function InstallGuide({ onClose }) {
       <div className="install__box" onClick={(e) => e.stopPropagation()}>
         <header className="install__header">
           <h2 id="install-title" className="install__title">
-            📲 Установить на телефон
+            Установить на телефон
           </h2>
           <button
             type="button"
@@ -88,7 +88,7 @@ export default function InstallGuide({ onClose }) {
               ))}
             </ol>
             <p className="install__note">
-              ⚠️ Работает только в Safari. Если открыто в Chrome, Instagram или
+              Работает только в Safari. Если открыто в Chrome, Instagram или
               Telegram — сначала открой ссылку в Safari.
             </p>
           </section>

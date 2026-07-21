@@ -29,7 +29,7 @@ export default function SelectBar({
           disabled={count === 0}
           onClick={onRequestDelete}
         >
-          🗑 Удалить ({count})
+          Удалить ({count})
         </button>
       </div>
 

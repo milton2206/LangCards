@@ -146,9 +146,6 @@ export default function CardScreen({
         className="cards__mywords"
         onClick={onOpenMyWords}
       >
-        <span className="cards__mywords-icon" aria-hidden="true">
-          📚
-        </span>
         Мои слова
         <span className="cards__badge">{takenWords.length}</span>
       </button>
@@ -197,12 +194,12 @@ export default function CardScreen({
           className="cards__daily-cta"
           onClick={onOpenReview}
         >
-          🔁 Повторить сейчас
+          Повторить сейчас
         </button>
       </div>
     ) : (
       <div className="cards__daily cards__daily--clear">
-        <p className="cards__daily-title">✅ На сегодня всё повторено</p>
+        <p className="cards__daily-title">На сегодня всё повторено</p>
         <p className="cards__daily-hint">
           Можешь взять новые слова, если есть настроение — торопиться некуда.
         </p>
@@ -245,7 +242,7 @@ export default function CardScreen({
               onChange={onChangeGenerateCount}
             />
             <button type="button" className="cards__retry" onClick={onGenerate}>
-              🔄 Сгенерировать новые карточки
+              Сгенерировать новые карточки
             </button>
             {!empty && (
               <button
@@ -253,7 +250,7 @@ export default function CardScreen({
                 className="cards__ghost"
                 onClick={onOpenMyWords}
               >
-                📚 Мои слова
+                Мои слова
               </button>
             )}
           </div>
@@ -330,7 +327,7 @@ export default function CardScreen({
       <div className="cards__actions">
         {limitNotice && (
           <p className="cards__limit-notice" role="status">
-            ⚠️ Сначала повтори или выучи слова из активных — в изучении уже{" "}
+            Сначала повтори или выучи слова из активных — в изучении уже{" "}
             {MAX_ACTIVE_WORDS} слов.
           </p>
         )}
@@ -339,12 +336,7 @@ export default function CardScreen({
           className="cards__action cards__action--skip"
           onClick={() => skip(card.word)}
         >
-          <span className="cards__action-main">
-            <span className="cards__action-emoji" aria-hidden="true">
-              ⏭️
-            </span>
-            Пропустить
-          </span>
+          <span className="cards__action-main">Пропустить</span>
           <span className="cards__action-hint">вернётся позже</span>
         </button>
         <GenerateCountPicker
@@ -356,7 +348,7 @@ export default function CardScreen({
           className="cards__generate"
           onClick={onGenerate}
         >
-          🔄 Сгенерировать новые карточки
+          Сгенерировать новые карточки
         </button>
       </div>
     </section>

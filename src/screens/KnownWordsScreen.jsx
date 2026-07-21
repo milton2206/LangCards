@@ -75,7 +75,7 @@ export default function KnownWordsScreen({
 
       {limitNotice && (
         <p className="mywords__limit-notice" role="status">
-          ⚠️ Сначала повтори или выучи слова из активных — в изучении уже{" "}
+          Сначала повтори или выучи слова из активных — в изучении уже{" "}
           {MAX_ACTIVE_WORDS} слов.
         </p>
       )}
@@ -137,7 +137,7 @@ export default function KnownWordsScreen({
                       className="mywords__restore"
                       onClick={() => handleRestore(item.word)}
                     >
-                      ↩ Вернуть
+                      Вернуть
                     </button>
                   )}
                 </div>
@@ -174,7 +174,7 @@ export default function KnownWordsScreen({
         />
       ) : (
         <button type="button" className="mywords__nav" onClick={onOpenMyWords}>
-          <span>📚 Мои слова</span>
+          <span>Мои слова</span>
           <span className="mywords__nav-count">{takenCount}</span>
         </button>
       )}

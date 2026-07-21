@@ -96,15 +96,15 @@ export default function StatsScreen({
           <div className="stats__tiles">
             <div className="stats__tile">
               <span className="stats__tile-value">{takenCount}</span>
-              <span className="stats__tile-label">📖 В изучении</span>
+              <span className="stats__tile-label">В изучении</span>
             </div>
             <div className="stats__tile">
               <span className="stats__tile-value">{knownCount}</span>
-              <span className="stats__tile-label">✅ Выучено</span>
+              <span className="stats__tile-label">Выучено</span>
             </div>
             <div className="stats__tile">
               <span className="stats__tile-value">{total}</span>
-              <span className="stats__tile-label">📚 Всего слов</span>
+              <span className="stats__tile-label">Всего слов</span>
             </div>
           </div>
 

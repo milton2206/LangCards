@@ -93,11 +93,6 @@
   font-weight: 600;
 }
 
-.cards__mywords-icon {
-  font-size: 18px;
-  line-height: 1;
-}
-
 .cards__badge {
   display: inline-flex;
   align-items: center;
@@ -378,11 +373,6 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-}
-
-.cards__action-emoji {
-  font-size: 17px;
-  line-height: 1;
 }
 
 /* Маленькая подпись под названием действия («вернётся позже») */

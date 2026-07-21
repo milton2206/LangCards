@@ -114,7 +114,7 @@ export default function MyWordsScreen({
                       className="mywords__learned"
                       onClick={() => onMarkKnown(item.word)}
                     >
-                      ✓ Выучил
+                      Выучил
                     </button>
                   )}
                 </div>
@@ -151,7 +151,7 @@ export default function MyWordsScreen({
         />
       ) : (
         <button type="button" className="mywords__nav" onClick={onOpenKnown}>
-          <span>✅ Известные слова</span>
+          <span>Известные слова</span>
           <span className="mywords__nav-count">{knownCount}</span>
         </button>
       )}
