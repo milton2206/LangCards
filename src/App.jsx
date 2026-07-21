@@ -9,10 +9,12 @@ import KnownWordsScreen from "./screens/KnownWordsScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
 import ReviewScreen from "./screens/ReviewScreen.jsx";
 import StatsScreen from "./screens/StatsScreen.jsx";
+import AuthScreen from "./screens/AuthScreen.jsx";
 import Tutorial from "./components/Tutorial.jsx";
 import { EMPTY_SETTINGS, SETTINGS_KEYS } from "./data/onboarding.js";
 import { useWordLists, getDueWords } from "./hooks/useWordLists.js";
 import { useCards } from "./hooks/useCards.js";
+import { useAuth } from "./hooks/useAuth.js";
 import { loadGenerateCount } from "./lib/generateCount.js";
 
 function loadSettings() {
@@ -41,6 +43,10 @@ export default function App() {
   const vocab = useWordLists(pairKey);
   const { cards, loading, error, generate, clearError } = useCards(pairKey);
 
+  // Аккаунты (Supabase Auth). Пока опциональны: слова остаются в localStorage,
+  // вход — подготовка к синхронизации. Если Supabase не настроен — configured=false.
+  const auth = useAuth();
+
   // Сколько карточек генерировать за раз — сохраняется между сессиями.
   const [generateCount, setGenerateCount] = useState(loadGenerateCount);
   useEffect(() => {
@@ -67,6 +73,12 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(settings));
   }, [settings]);
+
+  // После успешного входа уводим с экрана авторизации обратно в настройки,
+  // где показан аккаунт и кнопка «Выйти».
+  useEffect(() => {
+    if (auth.user && screen === "auth") setScreen("settings");
+  }, [auth.user, screen]);
 
   // Параметры генерации: текущие настройки + исключения (взятые, известные,
   // ещё не вернувшиеся отложенные). Читаются в момент нажатия кнопки.
@@ -191,6 +203,16 @@ export default function App() {
             onChange={updateSetting}
             onBack={() => setScreen("cards")}
             onOpenTutorial={() => setShowTutorial(true)}
+            auth={auth}
+            onOpenAuth={() => setScreen("auth")}
+          />
+        )}
+
+        {screen === "auth" && (
+          <AuthScreen
+            onSignIn={auth.signIn}
+            onSignUp={auth.signUp}
+            onBack={() => setScreen("settings")}
           />
         )}
 

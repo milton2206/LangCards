@@ -93,6 +93,67 @@
   font-weight: 700;
 }
 
+/* ---------- Аккаунт ---------- */
+.settings__account-hint {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.settings__account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.settings__account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings__account-label {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.settings__account-email {
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings__signin {
+  width: 100%;
+  min-height: 48px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.settings__signout {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
 /* Ненавязчивые пункты («Как пользоваться», «Установить на телефон») */
 .settings__secondary {
   width: 100%;

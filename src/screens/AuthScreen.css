@@ -1,0 +1,126 @@
+.auth {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.auth__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth__back {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.auth__title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.auth__note {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 10px 12px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- Переключатель Вход / Регистрация ---------- */
+.auth__tabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.auth__tab {
+  flex: 1;
+  min-height: 40px;
+  border: none;
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth__tab.is-active {
+  background-color: var(--accent);
+  color: #0b0d12;
+}
+
+/* ---------- Форма ---------- */
+.auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth__label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.auth__input {
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-elevated);
+  color: var(--text);
+  font-size: 16px;
+}
+
+.auth__input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.auth__error {
+  color: #ff6b6b;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.auth__notice {
+  color: #35c88b;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.auth__submit {
+  margin-top: 4px;
+  width: 100%;
+  min-height: 52px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.auth__submit:disabled {
+  opacity: 0.6;
+}

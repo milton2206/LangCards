@@ -13,6 +13,8 @@ export default function SettingsScreen({
   onChange,
   onBack,
   onOpenTutorial,
+  auth,
+  onOpenAuth,
 }) {
   const [showInstall, setShowInstall] = useState(false);
 
@@ -58,6 +60,45 @@ export default function SettingsScreen({
           </div>
         </div>
       ))}
+
+      <div className="settings__group">
+        <h2 className="settings__group-title">Аккаунт</h2>
+        {!auth?.configured ? (
+          <p className="settings__account-hint">
+            Вход появится, когда будет подключён Supabase (переменные окружения
+            VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY). Слова хранятся на этом
+            устройстве.
+          </p>
+        ) : auth.user ? (
+          <div className="settings__account">
+            <div className="settings__account-info">
+              <span className="settings__account-label">Вы вошли как</span>
+              <span className="settings__account-email">{auth.user.email}</span>
+            </div>
+            <button
+              type="button"
+              className="settings__signout"
+              onClick={auth.signOut}
+            >
+              Выйти
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="settings__account-hint">
+              Войдите или зарегистрируйтесь, чтобы подготовить синхронизацию слов
+              между устройствами. Пока слова хранятся на этом устройстве.
+            </p>
+            <button
+              type="button"
+              className="settings__signin"
+              onClick={onOpenAuth}
+            >
+              Войти / Зарегистрироваться
+            </button>
+          </>
+        )}
+      </div>
 
       <button type="button" className="settings__done" onClick={onBack}>
         Готово
