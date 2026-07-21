@@ -5,11 +5,17 @@ import { nextSrs } from "../hooks/useWordLists.js";
 import "./ReviewScreen.css";
 
 const GRADES = [
-  { grade: "again", label: "Не помню", cls: "again" },
+  // «Не помню» не откладывает слово на интервал, а возвращает его дальше в
+  // текущей сессии (replay) — поэтому вместо срока показываем «повторить сейчас».
+  { grade: "again", label: "Не помню", cls: "again", replay: true },
   { grade: "hard", label: "Трудно", cls: "hard" },
   { grade: "good", label: "Нормально", cls: "good" },
   { grade: "easy", label: "Легко", cls: "easy" },
 ];
+
+// На сколько карточек назад отправить слово при «Не помню» — чтобы был
+// небольшой промежуток на вспоминание, а не мгновенный повтор.
+const REQUEUE_GAP = 3;
 
 /**
  * Экран повторения ВЗЯТЫХ слов (интервальное повторение) — отдельный режим
@@ -24,6 +30,12 @@ const GRADES = [
  * dueWords — живой список слов «пора повторить» (пересчитывается в App.jsx
  * после каждой оценки: слово с обновлённым nextReviewDate уходит из очереди
  * само, отдельный index не нужен).
+ *
+ * Порядок показа держим в ЛОКАЛЬНОЙ очереди сессии (queue): «Не помню» не
+ * трогает интервал слова (оно остаётся «пора повторить»), а лишь отправляет
+ * его на несколько карточек назад — так слово крутится в текущей сессии, пока
+ * по нему не нажмут другую кнопку. Остальные оценки применяют интервал через
+ * onReview → слово выпадает из dueWords и очередь его убирает при синхронизации.
  */
 export default function ReviewScreen({
   dueWords,
@@ -35,14 +47,49 @@ export default function ReviewScreen({
   onReview,
   onBack,
 }) {
-  const total = dueWords.length;
-  const currentWord = dueWords[0];
   const [revealed, setRevealed] = useState(false);
+  const [queue, setQueue] = useState(() => dueWords);
+
+  // Синхронизация очереди с актуальным набором «пора повторить»: убираем слова,
+  // которые уже ушли на интервал (после Трудно/Нормально/Легко), и добавляем
+  // новые. Локальный порядок (в т.ч. переносы от «Не помню») сохраняется.
+  // «Не помню» не меняет dueWords, поэтому эта синхронизация не сбрасывает его.
+  useEffect(() => {
+    setQueue((prev) => {
+      const due = new Set(dueWords);
+      const kept = prev.filter((w) => due.has(w));
+      const keptSet = new Set(kept);
+      const added = dueWords.filter((w) => !keptSet.has(w));
+      const next = [...kept, ...added];
+      const same =
+        next.length === prev.length && next.every((w, i) => w === prev[i]);
+      return same ? prev : next;
+    });
+  }, [dueWords]);
+
+  const total = queue.length;
+  const currentWord = queue[0];
 
   // Новое слово в очереди — прячем ответ снова.
   useEffect(() => {
     setRevealed(false);
   }, [currentWord]);
+
+  // «Не помню» — вернуть слово в текущую сессию через несколько карточек, не
+  // применяя интервал. Остальные оценки — обычный SRS (слово покидает сессию).
+  function handleGrade(word, grade) {
+    setRevealed(false);
+    if (grade === "again") {
+      setQueue((prev) => {
+        if (prev.length <= 1) return prev; // некуда переносить — покажем снова
+        const [first, ...rest] = prev;
+        const pos = Math.min(REQUEUE_GAP, rest.length);
+        return [...rest.slice(0, pos), first, ...rest.slice(pos)];
+      });
+      return;
+    }
+    onReview(word, grade);
+  }
 
   if (!currentWord) {
     return (
@@ -163,16 +210,16 @@ export default function ReviewScreen({
 
       {revealed && (
         <div className="review__grades">
-          {gradesWithInterval.map(({ grade, label, cls, interval }) => (
+          {gradesWithInterval.map(({ grade, label, cls, interval, replay }) => (
             <button
               key={grade}
               type="button"
               className={`review__grade review__grade--${cls}`}
-              onClick={() => onReview(currentWord, grade)}
+              onClick={() => handleGrade(currentWord, grade)}
             >
               <span className="review__grade-label">{label}</span>
               <span className="review__grade-interval">
-                {humanizeInterval(interval)}
+                {replay ? "повторить сейчас" : humanizeInterval(interval)}
               </span>
             </button>
           ))}
