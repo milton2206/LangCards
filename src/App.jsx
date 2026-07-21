@@ -40,12 +40,12 @@ export default function App() {
       ? `${settings.learnLang}-${settings.nativeLang}`
       : "";
 
-  const vocab = useWordLists(pairKey);
-  const { cards, loading, error, generate, clearError } = useCards(pairKey);
-
-  // Аккаунты (Supabase Auth). Пока опциональны: слова остаются в localStorage,
-  // вход — подготовка к синхронизации. Если Supabase не настроен — configured=false.
+  // Аккаунты (Supabase Auth). Прогресс слов синхронизируется с облаком под
+  // аккаунтом; без входа приложение работает локально (localStorage).
   const auth = useAuth();
+
+  const vocab = useWordLists(pairKey, auth.user);
+  const { cards, loading, error, generate, clearError } = useCards(pairKey);
 
   // Сколько карточек генерировать за раз — сохраняется между сессиями.
   const [generateCount, setGenerateCount] = useState(loadGenerateCount);
@@ -205,6 +205,9 @@ export default function App() {
             onOpenTutorial={() => setShowTutorial(true)}
             auth={auth}
             onOpenAuth={() => setScreen("auth")}
+            syncStatus={vocab.syncStatus}
+            syncError={vocab.syncError}
+            onRetrySync={vocab.retrySync}
           />
         )}
 

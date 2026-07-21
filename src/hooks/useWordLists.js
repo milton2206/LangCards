@@ -1,8 +1,16 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { supabase } from "../lib/supabase.js";
+import { fetchCloudWords, pushCloudWords } from "../lib/cloudWords.js";
+import { mergeWordData } from "../lib/wordSync.js";
 
 // Всё хранится по языковым парам: { "de-ru": { takenWords, knownWords,
 // skippedWords, wordInfo }, "el-ru": {...} }. Слова разных языков не смешиваются.
 const STORE_KEY = "wordsByPair";
+// Флаг «есть локальные изменения, ещё не отправленные в облако». Переживает
+// перезагрузку — чтобы правки, сделанные офлайн, не потерялись до синхронизации.
+const DIRTY_KEY = "wordsSyncDirty";
+// Задержка перед отправкой в облако — гасит частые правки в один запрос.
+const PUSH_DEBOUNCE_MS = 800;
 
 // Старые «плоские» ключи (до разделения по парам) — для одноразовой миграции.
 const LEGACY = {
@@ -239,9 +247,11 @@ export function getDueWords(takenWords, srsByWord, todayKey) {
  * Возвращает срезы ТОЛЬКО текущей пары; слова других пар сохраняются, но не
  * показываются, пока не переключишься обратно.
  */
-export function useWordLists(pairKey) {
+export function useWordLists(pairKey, user) {
   const [store, setStore] = useState(loadStore);
 
+  // localStorage — источник правды для UI (мгновенно и работает офлайн). Облако
+  // (Supabase) — зеркало для синхронизации между устройствами.
   useEffect(() => {
     localStorage.setItem(STORE_KEY, JSON.stringify(store));
   }, [store]);
@@ -252,13 +262,254 @@ export function useWordLists(pairKey) {
   // «Сегодня» по реальной локальной дате.
   const todayKey = toDayKey(new Date());
 
-  // Обновляет срез текущей пары в общем хранилище.
+  // ---------- Синхронизация с облаком ----------
+  // Статус для UI: disabled (нет аккаунта/Supabase) | syncing | synced | offline | error.
+  const [syncStatus, setSyncStatus] = useState("disabled");
+  const [syncError, setSyncError] = useState(null);
+
+  const storeRef = useRef(store);
+  useEffect(() => {
+    storeRef.current = store;
+  }, [store]);
+
+  const dirtyRef = useRef(localStorage.getItem(DIRTY_KEY) === "1");
+  const lastSyncedAtRef = useRef(null); // updated_at облачной версии, что у нас есть
+  const lastPushedJsonRef = useRef(null); // что реально отправлено (чтобы не слать одно и то же)
+  const syncedUserRef = useRef(null); // id пользователя, для которого прошёл первичный sync
+  const pushTimerRef = useRef(null);
+  const apiRef = useRef({}); // «живые» функции синка для слушателей событий
+
+  function setDirty(value) {
+    dirtyRef.current = value;
+    try {
+      if (value) localStorage.setItem(DIRTY_KEY, "1");
+      else localStorage.removeItem(DIRTY_KEY);
+    } catch {
+      // ignore
+    }
+  }
+
+  // Применить готовое хранилище локально (из облака): и в state, и в ref сразу.
+  function applyStore(next) {
+    storeRef.current = next;
+    setStore(next);
+  }
+
+  function reportFailure(reason) {
+    if (reason === "offline") {
+      setSyncStatus("offline");
+      setSyncError(
+        "Нет связи с облаком — изменения сохранены на устройстве и отправятся позже.",
+      );
+    } else if (reason === "missing-table") {
+      setSyncStatus("error");
+      setSyncError(
+        "Облачное хранилище не настроено. Выполните SQL из supabase/schema.sql в проекте Supabase.",
+      );
+    } else {
+      setSyncStatus("error");
+      setSyncError("Не удалось синхронизировать. Попробуем ещё раз позже.");
+    }
+  }
+
+  // Отправка текущего состояния в облако (с дедупом по содержимому).
+  async function pushNow() {
+    if (!user || !supabase) return;
+    if (syncedUserRef.current !== user.id) return; // до первичного sync не шлём
+    const json = JSON.stringify(storeRef.current);
+    if (json === lastPushedJsonRef.current) {
+      setDirty(false);
+      setSyncStatus("synced");
+      return;
+    }
+    setSyncStatus("syncing");
+    const res = await pushCloudWords(user.id, storeRef.current);
+    if (res.ok) {
+      lastPushedJsonRef.current = json;
+      lastSyncedAtRef.current = res.updatedAt;
+      setDirty(false);
+      setSyncStatus("synced");
+      setSyncError(null);
+    } else {
+      reportFailure(res.reason); // остаёмся dirty — повторим на онлайне/фокусе
+    }
+  }
+
+  function schedulePush() {
+    setDirty(true);
+    if (!user || !supabase || syncedUserRef.current !== user.id) return;
+    clearTimeout(pushTimerRef.current);
+    pushTimerRef.current = setTimeout(() => {
+      apiRef.current.pushNow();
+    }, PUSH_DEBOUNCE_MS);
+  }
+
+  // Применить облачную версию к локальной. Если есть несохранённые локальные
+  // правки — сливаем (ничего не теряем) и отправляем; иначе принимаем облако как
+  // есть (так распространяются и удаления).
+  function applyCloudVersion(cloudData, cloudUpdatedAt) {
+    const cloud = cloudData || {};
+    if (dirtyRef.current) {
+      const merged = ensureSrsFields(
+        mergeWordData(cloud, storeRef.current),
+        todayKey,
+      );
+      applyStore(merged);
+      schedulePush();
+    } else {
+      const normalized = ensureSrsFields(cloud, todayKey);
+      applyStore(normalized);
+      lastPushedJsonRef.current = JSON.stringify(normalized);
+      lastSyncedAtRef.current = cloudUpdatedAt;
+      setSyncStatus("synced");
+      setSyncError(null);
+    }
+  }
+
+  // Первичная синхронизация при входе: сливаем облако + локальные слова (миграция
+  // существующего прогресса, ничего не теряем) и, если появились отличия, шлём вверх.
+  async function initialSync() {
+    setSyncStatus("syncing");
+    const res = await fetchCloudWords(user.id);
+    if (!res.ok) {
+      reportFailure(res.reason); // офлайн/ошибка — останемся на локальных данных
+      return;
+    }
+    const cloud = res.data || {};
+    const merged = ensureSrsFields(
+      mergeWordData(cloud, storeRef.current),
+      todayKey,
+    );
+    applyStore(merged);
+    syncedUserRef.current = user.id;
+
+    const mergedJson = JSON.stringify(merged);
+    if (mergedJson !== JSON.stringify(cloud)) {
+      setSyncStatus("syncing");
+      const pres = await pushCloudWords(user.id, merged);
+      if (pres.ok) {
+        lastPushedJsonRef.current = mergedJson;
+        lastSyncedAtRef.current = pres.updatedAt;
+        setDirty(false);
+        setSyncStatus("synced");
+        setSyncError(null);
+      } else {
+        reportFailure(pres.reason);
+      }
+    } else {
+      lastPushedJsonRef.current = mergedJson;
+      lastSyncedAtRef.current = res.updatedAt;
+      setDirty(false);
+      setSyncStatus("synced");
+      setSyncError(null);
+    }
+  }
+
+  // Подтянуть свежее из облака (фокус окна / возврат связи / ручной повтор).
+  async function pullNow() {
+    if (!user || !supabase || syncedUserRef.current !== user.id) return;
+    const res = await fetchCloudWords(user.id);
+    if (!res.ok) {
+      reportFailure(res.reason);
+      return;
+    }
+    if (dirtyRef.current) {
+      applyCloudVersion(res.data, res.updatedAt);
+      await apiRef.current.pushNow();
+    } else if (res.updatedAt !== lastSyncedAtRef.current) {
+      applyCloudVersion(res.data, res.updatedAt);
+    } else {
+      setSyncStatus("synced");
+    }
+  }
+
+  // Держим ссылки на актуальные версии функций (свежие user/todayKey) — их
+  // зовут слушатели событий, таймеры и мемоизированный updatePair.
+  apiRef.current = {
+    pushNow,
+    pullNow,
+    initialSync,
+    applyCloudVersion,
+    schedulePush,
+  };
+
+  // Ручной повтор синхронизации (кнопка в настройках при офлайн/ошибке).
+  const retrySync = useCallback(() => {
+    if (syncedUserRef.current == null) apiRef.current.initialSync();
+    else if (dirtyRef.current) apiRef.current.pushNow();
+    else apiRef.current.pullNow();
+  }, []);
+
+  // Настройка синхронизации на время, пока есть вошедший пользователь.
+  useEffect(() => {
+    if (!user || !supabase) {
+      setSyncStatus("disabled");
+      setSyncError(null);
+      syncedUserRef.current = null;
+      return;
+    }
+
+    let cancelled = false;
+    syncedUserRef.current = null;
+    (async () => {
+      if (!cancelled) await apiRef.current.initialSync();
+    })();
+
+    // Реалтайм: правки с других устройств приходят почти мгновенно.
+    const channel = supabase
+      .channel(`user_words_${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "user_words",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const row = payload.new;
+          if (!row || !row.updated_at) return;
+          if (row.updated_at === lastSyncedAtRef.current) return; // наше же эхо
+          apiRef.current.applyCloudVersion(row.data, row.updated_at);
+        },
+      )
+      .subscribe();
+
+    // Фолбэки, если реалтайм недоступен: фокус вкладки и возврат сети.
+    const onFocus = () => {
+      if (navigator.onLine) apiRef.current.pullNow();
+    };
+    const onOnline = () => {
+      if (dirtyRef.current) apiRef.current.pushNow();
+      else apiRef.current.pullNow();
+    };
+    const onOffline = () => setSyncStatus("offline");
+
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(pushTimerRef.current);
+      supabase.removeChannel(channel);
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // Обновляет срез текущей пары в общем хранилище + планирует отправку в облако.
   const updatePair = useCallback(
     (updater) => {
       setStore((prev) => {
         const cur = prev[pairKey] || EMPTY_PAIR;
         return { ...prev, [pairKey]: updater(cur) };
       });
+      // Через apiRef, чтобы всегда планировать отправку со свежим user (после
+      // входа updatePair не пересоздаётся, но apiRef обновляется каждый рендер).
+      apiRef.current.schedulePush();
     },
     [pairKey],
   );
@@ -430,5 +681,9 @@ export function useWordLists(pairKey) {
     reviewWord, // самооценка при интервальном повторении (Этап 2)
     rememberCards,
     deleteWords, // полное удаление слов (режим выбора в списках)
+    // Синхронизация с облаком (Supabase).
+    syncStatus, // disabled | syncing | synced | offline | error
+    syncError, // понятный текст ошибки/офлайна для UI
+    retrySync, // ручной повтор синхронизации
   };
 }

@@ -154,6 +154,44 @@
   font-weight: 600;
 }
 
+/* ---------- Статус синхронизации ---------- */
+.settings__sync {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.settings__sync-text {
+  color: var(--text-muted);
+}
+
+.settings__sync.is-synced .settings__sync-text {
+  color: #35c88b;
+}
+
+.settings__sync.is-offline .settings__sync-text {
+  color: #e6b450;
+}
+
+.settings__sync.is-error .settings__sync-text {
+  color: #ff6b6b;
+}
+
+.settings__sync-retry {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* Ненавязчивые пункты («Как пользоваться», «Установить на телефон») */
 .settings__secondary {
   width: 100%;

@@ -15,6 +15,9 @@ export default function SettingsScreen({
   onOpenTutorial,
   auth,
   onOpenAuth,
+  syncStatus,
+  syncError,
+  onRetrySync,
 }) {
   const [showInstall, setShowInstall] = useState(false);
 
@@ -70,19 +73,28 @@ export default function SettingsScreen({
             устройстве.
           </p>
         ) : auth.user ? (
-          <div className="settings__account">
-            <div className="settings__account-info">
-              <span className="settings__account-label">Вы вошли как</span>
-              <span className="settings__account-email">{auth.user.email}</span>
+          <>
+            <div className="settings__account">
+              <div className="settings__account-info">
+                <span className="settings__account-label">Вы вошли как</span>
+                <span className="settings__account-email">
+                  {auth.user.email}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="settings__signout"
+                onClick={auth.signOut}
+              >
+                Выйти
+              </button>
             </div>
-            <button
-              type="button"
-              className="settings__signout"
-              onClick={auth.signOut}
-            >
-              Выйти
-            </button>
-          </div>
+            <SyncStatus
+              status={syncStatus}
+              error={syncError}
+              onRetry={onRetrySync}
+            />
+          </>
         ) : (
           <>
             <p className="settings__account-hint">
@@ -122,5 +134,32 @@ export default function SettingsScreen({
 
       {showInstall && <InstallGuide onClose={() => setShowInstall(false)} />}
     </section>
+  );
+}
+
+// Строка состояния синхронизации прогресса с облаком.
+function SyncStatus({ status, error, onRetry }) {
+  const map = {
+    syncing: { cls: "is-syncing", text: "Синхронизация…" },
+    synced: { cls: "is-synced", text: "Прогресс синхронизирован ✓" },
+    offline: { cls: "is-offline", text: error || "Оффлайн — синхронизируем позже." },
+    error: { cls: "is-error", text: error || "Ошибка синхронизации." },
+  };
+  const view = map[status] || map.syncing;
+  const canRetry = status === "offline" || status === "error";
+
+  return (
+    <div className={"settings__sync " + view.cls}>
+      <span className="settings__sync-text">{view.text}</span>
+      {canRetry && (
+        <button
+          type="button"
+          className="settings__sync-retry"
+          onClick={onRetry}
+        >
+          Повторить
+        </button>
+      )}
+    </div>
   );
 }

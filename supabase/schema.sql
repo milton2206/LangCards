@@ -61,9 +61,58 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- ============================================================================
+-- Синхронизация прогресса: одна строка на пользователя, весь прогресс как jsonb
+-- ----------------------------------------------------------------------------
+-- Здесь хранятся takenWords / knownWords / skippedWords со всеми полями
+-- повторения (interval, nextReviewDate, ease, repetitions, lastReviewed),
+-- примерами предложений (wordInfo) и разбивкой по языковым парам — тот же
+-- объект wordsByPair, что и в localStorage. Доступ строго к своей строке (RLS).
+-- ============================================================================
+
+create table if not exists public.user_words (
+  user_id    uuid primary key references auth.users (id) on delete cascade,
+  data       jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.user_words enable row level security;
+
+drop policy if exists "user_words_select_own" on public.user_words;
+create policy "user_words_select_own"
+  on public.user_words for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "user_words_insert_own" on public.user_words;
+create policy "user_words_insert_own"
+  on public.user_words for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "user_words_update_own" on public.user_words;
+create policy "user_words_update_own"
+  on public.user_words for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- Реалтайм: правки на одном устройстве почти мгновенно прилетают на другие.
+-- (Если строка уже добавлена в публикацию — Postgres кинет ошибку дубликата,
+--  её можно игнорировать; идемпотентную проверку делаем через DO-блок.)
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'user_words'
+  ) then
+    alter publication supabase_realtime add table public.user_words;
+  end if;
+end $$;
+
+-- ============================================================================
 -- Проверка RLS (по желанию):
 --   1) В SQL Editor выполните: select * from public.profiles;
 --      Через service-контекст SQL Editor вернёт все строки — это ожидаемо.
 --   2) Реальную изоляцию проверяет фронтенд: войдя двумя разными аккаунтами,
 --      supabase.from('profiles').select('*') вернёт КАЖДОМУ только его строку.
+--      То же для user_words — каждый видит только свой прогресс.
 -- ============================================================================
