@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useWordSelection } from "../hooks/useWordSelection.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 import SelectBar from "../components/SelectBar.jsx";
 import WordListTabs from "../components/WordListTabs.jsx";
 import "./MyWordsScreen.css";
@@ -25,6 +26,7 @@ export default function KnownWordsScreen({
   onBack,
   onOpenMyWords,
 }) {
+  const { t } = useI18n();
   const items = knownWords.map((word) => ({
     word,
     ...wordInfo[word],
@@ -64,18 +66,18 @@ export default function KnownWordsScreen({
             type="button"
             className="mywords__back"
             onClick={onBack}
-            aria-label="Назад"
+            aria-label={t("common.back")}
           >
             ←
           </button>
-          <h1 className="mywords__title">Известные слова</h1>
+          <h1 className="mywords__title">{t("words.knownTitle")}</h1>
           {items.length > 0 && !sel.selectMode && (
             <button
               type="button"
               className="mywords__select"
               onClick={sel.enter}
             >
-              Выбрать
+              {t("words.select")}
             </button>
           )}
         </header>
@@ -89,8 +91,7 @@ export default function KnownWordsScreen({
 
         {limitNotice && (
           <p className="mywords__limit-notice" role="status">
-            Сначала повтори или выучи слова из активных — в изучении уже{" "}
-            {MAX_ACTIVE_WORDS} слов.
+            {t("common.activeLimit", { max: MAX_ACTIVE_WORDS })}
           </p>
         )}
       </div>
@@ -100,9 +101,7 @@ export default function KnownWordsScreen({
           <div className="mywords__empty-emoji" aria-hidden="true">
             🧠
           </div>
-          <p className="mywords__empty-text">
-            Пока пусто. Слова, отмеченные «Знаю», будут собираться здесь.
-          </p>
+          <p className="mywords__empty-text">{t("words.knownEmpty")}</p>
         </div>
       ) : (
         <ul className="mywords__list">
@@ -152,7 +151,7 @@ export default function KnownWordsScreen({
                       className="mywords__restore"
                       onClick={() => handleRestore(item.word)}
                     >
-                      Вернуть
+                      {t("words.restore")}
                     </button>
                   )}
                 </div>

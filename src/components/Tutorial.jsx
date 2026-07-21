@@ -1,33 +1,22 @@
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "../i18n/I18nContext.jsx";
 import "./Tutorial.css";
 
-// Короткие слайды: механика, а не длинное обучение.
+// Метаданные слайдов (эмодзи, структура свайпа). Тексты — из словаря по ключу
+// tutorial.<key>.*, подписи действий — общие action.* (см. render).
 const SLIDES = [
+  { key: "slide1", emoji: "📖" },
   {
-    emoji: "📖",
-    title: "Учи слова в контексте",
-    text: "Каждое слово — с примером в предложении. Так они запоминаются лучше, чем по отдельности.",
-  },
-  {
+    key: "slide2",
     emoji: "🃏",
-    title: "Управляй карточкой свайпом",
-    text: "Кнопок «Взять»/«Знаю» на карточке больше нет — двигай её пальцем.",
     swipe: {
-      left: { arrow: "←", label: "Знаю", desc: "уже знакомо — убрать навсегда", cls: "known" },
-      right: { arrow: "→", label: "Взять", desc: "в изучение — будешь повторять", cls: "take" },
-      skip: { label: "Пропустить", desc: "кнопкой — слово вернётся позже", cls: "skip" },
+      left: { arrow: "←", cls: "known", labelKey: "action.know", descKey: "tutorial.slide2.leftDesc" },
+      right: { arrow: "→", cls: "take", labelKey: "action.take", descKey: "tutorial.slide2.rightDesc" },
+      skip: { cls: "skip", labelKey: "action.skip", descKey: "tutorial.slide2.skipDesc" },
     },
   },
-  {
-    emoji: "✨",
-    title: "Новые карточки — по кнопке",
-    text: "Новые слова приходят только когда ты сам нажимаешь «Сгенерировать новые карточки».",
-  },
-  {
-    emoji: "📚",
-    title: "Мои слова и Известные",
-    text: "Взятые слова — в разделе «Мои слова», выученные — в «Известные». Открой их с экрана карточек.",
-  },
+  { key: "slide3", emoji: "✨" },
+  { key: "slide4", emoji: "📚" },
 ];
 
 /**
@@ -35,6 +24,7 @@ const SLIDES = [
  * Слайды можно листать (кнопки или свайп). Закрытие — «Пропустить»/«Понятно».
  */
 export default function Tutorial({ onClose }) {
+  const { t } = useI18n();
   const [index, setIndex] = useState(0);
   const isLast = index === SLIDES.length - 1;
   const slide = SLIDES[index];
@@ -89,7 +79,7 @@ export default function Tutorial({ onClose }) {
             className="tutorial__skip"
             onClick={onClose}
           >
-            Пропустить
+            {t("tutorial.skip")}
           </button>
         </header>
 
@@ -102,10 +92,10 @@ export default function Tutorial({ onClose }) {
             {slide.emoji}
           </div>
           <h2 id="tutorial-title" className="tutorial__title">
-            {slide.title}
+            {t(`tutorial.${slide.key}.title`)}
           </h2>
 
-          {slide.text && <p className="tutorial__text">{slide.text}</p>}
+          <p className="tutorial__text">{t(`tutorial.${slide.key}.text`)}</p>
 
           {slide.swipe && (
             <div className="tutorial__swipe">
@@ -117,10 +107,10 @@ export default function Tutorial({ onClose }) {
                   <span
                     className={`tutorial__act-label tutorial__act-label--${slide.swipe.left.cls}`}
                   >
-                    {slide.swipe.left.label}
+                    {t(slide.swipe.left.labelKey)}
                   </span>
                   <span className="tutorial__swipe-desc">
-                    {slide.swipe.left.desc}
+                    {t(slide.swipe.left.descKey)}
                   </span>
                 </div>
 
@@ -135,10 +125,10 @@ export default function Tutorial({ onClose }) {
                   <span
                     className={`tutorial__act-label tutorial__act-label--${slide.swipe.right.cls}`}
                   >
-                    {slide.swipe.right.label}
+                    {t(slide.swipe.right.labelKey)}
                   </span>
                   <span className="tutorial__swipe-desc">
-                    {slide.swipe.right.desc}
+                    {t(slide.swipe.right.descKey)}
                   </span>
                 </div>
               </div>
@@ -147,10 +137,10 @@ export default function Tutorial({ onClose }) {
                 <span
                   className={`tutorial__act-label tutorial__act-label--${slide.swipe.skip.cls}`}
                 >
-                  {slide.swipe.skip.label}
+                  {t(slide.swipe.skip.labelKey)}
                 </span>
                 <span className="tutorial__act-desc">
-                  {slide.swipe.skip.desc}
+                  {t(slide.swipe.skip.descKey)}
                 </span>
               </div>
             </div>
@@ -169,11 +159,11 @@ export default function Tutorial({ onClose }) {
         <div className="tutorial__nav">
           {index > 0 && (
             <button type="button" className="tutorial__back" onClick={back}>
-              Назад
+              {t("common.back")}
             </button>
           )}
           <button type="button" className="tutorial__next" onClick={next}>
-            {isLast ? "Понятно" : "Далее"}
+            {isLast ? t("tutorial.gotIt") : t("tutorial.next")}
           </button>
         </div>
       </div>

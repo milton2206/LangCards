@@ -1,50 +1,44 @@
-// Единый источник данных для онбординга.
-// Используется и мастером выбора, и экраном-заглушкой (для подписи выбора).
+// Единый источник данных для онбординга (структура шагов и опций). Тексты
+// (заголовки, подписи опций) живут в словарях i18n — здесь только ключи, id и
+// эмодзи. Подписи резолвятся через t() по ключам optionLabelKey/stepTitleKey.
 
 export const ONBOARDING_STEPS = [
   {
     key: "learnLang",
-    title: "Какой язык учу?",
     options: [
-      { id: "de", label: "Немецкий", emoji: "🇩🇪" },
-      { id: "en", label: "Английский", emoji: "🇬🇧" },
-      { id: "el", label: "Греческий", emoji: "🇬🇷" },
-      { id: "es", label: "Испанский", emoji: "🇪🇸" },
+      { id: "de", emoji: "🇩🇪" },
+      { id: "en", emoji: "🇬🇧" },
+      { id: "el", emoji: "🇬🇷" },
+      { id: "es", emoji: "🇪🇸" },
     ],
   },
   {
     key: "nativeLang",
-    title: "Мой родной язык",
-    hint: "На него будем переводить",
     options: [
-      { id: "ru", label: "Русский", emoji: "🇷🇺" },
-      { id: "uk", label: "Украинский", emoji: "🇺🇦" },
-      { id: "en", label: "Английский", emoji: "🇬🇧" },
+      { id: "ru", emoji: "🇷🇺" },
+      { id: "uk", emoji: "🇺🇦" },
+      { id: "en", emoji: "🇬🇧" },
     ],
   },
   {
     key: "topic",
-    title: "Тема",
-    hint: "О чём будут карточки",
     options: [
-      { id: "work", label: "Работа", emoji: "💼" },
-      { id: "housing", label: "Аренда жилья", emoji: "🏠" },
-      { id: "doctor", label: "У врача", emoji: "🩺" },
-      { id: "travel", label: "Путешествия", emoji: "✈️" },
-      { id: "daily", label: "Повседневное общение", emoji: "💬" },
-      { id: "restaurant", label: "Ресторан / кафе", emoji: "☕" },
+      { id: "work", emoji: "💼" },
+      { id: "housing", emoji: "🏠" },
+      { id: "doctor", emoji: "🩺" },
+      { id: "travel", emoji: "✈️" },
+      { id: "daily", emoji: "💬" },
+      { id: "restaurant", emoji: "☕" },
     ],
   },
   {
     key: "level",
-    title: "Уровень",
-    hint: "Уровень по шкале CEFR (A1 — начальный … C1 — продвинутый)",
     options: [
-      { id: "a1", label: "A1 — начальный", emoji: "🟢" },
-      { id: "a2", label: "A2 — элементарный", emoji: "🟢" },
-      { id: "b1", label: "B1 — средний", emoji: "🟡" },
-      { id: "b2", label: "B2 — выше среднего", emoji: "🟠" },
-      { id: "c1", label: "C1 — продвинутый", emoji: "🔴" },
+      { id: "a1", emoji: "🟢" },
+      { id: "a2", emoji: "🟢" },
+      { id: "b1", emoji: "🟡" },
+      { id: "b2", emoji: "🟠" },
+      { id: "c1", emoji: "🔴" },
     ],
   },
 ];
@@ -57,9 +51,14 @@ export const EMPTY_SETTINGS = Object.fromEntries(
   SETTINGS_KEYS.map((key) => [key, null]),
 );
 
-// Находит подпись выбранной опции по ключу шага и id опции.
-export function findOptionLabel(stepKey, optionId) {
-  const step = ONBOARDING_STEPS.find((s) => s.key === stepKey);
-  const option = step?.options.find((o) => o.id === optionId);
-  return option ? option.label : "";
+// Ключ перевода подписи опции. Языки (учу/родной) делят общий namespace lang.*,
+// тема и уровень — свои (topic.*, level.*).
+export function optionLabelKey(stepKey, optionId) {
+  if (stepKey === "learnLang" || stepKey === "nativeLang") {
+    return `lang.${optionId}`;
+  }
+  return `${stepKey}.${optionId}`;
 }
+
+export const stepTitleKey = (stepKey) => `onb.${stepKey}.title`;
+export const stepHintKey = (stepKey) => `onb.${stepKey}.hint`;

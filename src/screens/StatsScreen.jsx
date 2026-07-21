@@ -1,5 +1,5 @@
-import { findOptionLabel } from "../data/onboarding.js";
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 import "./StatsScreen.css";
 
 // Донат-диаграмма прогресса через приём stroke-dasharray (без библиотек).
@@ -17,6 +17,7 @@ export default function StatsScreen({
   nativeLang,
   onBack,
 }) {
+  const { t } = useI18n();
   const total = takenCount + knownCount;
   const knownFraction = total > 0 ? knownCount / total : 0;
   const knownPercent = Math.round(knownFraction * 100);
@@ -25,8 +26,8 @@ export default function StatsScreen({
   const activeFraction = Math.min(takenCount / MAX_ACTIVE_WORDS, 1);
 
   const pairLabel = [
-    findOptionLabel("learnLang", learnLang),
-    findOptionLabel("nativeLang", nativeLang),
+    learnLang && t(`lang.${learnLang}`),
+    nativeLang && t(`lang.${nativeLang}`),
   ]
     .filter(Boolean)
     .join(" → ");
@@ -38,12 +39,12 @@ export default function StatsScreen({
           type="button"
           className="stats__back"
           onClick={onBack}
-          aria-label="Назад"
+          aria-label={t("common.back")}
         >
           ←
         </button>
         <div className="stats__header-text">
-          <h1 className="stats__title">Статистика</h1>
+          <h1 className="stats__title">{t("stats.title")}</h1>
           {pairLabel && <p className="stats__subtitle">{pairLabel}</p>}
         </div>
       </header>
@@ -53,10 +54,7 @@ export default function StatsScreen({
           <div className="stats__empty-emoji" aria-hidden="true">
             📊
           </div>
-          <p className="stats__empty-text">
-            Пока нет данных. Возьмите первые слова в изучение — прогресс
-            появится здесь.
-          </p>
+          <p className="stats__empty-text">{t("stats.empty")}</p>
         </div>
       ) : (
         <>
@@ -65,7 +63,7 @@ export default function StatsScreen({
               className="stats__donut"
               viewBox="0 0 200 200"
               role="img"
-              aria-label={`Выучено ${knownPercent}% слов`}
+              aria-label={t("stats.donutAria", { percent: knownPercent })}
             >
               <circle
                 className="stats__donut-track"
@@ -89,28 +87,28 @@ export default function StatsScreen({
             </svg>
             <div className="stats__donut-center">
               <span className="stats__donut-percent">{knownPercent}%</span>
-              <span className="stats__donut-label">выучено</span>
+              <span className="stats__donut-label">{t("stats.learnedLabel")}</span>
             </div>
           </div>
 
           <div className="stats__tiles">
             <div className="stats__tile">
               <span className="stats__tile-value">{takenCount}</span>
-              <span className="stats__tile-label">В изучении</span>
+              <span className="stats__tile-label">{t("stats.learning")}</span>
             </div>
             <div className="stats__tile">
               <span className="stats__tile-value">{knownCount}</span>
-              <span className="stats__tile-label">Выучено</span>
+              <span className="stats__tile-label">{t("stats.learned")}</span>
             </div>
             <div className="stats__tile">
               <span className="stats__tile-value">{total}</span>
-              <span className="stats__tile-label">Всего слов</span>
+              <span className="stats__tile-label">{t("stats.totalWords")}</span>
             </div>
           </div>
 
           <div className="stats__limit">
             <div className="stats__limit-row">
-              <span>Активных слов</span>
+              <span>{t("stats.activeWords")}</span>
               <span>
                 {takenCount} / {MAX_ACTIVE_WORDS}
               </span>

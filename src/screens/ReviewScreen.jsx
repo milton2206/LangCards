@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
 import { highlightWordInExample } from "../lib/highlightWord.js";
-import { humanizeInterval } from "../lib/humanizeInterval.js";
+import { formatInterval } from "../i18n/format.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 import { nextSrs } from "../hooks/useWordLists.js";
 import "./ReviewScreen.css";
 
 const GRADES = [
   // «Не помню» не откладывает слово на интервал, а возвращает его дальше в
   // текущей сессии (replay) — поэтому вместо срока показываем «повторить сейчас».
-  { grade: "again", label: "Не помню", cls: "again", replay: true },
-  { grade: "hard", label: "Трудно", cls: "hard" },
-  { grade: "good", label: "Нормально", cls: "good" },
-  { grade: "easy", label: "Легко", cls: "easy" },
+  { grade: "again", cls: "again", replay: true },
+  { grade: "hard", cls: "hard" },
+  { grade: "good", cls: "good" },
+  { grade: "easy", cls: "easy" },
 ];
 
 // На сколько карточек назад отправить слово при «Не помню» — чтобы был
@@ -47,6 +48,7 @@ export default function ReviewScreen({
   onReview,
   onBack,
 }) {
+  const { t, lang } = useI18n();
   const [revealed, setRevealed] = useState(false);
   const [queue, setQueue] = useState(() => dueWords);
 
@@ -98,21 +100,17 @@ export default function ReviewScreen({
           type="button"
           className="review__back-corner"
           onClick={onBack}
-          aria-label="Назад"
+          aria-label={t("common.back")}
         >
           ←
         </button>
         <div className="review__status-emoji" aria-hidden="true">
           🎉
         </div>
-        <h1 className="review__status-title">
-          Повторение на сегодня завершено
-        </h1>
-        <p className="review__status-hint">
-          Новые слова на повтор появятся, когда подойдёт их срок.
-        </p>
+        <h1 className="review__status-title">{t("review.doneTitle")}</h1>
+        <p className="review__status-hint">{t("review.doneHint")}</p>
         <button type="button" className="review__done" onClick={onBack}>
-          Готово
+          {t("common.done")}
         </button>
       </section>
     );
@@ -140,11 +138,13 @@ export default function ReviewScreen({
           type="button"
           className="review__back"
           onClick={onBack}
-          aria-label="Назад"
+          aria-label={t("common.back")}
         >
           ←
         </button>
-        <span className="review__remaining">Осталось повторить: {total}</span>
+        <span className="review__remaining">
+          {t("review.remaining", { n: total })}
+        </span>
       </header>
 
       <article className="review__card">
@@ -185,7 +185,7 @@ export default function ReviewScreen({
               {info.exampleTranslation && (
                 <div className="review__sentence-translation-block">
                   <span className="review__sentence-translation-label">
-                    Перевод примера
+                    {t("review.exampleTranslation")}
                   </span>
                   <p
                     className="review__sentence-translation"
@@ -203,23 +203,25 @@ export default function ReviewScreen({
             className="review__reveal"
             onClick={() => setRevealed(true)}
           >
-            Показать перевод
+            {t("review.reveal")}
           </button>
         )}
       </article>
 
       {revealed && (
         <div className="review__grades">
-          {gradesWithInterval.map(({ grade, label, cls, interval, replay }) => (
+          {gradesWithInterval.map(({ grade, cls, interval, replay }) => (
             <button
               key={grade}
               type="button"
               className={`review__grade review__grade--${cls}`}
               onClick={() => handleGrade(currentWord, grade)}
             >
-              <span className="review__grade-label">{label}</span>
+              <span className="review__grade-label">{t(`grade.${grade}`)}</span>
               <span className="review__grade-interval">
-                {replay ? "повторить сейчас" : humanizeInterval(interval)}
+                {replay
+                  ? t("review.replayNow")
+                  : formatInterval(t, lang, interval)}
               </span>
             </button>
           ))}

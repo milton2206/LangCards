@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Analytics } from "@vercel/analytics/react";
+import { I18nProvider } from "./i18n/I18nContext.jsx";
+import { translate } from "./i18n/index.js";
 import AppShell from "./components/AppShell.jsx";
 import StartScreen from "./screens/StartScreen.jsx";
 import OnboardingScreen from "./screens/OnboardingScreen.jsx";
@@ -74,6 +76,11 @@ export default function App() {
     localStorage.setItem("settings", JSON.stringify(settings));
   }, [settings]);
 
+  // Заголовок вкладки браузера — на языке интерфейса (родной язык пользователя).
+  useEffect(() => {
+    document.title = translate(settings.nativeLang, "start.title");
+  }, [settings.nativeLang]);
+
   // После успешного входа уводим с экрана авторизации обратно в настройки,
   // где показан аккаунт и кнопка «Выйти».
   useEffect(() => {
@@ -112,7 +119,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <I18nProvider lang={settings.nativeLang}>
       <Analytics />
       <AppShell>
         {screen === "start" && (
@@ -206,7 +213,7 @@ export default function App() {
             auth={auth}
             onOpenAuth={() => setScreen("auth")}
             syncStatus={vocab.syncStatus}
-            syncError={vocab.syncError}
+            syncReason={vocab.syncReason}
             onRetrySync={vocab.retrySync}
           />
         )}
@@ -221,6 +228,6 @@ export default function App() {
 
         {showTutorial && <Tutorial onClose={closeTutorial} />}
       </AppShell>
-    </>
+    </I18nProvider>
   );
 }

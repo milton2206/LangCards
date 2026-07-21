@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import { pickCurrentCard, MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
 import { GENERATE_COUNT_OPTIONS } from "../lib/generateCount.js";
-import { pluralRu } from "../lib/humanizeInterval.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 import "./CardScreen.css";
 
 // Переключатель «сколько карточек генерировать за раз» (5/10/20) — рядом с
 // кнопкой генерации в обоих местах, где она встречается на этом экране.
-function GenerateCountPicker({ value, onChange }) {
+function GenerateCountPicker({ value, onChange, label }) {
   return (
     <div className="cards__count-picker">
-      <span className="cards__count-label">Сколько карточек:</span>
+      <span className="cards__count-label">{label}</span>
       <div className="cards__count-options">
         {GENERATE_COUNT_OPTIONS.map((n) => (
           <button
@@ -51,6 +51,7 @@ export default function CardScreen({
   onOpenReview,
   onOpenStats,
 }) {
+  const { t, tp } = useI18n();
   const { takenWords, knownWords, take, skip, markKnown, rememberCards } = vocab;
 
   // Мягкое сообщение при достижении лимита активных слов (см. MAX_ACTIVE_WORDS
@@ -111,28 +112,30 @@ export default function CardScreen({
     return (
       <section className="cards cards--status">
         <div className="cards__spinner" aria-hidden="true" />
-        <h1 className="cards__status-title">Генерируем карточки…</h1>
-        <p className="cards__status-hint">
-          Подбираем слова по вашей теме и уровню с помощью ИИ.
-        </p>
+        <h1 className="cards__status-title">{t("cards.loadingTitle")}</h1>
+        <p className="cards__status-hint">{t("cards.loadingHint")}</p>
       </section>
     );
   }
 
   if (error) {
+    // error: { code, params?, raw? } — raw уже локализован сервером.
+    const errorText = error.raw
+      ? error.raw
+      : t(`errors.${error.code}`, error.params);
     return (
       <section className="cards cards--status">
         <div className="cards__status-emoji" aria-hidden="true">
           ⚠️
         </div>
-        <h1 className="cards__status-title">Не удалось сгенерировать</h1>
-        <p className="cards__status-hint">{error}</p>
+        <h1 className="cards__status-title">{t("errors.title")}</h1>
+        <p className="cards__status-hint">{errorText}</p>
         <div className="cards__status-actions">
           <button type="button" className="cards__retry" onClick={onGenerate}>
-            Повторить
+            {t("common.retry")}
           </button>
           <button type="button" className="cards__ghost" onClick={onClearError}>
-            Назад
+            {t("common.back")}
           </button>
         </div>
       </section>
@@ -152,7 +155,7 @@ export default function CardScreen({
         className="cards__mywords"
         onClick={onOpenMyWords}
       >
-        Мои слова
+        {t("cards.myWords")}
         <span className="cards__badge">{takenWords.length}</span>
       </button>
       <div className="cards__topbar-actions">
@@ -160,7 +163,7 @@ export default function CardScreen({
           type="button"
           className="cards__icon-btn"
           onClick={onOpenStats}
-          aria-label="Статистика"
+          aria-label={t("cards.statsAria")}
         >
           <span className="cards__icon-btn-glyph" aria-hidden="true">
             📊
@@ -170,7 +173,7 @@ export default function CardScreen({
           type="button"
           className="cards__icon-btn"
           onClick={onOpenSettings}
-          aria-label="Настройки"
+          aria-label={t("cards.settingsAria")}
         >
           <span className="cards__icon-btn-glyph" aria-hidden="true">
             ⚙️
@@ -188,27 +191,25 @@ export default function CardScreen({
       <div className="cards__daily cards__daily--due">
         <div className="cards__daily-text">
           <p className="cards__daily-title">
-            На сегодня: {dueCount}{" "}
-            {pluralRu(dueCount, "слово", "слова", "слов")} повторить
+            {t("cards.dueTitle", {
+              n: dueCount,
+              word: tp("plural.words", dueCount),
+            })}
           </p>
-          <p className="cards__daily-hint">
-            Сначала закрепим то, что уже учили
-          </p>
+          <p className="cards__daily-hint">{t("cards.dueHint")}</p>
         </div>
         <button
           type="button"
           className="cards__daily-cta"
           onClick={onOpenReview}
         >
-          Повторить сейчас
+          {t("cards.reviewNow")}
         </button>
       </div>
     ) : (
       <div className="cards__daily cards__daily--clear">
-        <p className="cards__daily-title">На сегодня всё повторено</p>
-        <p className="cards__daily-hint">
-          Можешь взять новые слова, если есть настроение — торопиться некуда.
-        </p>
+        <p className="cards__daily-title">{t("cards.allReviewed")}</p>
+        <p className="cards__daily-hint">{t("cards.allReviewedHint")}</p>
       </div>
     );
 
@@ -224,21 +225,20 @@ export default function CardScreen({
               <div className="cards__status-emoji" aria-hidden="true">
                 🃏
               </div>
-              <h1 className="cards__status-title">Пока нет карточек</h1>
-              <p className="cards__status-hint">
-                Нажмите «Сгенерировать новые карточки», чтобы получить порцию по
-                вашей теме и уровню.
-              </p>
+              <h1 className="cards__status-title">{t("cards.emptyTitle")}</h1>
+              <p className="cards__status-hint">{t("cards.emptyHint")}</p>
             </>
           ) : (
             <>
               <div className="cards__status-emoji" aria-hidden="true">
                 🎉
               </div>
-              <h1 className="cards__status-title">Порция разобрана</h1>
+              <h1 className="cards__status-title">{t("cards.doneTitle")}</h1>
               <p className="cards__status-hint">
-                Взято на изучение — {takenWords.length}, отмечено «знаю» —{" "}
-                {knownWords.length}. Сгенерируйте новую порцию.
+                {t("cards.doneHint", {
+                  taken: takenWords.length,
+                  known: knownWords.length,
+                })}
               </p>
             </>
           )}
@@ -246,9 +246,10 @@ export default function CardScreen({
             <GenerateCountPicker
               value={generateCount}
               onChange={onChangeGenerateCount}
+              label={t("cards.countLabel")}
             />
             <button type="button" className="cards__retry" onClick={onGenerate}>
-              Сгенерировать новые карточки
+              {t("cards.generate")}
             </button>
             {!empty && (
               <button
@@ -256,7 +257,7 @@ export default function CardScreen({
                 className="cards__ghost"
                 onClick={onOpenMyWords}
               >
-                Мои слова
+                {t("cards.myWords")}
               </button>
             )}
           </div>
@@ -276,7 +277,9 @@ export default function CardScreen({
           style={{ width: `${(learnedInBatch / total) * 100}%` }}
         />
       </div>
-      <p className="cards__remaining">Осталось в порции: {remaining}</p>
+      <p className="cards__remaining">
+        {t("cards.remaining", { n: remaining })}
+      </p>
 
       {/* Чистая карточка: никаких наложений на текст. Подсказка жеста — это
           сама карточка (перелив рамки при свайпе + покачивание при входе).
@@ -305,7 +308,7 @@ export default function CardScreen({
         <div className="cards__divider" />
 
         <div className="cards__example">
-          <span className="cards__example-label">Пример</span>
+          <span className="cards__example-label">{t("cards.example")}</span>
           <p className="cards__example-text" lang={learnLang}>
             {card.example}
           </p>
@@ -318,8 +321,7 @@ export default function CardScreen({
       <div className="cards__actions">
         {limitNotice && (
           <p className="cards__limit-notice" role="status">
-            Сначала повтори или выучи слова из активных — в изучении уже{" "}
-            {MAX_ACTIVE_WORDS} слов.
+            {t("common.activeLimit", { max: MAX_ACTIVE_WORDS })}
           </p>
         )}
         {/* Три кнопки дублируют свайп. Цвета совпадают со стороной жеста:
@@ -331,33 +333,34 @@ export default function CardScreen({
             className="cards__swipe-btn cards__swipe-btn--know"
             onClick={() => markKnown(card.word)}
           >
-            Знаю
+            {t("action.know")}
           </button>
           <button
             type="button"
             className="cards__swipe-btn cards__swipe-btn--skip"
             onClick={() => skip(card.word)}
           >
-            Пропустить
+            {t("action.skip")}
           </button>
           <button
             type="button"
             className="cards__swipe-btn cards__swipe-btn--take"
             onClick={() => handleTake(card.word)}
           >
-            Взять
+            {t("action.take")}
           </button>
         </div>
         <GenerateCountPicker
           value={generateCount}
           onChange={onChangeGenerateCount}
+          label={t("cards.countLabel")}
         />
         <button
           type="button"
           className="cards__generate"
           onClick={onGenerate}
         >
-          Сгенерировать новые карточки
+          {t("cards.generate")}
         </button>
       </div>
     </section>

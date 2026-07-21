@@ -62,6 +62,8 @@ export function useCards(pairKey) {
   const cards = store[pairKey] || EMPTY;
 
   // Запрашивает новую порцию и заменяет текущую для этой пары.
+  // Ошибку возвращаем структурой { code, params?, raw? } — текст локализуется в
+  // UI (CardScreen). raw — это сообщение сервера (уже на языке сервера).
   const generate = useCallback(
     async (params) => {
       setLoading(true);
@@ -74,27 +76,33 @@ export function useCards(pairKey) {
         });
 
         if (!res.ok) {
-          let message = `Ошибка сервера (${res.status})`;
+          let serverMsg = null;
           try {
             const data = await res.json();
-            if (data && data.error) message = data.error;
+            if (data && data.error) serverMsg = data.error;
           } catch {
-            // тело не JSON — оставляем общее сообщение
+            // тело не JSON — покажем общий текст по статусу
           }
-          throw new Error(message);
+          setError(
+            serverMsg
+              ? { raw: serverMsg }
+              : { code: "server", params: { status: res.status } },
+          );
+          return;
         }
 
         const data = await res.json();
         const batch = Array.isArray(data) ? data : data.cards;
         if (!Array.isArray(batch) || batch.length === 0) {
-          throw new Error("Сервер не вернул карточек. Попробуйте ещё раз.");
+          setError({ code: "noCards" });
+          return;
         }
         setStore((prev) => ({ ...prev, [pairKey]: batch }));
       } catch (e) {
         setError(
           e.message === "Failed to fetch"
-            ? "Нет соединения с сервером. Проверьте интернет и попробуйте снова."
-            : e.message || "Не удалось сгенерировать карточки.",
+            ? { code: "offline" }
+            : { code: "generateFailed" },
         );
       } finally {
         setLoading(false);

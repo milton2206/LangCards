@@ -267,7 +267,8 @@ export function useWordLists(pairKey, user) {
   // ---------- Синхронизация с облаком ----------
   // Статус для UI: disabled (нет аккаунта/Supabase) | syncing | synced | offline | error.
   const [syncStatus, setSyncStatus] = useState("disabled");
-  const [syncError, setSyncError] = useState(null);
+  // Код причины сбоя (не текст — локализуется в UI): null | offline | missing-table | error.
+  const [syncReason, setSyncReason] = useState(null);
 
   const storeRef = useRef(store);
   useEffect(() => {
@@ -298,20 +299,8 @@ export function useWordLists(pairKey, user) {
   }
 
   function reportFailure(reason) {
-    if (reason === "offline") {
-      setSyncStatus("offline");
-      setSyncError(
-        "Нет связи с облаком — изменения сохранены на устройстве и отправятся позже.",
-      );
-    } else if (reason === "missing-table") {
-      setSyncStatus("error");
-      setSyncError(
-        "Облачное хранилище не настроено. Выполните SQL из supabase/schema.sql в проекте Supabase.",
-      );
-    } else {
-      setSyncStatus("error");
-      setSyncError("Не удалось синхронизировать. Попробуем ещё раз позже.");
-    }
+    setSyncReason(reason);
+    setSyncStatus(reason === "offline" ? "offline" : "error");
   }
 
   // Отправка текущего состояния в облако (с дедупом по содержимому).
@@ -331,7 +320,7 @@ export function useWordLists(pairKey, user) {
       lastSyncedAtRef.current = res.updatedAt;
       setDirty(false);
       setSyncStatus("synced");
-      setSyncError(null);
+      setSyncReason(null);
     } else {
       reportFailure(res.reason); // остаёмся dirty — повторим на онлайне/фокусе
     }
@@ -364,7 +353,7 @@ export function useWordLists(pairKey, user) {
       lastPushedJsonRef.current = JSON.stringify(normalized);
       lastSyncedAtRef.current = cloudUpdatedAt;
       setSyncStatus("synced");
-      setSyncError(null);
+      setSyncReason(null);
     }
   }
 
@@ -394,7 +383,7 @@ export function useWordLists(pairKey, user) {
         lastSyncedAtRef.current = pres.updatedAt;
         setDirty(false);
         setSyncStatus("synced");
-        setSyncError(null);
+        setSyncReason(null);
       } else {
         reportFailure(pres.reason);
       }
@@ -403,7 +392,7 @@ export function useWordLists(pairKey, user) {
       lastSyncedAtRef.current = res.updatedAt;
       setDirty(false);
       setSyncStatus("synced");
-      setSyncError(null);
+      setSyncReason(null);
     }
   }
 
@@ -446,7 +435,7 @@ export function useWordLists(pairKey, user) {
   useEffect(() => {
     if (!user || !supabase) {
       setSyncStatus("disabled");
-      setSyncError(null);
+      setSyncReason(null);
       syncedUserRef.current = null;
       return;
     }
@@ -685,7 +674,7 @@ export function useWordLists(pairKey, user) {
     deleteWords, // полное удаление слов (режим выбора в списках)
     // Синхронизация с облаком (Supabase).
     syncStatus, // disabled | syncing | synced | offline | error
-    syncError, // понятный текст ошибки/офлайна для UI
+    syncReason, // код причины сбоя (offline | missing-table | error) — текст в UI
     retrySync, // ручной повтор синхронизации
   };
 }

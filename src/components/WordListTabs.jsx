@@ -6,6 +6,8 @@
  *
  * active: "mine" | "known".
  */
+import { useI18n } from "../i18n/I18nContext.jsx";
+
 export default function WordListTabs({
   active,
   takenCount,
@@ -13,8 +15,9 @@ export default function WordListTabs({
   onOpenMyWords,
   onOpenKnown,
 }) {
+  const { t } = useI18n();
   return (
-    <div className="wordtabs" role="tablist" aria-label="Списки слов">
+    <div className="wordtabs" role="tablist" aria-label={t("words.mineTitle")}>
       <button
         type="button"
         role="tab"
@@ -22,7 +25,7 @@ export default function WordListTabs({
         className={"wordtabs__tab" + (active === "mine" ? " is-active" : "")}
         onClick={active === "mine" ? undefined : onOpenMyWords}
       >
-        Мои слова
+        {t("tabs.mine")}
         <span className="wordtabs__count">{takenCount}</span>
       </button>
       <button
@@ -32,7 +35,7 @@ export default function WordListTabs({
         className={"wordtabs__tab" + (active === "known" ? " is-active" : "")}
         onClick={active === "known" ? undefined : onOpenKnown}
       >
-        Известные
+        {t("tabs.known")}
         <span className="wordtabs__count">{knownCount}</span>
       </button>
     </div>

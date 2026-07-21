@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useWordSelection } from "../hooks/useWordSelection.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 import SelectBar from "../components/SelectBar.jsx";
 import WordListTabs from "../components/WordListTabs.jsx";
 import "./MyWordsScreen.css";
@@ -23,6 +24,7 @@ export default function MyWordsScreen({
   onBack,
   onOpenKnown,
 }) {
+  const { t } = useI18n();
   const items = takenWords.map((word) => ({
     word,
     ...wordInfo[word],
@@ -49,18 +51,18 @@ export default function MyWordsScreen({
             type="button"
             className="mywords__back"
             onClick={onBack}
-            aria-label="Назад"
+            aria-label={t("common.back")}
           >
             ←
           </button>
-          <h1 className="mywords__title">Мои слова</h1>
+          <h1 className="mywords__title">{t("words.mineTitle")}</h1>
           {items.length > 0 && !sel.selectMode && (
             <button
               type="button"
               className="mywords__select"
               onClick={sel.enter}
             >
-              Выбрать
+              {t("words.select")}
             </button>
           )}
         </header>
@@ -78,9 +80,7 @@ export default function MyWordsScreen({
           <div className="mywords__empty-emoji" aria-hidden="true">
             📭
           </div>
-          <p className="mywords__empty-text">
-            Пока пусто. Берите слова кнопкой «Взять» — они появятся здесь.
-          </p>
+          <p className="mywords__empty-text">{t("words.mineEmpty")}</p>
         </div>
       ) : (
         <ul className="mywords__list">
@@ -130,7 +130,7 @@ export default function MyWordsScreen({
                       className="mywords__learned"
                       onClick={() => onMarkKnown(item.word)}
                     >
-                      Выучил
+                      {t("words.learned")}
                     </button>
                   )}
                 </div>

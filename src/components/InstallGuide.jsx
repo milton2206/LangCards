@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useI18n } from "../i18n/I18nContext.jsx";
 import "./InstallGuide.css";
 
 // Определение устройства по user-agent.
@@ -15,24 +16,13 @@ function detectPlatform(ua) {
   return "unknown";
 }
 
-const IOS_STEPS = [
-  "Нажми кнопку «Поделиться» внизу экрана (квадрат со стрелкой вверх).",
-  "Пролистай и выбери «На экран „Домой“».",
-  "Нажми «Добавить».",
-];
-
-const ANDROID_STEPS = [
-  "Нажми меню (три точки вверху справа).",
-  "Выбери «Добавить на главный экран» или «Установить приложение».",
-  "Подтверди.",
-];
-
 /**
  * Модальное окно с короткой инструкцией «Как установить на телефон».
  * Показывает шаги под устройство пользователя (iOS / Android), а если
  * определить не удалось — обе инструкции.
  */
 export default function InstallGuide({ onClose }) {
+  const { t } = useI18n();
   const platform = detectPlatform();
   const showIOS = platform === "ios" || platform === "unknown";
   const showAndroid = platform === "android" || platform === "unknown";
@@ -62,43 +52,39 @@ export default function InstallGuide({ onClose }) {
       <div className="install__box" onClick={(e) => e.stopPropagation()}>
         <header className="install__header">
           <h2 id="install-title" className="install__title">
-            Установить на телефон
+            {t("install.title")}
           </h2>
           <button
             type="button"
             className="install__close"
             onClick={onClose}
-            aria-label="Закрыть"
+            aria-label={t("common.close")}
           >
             ×
           </button>
         </header>
 
-        <p className="install__lead">
-          Добавьте приложение на главный экран, чтобы открывать его как обычное
-          приложение — на весь экран.
-        </p>
+        <p className="install__lead">{t("install.lead")}</p>
 
         {showIOS && (
           <section className="install__section">
-            <h3 className="install__section-title">iPhone (Safari)</h3>
+            <h3 className="install__section-title">{t("install.iosTitle")}</h3>
             <ol className="install__steps">
-              {IOS_STEPS.map((step, i) => (
+              {t("install.iosSteps").map((step, i) => (
                 <li key={i}>{step}</li>
               ))}
             </ol>
-            <p className="install__note">
-              Работает только в Safari. Если открыто в Chrome, Instagram или
-              Telegram — сначала открой ссылку в Safari.
-            </p>
+            <p className="install__note">{t("install.note")}</p>
           </section>
         )}
 
         {showAndroid && (
           <section className="install__section">
-            <h3 className="install__section-title">Android (Chrome)</h3>
+            <h3 className="install__section-title">
+              {t("install.androidTitle")}
+            </h3>
             <ol className="install__steps">
-              {ANDROID_STEPS.map((step, i) => (
+              {t("install.androidSteps").map((step, i) => (
                 <li key={i}>{step}</li>
               ))}
             </ol>
@@ -106,7 +92,7 @@ export default function InstallGuide({ onClose }) {
         )}
 
         <button type="button" className="install__done" onClick={onClose}>
-          Понятно
+          {t("common.gotIt")}
         </button>
       </div>
     </div>

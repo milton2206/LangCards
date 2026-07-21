@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { ONBOARDING_STEPS } from "../data/onboarding.js";
+import {
+  ONBOARDING_STEPS,
+  optionLabelKey,
+  stepTitleKey,
+  stepHintKey,
+} from "../data/onboarding.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 import "./OnboardingScreen.css";
 
 /**
@@ -9,6 +15,7 @@ import "./OnboardingScreen.css";
  * кнопка «Начать».
  */
 export default function OnboardingScreen({ initial, onComplete, onBack }) {
+  const { t } = useI18n();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState(() => ({ ...initial }));
 
@@ -16,6 +23,11 @@ export default function OnboardingScreen({ initial, onComplete, onBack }) {
   const isLast = step === ONBOARDING_STEPS.length - 1;
   const selected = draft[current.key];
   const allChosen = ONBOARDING_STEPS.every((s) => draft[s.key]);
+
+  const title = t(stepTitleKey(current.key));
+  const hintKey = stepHintKey(current.key);
+  const hint = t(hintKey);
+  const hasHint = hint !== hintKey; // не у всех шагов есть подсказка
 
   function choose(optionId) {
     setDraft((prev) => ({ ...prev, [current.key]: optionId }));
@@ -39,7 +51,7 @@ export default function OnboardingScreen({ initial, onComplete, onBack }) {
           type="button"
           className="onb__back"
           onClick={goBack}
-          aria-label="Назад"
+          aria-label={t("common.back")}
         >
           ←
         </button>
@@ -58,15 +70,11 @@ export default function OnboardingScreen({ initial, onComplete, onBack }) {
 
       <div className="onb__body">
         <h1 id="onb-title" className="onb__title">
-          {current.title}
+          {title}
         </h1>
-        {current.hint && <p className="onb__hint">{current.hint}</p>}
+        {hasHint && <p className="onb__hint">{hint}</p>}
 
-        <div
-          className="onb__options"
-          role="radiogroup"
-          aria-label={current.title}
-        >
+        <div className="onb__options" role="radiogroup" aria-label={title}>
           {current.options.map((opt) => {
             const active = selected === opt.id;
             return (
@@ -81,7 +89,9 @@ export default function OnboardingScreen({ initial, onComplete, onBack }) {
                 <span className="onb__option-emoji" aria-hidden="true">
                   {opt.emoji}
                 </span>
-                <span className="onb__option-label">{opt.label}</span>
+                <span className="onb__option-label">
+                  {t(optionLabelKey(current.key, opt.id))}
+                </span>
                 <span className="onb__option-check" aria-hidden="true">
                   {active ? "✓" : ""}
                 </span>
@@ -99,7 +109,7 @@ export default function OnboardingScreen({ initial, onComplete, onBack }) {
             disabled={!allChosen}
             onClick={() => onComplete(draft)}
           >
-            Начать
+            {t("onb.start")}
           </button>
         </div>
       )}

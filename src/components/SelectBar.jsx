@@ -1,4 +1,4 @@
-import { pluralRu } from "../lib/humanizeInterval.js";
+import { useI18n } from "../i18n/I18nContext.jsx";
 import "./SelectBar.css";
 
 /**
@@ -13,6 +13,7 @@ export default function SelectBar({
   onConfirmDelete,
   onCloseConfirm,
 }) {
+  const { t, tp } = useI18n();
   return (
     <>
       <div className="selectbar">
@@ -21,7 +22,7 @@ export default function SelectBar({
           className="selectbar__cancel"
           onClick={onCancel}
         >
-          Отмена
+          {t("selectbar.cancel")}
         </button>
         <button
           type="button"
@@ -29,7 +30,7 @@ export default function SelectBar({
           disabled={count === 0}
           onClick={onRequestDelete}
         >
-          Удалить ({count})
+          {t("selectbar.delete", { n: count })}
         </button>
       </div>
 
@@ -45,11 +46,13 @@ export default function SelectBar({
               className="selectbar__dialog-title"
               id="selectbar-confirm-title"
             >
-              Удалить {count} {pluralRu(count, "слово", "слова", "слов")}?
+              {t("selectbar.confirmTitle", {
+                n: count,
+                word: tp("plural.words", count),
+              })}
             </p>
             <p className="selectbar__dialog-text">
-              Слова удалятся совсем — из списков и из хранилища. Отменить
-              нельзя.
+              {t("selectbar.confirmText")}
             </p>
             <div className="selectbar__dialog-actions">
               <button
@@ -57,14 +60,14 @@ export default function SelectBar({
                 className="selectbar__dialog-cancel"
                 onClick={onCloseConfirm}
               >
-                Отмена
+                {t("selectbar.cancel")}
               </button>
               <button
                 type="button"
                 className="selectbar__dialog-ok"
                 onClick={onConfirmDelete}
               >
-                Удалить
+                {t("selectbar.confirmOk")}
               </button>
             </div>
           </div>
