@@ -75,6 +75,7 @@ export default function CardScreen({
   generateMode,
   onChangeGenerateMode,
   onGenerate,
+  onGenerateRandom,
   onClearError,
   onOpenSettings,
   onOpenMyWords,
@@ -302,6 +303,13 @@ export default function CardScreen({
             <button type="button" className="cards__retry" onClick={onGenerate}>
               {t("cards.generate")}
             </button>
+            <button
+              type="button"
+              className="cards__surprise"
+              onClick={onGenerateRandom}
+            >
+              🎲 {t("cards.surprise")}
+            </button>
             {!empty && (
               <button
                 type="button"
@@ -430,6 +438,13 @@ export default function CardScreen({
           onClick={onGenerate}
         >
           {t("cards.generate")}
+        </button>
+        <button
+          type="button"
+          className="cards__surprise"
+          onClick={onGenerateRandom}
+        >
+          🎲 {t("cards.surprise")}
         </button>
       </div>
     </section>

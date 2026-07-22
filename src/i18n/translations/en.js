@@ -85,6 +85,7 @@ export default {
     doneHint:
       "Taken to learn — {taken}, marked “know” — {known}. Generate a new batch.",
     generate: "Generate new cards",
+    surprise: "Surprise me",
     remaining: "Left in batch: {n}",
     countLabel: "Cards:",
     example: "Example",

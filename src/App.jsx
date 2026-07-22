@@ -96,7 +96,7 @@ export default function App() {
 
   // Параметры генерации: текущие настройки + исключения (взятые, известные,
   // ещё не вернувшиеся отложенные). Читаются в момент нажатия кнопки.
-  function buildParams() {
+  function buildParams({ random = false } = {}) {
     const deferred = vocab.skippedWords
       .filter((s) => (s.returnDate ?? "") > vocab.todayKey)
       .map((s) => s.word);
@@ -110,11 +110,18 @@ export default function App() {
       ],
       count: generateCount,
       mode: generateMode,
+      // «Удиви меня»: тема/уровень рандомизируются на сервере; языковая пара
+      // (learnLang/nativeLang) остаётся как выбрана.
+      random,
     };
   }
 
   function handleGenerate() {
     generate(buildParams());
+  }
+
+  function handleGenerateRandom() {
+    generate(buildParams({ random: true }));
   }
 
   function handleComplete(chosen) {
@@ -155,6 +162,7 @@ export default function App() {
             generateMode={generateMode}
             onChangeGenerateMode={setGenerateMode}
             onGenerate={handleGenerate}
+            onGenerateRandom={handleGenerateRandom}
             onClearError={clearError}
             onOpenSettings={() => setScreen("settings")}
             onOpenMyWords={() => setScreen("mywords")}

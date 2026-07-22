@@ -84,6 +84,7 @@ export default {
     doneHint:
       "Взято на вивчення — {taken}, позначено «знаю» — {known}. Згенеруй нову добірку.",
     generate: "Згенерувати нові картки",
+    surprise: "Здивуй мене",
     remaining: "Залишилось у добірці: {n}",
     countLabel: "Скільки карток:",
     example: "Приклад",
