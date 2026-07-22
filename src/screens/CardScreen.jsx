@@ -310,15 +310,6 @@ export default function CardScreen({
             >
               🎲 {t("cards.surprise")}
             </button>
-            {!empty && (
-              <button
-                type="button"
-                className="cards__ghost"
-                onClick={onOpenMyWords}
-              >
-                {t("cards.myWords")}
-              </button>
-            )}
           </div>
         </div>
       </section>

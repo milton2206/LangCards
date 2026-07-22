@@ -322,13 +322,13 @@
 }
 
 /* ---------- Три действия ---------- */
+/* Кнопки идут ПОД карточкой в обычном потоке — никакого sticky/absolute, чтобы
+   они не перекрывали содержимое карточки при длинном примере. Отступ сверху даёт
+   общий gap контейнера .cards (14px); снизу — учёт safe-area на телефоне. */
 .cards__actions {
-  position: sticky;
-  bottom: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-top: 12px;
   padding-bottom: calc(4px + env(safe-area-inset-bottom));
 }
 
