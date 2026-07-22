@@ -10,6 +10,7 @@ export const ONBOARDING_STEPS = [
       { id: "en", emoji: "🇬🇧" },
       { id: "el", emoji: "🇬🇷" },
       { id: "es", emoji: "🇪🇸" },
+      { id: "ru", emoji: "🇷🇺" },
     ],
   },
   {
