@@ -78,24 +78,7 @@
   max-width: 32ch;
 }
 
-/* ---------- Слайд с тремя кнопками ---------- */
-.tutorial__actions {
-  list-style: none;
-  padding: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 4px;
-}
-
-.tutorial__act {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-align: left;
-}
-
+/* ---------- Подписи действий (используются в слайде со свайпами) ---------- */
 .tutorial__act-label {
   flex: 0 0 auto;
   min-width: 108px;
@@ -107,9 +90,12 @@
   font-weight: 700;
 }
 
+/* Цвета — ТОЧНО как в приложении (CardScreen): «Взять» зеленеет (свайп вправо,
+   кнопка --take), «Знаю» синеет (свайп влево, кнопка --know). */
 .tutorial__act-label--take {
-  background-color: var(--accent);
-  color: #0b0d12;
+  background-color: rgba(53, 200, 139, 0.14);
+  border-color: rgba(53, 200, 139, 0.5);
+  color: #35c88b; /* зелёный */
 }
 
 .tutorial__act-label--skip {
@@ -119,9 +105,9 @@
 }
 
 .tutorial__act-label--known {
-  background-color: rgba(53, 200, 139, 0.14);
-  border-color: rgba(53, 200, 139, 0.5);
-  color: #35c88b;
+  background-color: rgba(108, 140, 255, 0.14);
+  border-color: rgba(108, 140, 255, 0.5);
+  color: #6c8cff; /* синий */
 }
 
 .tutorial__act-desc {
@@ -162,12 +148,13 @@
   color: var(--text-muted);
 }
 
+/* Слева — «Знаю» (синий), справа — «Взять» (зелёный) — как в приложении. */
 .tutorial__swipe-side--left .tutorial__swipe-arrow {
-  color: #35c88b;
+  color: #6c8cff;
 }
 
 .tutorial__swipe-side--right .tutorial__swipe-arrow {
-  color: var(--accent);
+  color: #35c88b;
 }
 
 .tutorial__swipe-card {

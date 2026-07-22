@@ -70,6 +70,7 @@ export default {
     myWords: "My words",
     statsAria: "Statistics",
     settingsAria: "Settings",
+    tutorialAria: "How to use",
     loadingTitle: "Generating cards…",
     loadingHint: "Picking words for your topic and level with AI.",
     dueTitle: "Today: {n} {word} to review",
@@ -219,7 +220,7 @@ export default {
     },
     slide2: {
       title: "Control the card with a swipe",
-      text: "There are no more “Take”/“Know” buttons on the card — move it with your finger.",
+      text: "Swiping is the main way — just drag with your finger. The buttons below do the same. The card wiggles gently to hint it can be moved.",
       leftDesc: "already familiar — remove for good",
       rightDesc: "to learning — you'll review it",
       skipDesc: "with the button — the word comes back later",

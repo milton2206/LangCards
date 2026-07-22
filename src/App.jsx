@@ -150,6 +150,7 @@ export default function App() {
             onOpenMyWords={() => setScreen("mywords")}
             onOpenReview={() => setScreen("review")}
             onOpenStats={() => setScreen("stats")}
+            onOpenTutorial={() => setShowTutorial(true)}
           />
         )}
 

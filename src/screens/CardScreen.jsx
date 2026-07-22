@@ -50,6 +50,7 @@ export default function CardScreen({
   onOpenMyWords,
   onOpenReview,
   onOpenStats,
+  onOpenTutorial,
 }) {
   const { t, tp } = useI18n();
   const { takenWords, knownWords, take, skip, markKnown, rememberCards } = vocab;
@@ -167,6 +168,22 @@ export default function CardScreen({
         >
           <span className="cards__icon-btn-glyph" aria-hidden="true">
             📊
+          </span>
+        </button>
+        {/* Ненавязчивый доступ к туториалу — простой знак вопроса (не эмодзи),
+            рядом с настройками. Автопоказ туториала — только при первом
+            запуске; отсюда его можно пересмотреть в любой момент. */}
+        <button
+          type="button"
+          className="cards__icon-btn"
+          onClick={onOpenTutorial}
+          aria-label={t("cards.tutorialAria")}
+        >
+          <span
+            className="cards__icon-btn-glyph cards__icon-btn-glyph--help"
+            aria-hidden="true"
+          >
+            ?
           </span>
         </button>
         <button
