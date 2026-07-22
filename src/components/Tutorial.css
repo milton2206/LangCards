@@ -186,6 +186,63 @@
   text-align: left;
 }
 
+/* ---------- Слайд с самооценкой повторения ---------- */
+.tutorial__grades {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.tutorial__grades-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.tutorial__grade-pill {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Цвета — ТОЧНО как на экране повторения (ReviewScreen: .review__grade--*). */
+.tutorial__grade-pill--again {
+  background-color: rgba(255, 107, 107, 0.14);
+  border-color: rgba(255, 107, 107, 0.5);
+  color: #ff8a8a;
+}
+
+.tutorial__grade-pill--hard {
+  background-color: rgba(255, 176, 32, 0.14);
+  border-color: rgba(255, 176, 32, 0.5);
+  color: #ffb020;
+}
+
+.tutorial__grade-pill--good {
+  background-color: rgba(108, 140, 255, 0.14);
+  border-color: rgba(108, 140, 255, 0.5);
+  color: #6c8cff;
+}
+
+.tutorial__grade-pill--easy {
+  background-color: rgba(53, 200, 139, 0.14);
+  border-color: rgba(53, 200, 139, 0.5);
+  color: #35c88b;
+}
+
+.tutorial__grades-hint {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 /* ---------- Точки ---------- */
 .tutorial__dots {
   display: flex;

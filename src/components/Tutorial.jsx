@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./Tutorial.css";
 
-// Метаданные слайдов (эмодзи, структура свайпа). Тексты — из словаря по ключу
-// tutorial.<key>.*, подписи действий — общие action.* (см. render).
+// Метаданные слайдов (эмодзи, структура свайпа/оценок). Тексты — из словаря
+// по ключу tutorial.<key>.*, подписи действий/оценок — общие action.*/grade.*
+// (см. render) — так туториал не может разойтись с реальными подписями кнопок.
 const SLIDES = [
   { key: "slide1", emoji: "📖" },
   {
@@ -15,8 +16,22 @@ const SLIDES = [
       skip: { cls: "skip", labelKey: "action.skip", descKey: "tutorial.slide2.skipDesc" },
     },
   },
-  { key: "slide3", emoji: "✨" },
-  { key: "slide4", emoji: "📚" },
+  {
+    key: "slide3",
+    emoji: "🔁",
+    grades: {
+      items: [
+        { cls: "again", labelKey: "grade.again" },
+        { cls: "hard", labelKey: "grade.hard" },
+        { cls: "good", labelKey: "grade.good" },
+        { cls: "easy", labelKey: "grade.easy" },
+      ],
+      hintKey: "tutorial.slide3.gradeHint",
+      againHintKey: "tutorial.slide3.againHint",
+    },
+  },
+  { key: "slide4", emoji: "✨" },
+  { key: "slide5", emoji: "📚" },
 ];
 
 /**
@@ -143,6 +158,27 @@ export default function Tutorial({ onClose }) {
                   {t(slide.swipe.skip.descKey)}
                 </span>
               </div>
+            </div>
+          )}
+
+          {slide.grades && (
+            <div className="tutorial__grades">
+              <div className="tutorial__grades-row">
+                {slide.grades.items.map((g) => (
+                  <span
+                    key={g.cls}
+                    className={`tutorial__grade-pill tutorial__grade-pill--${g.cls}`}
+                  >
+                    {t(g.labelKey)}
+                  </span>
+                ))}
+              </div>
+              <p className="tutorial__grades-hint">
+                {t(slide.grades.hintKey)}
+              </p>
+              <p className="tutorial__grades-hint">
+                {t(slide.grades.againHintKey)}
+              </p>
             </div>
           )}
         </div>

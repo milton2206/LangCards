@@ -226,10 +226,16 @@ export default {
       skipDesc: "with the button — the word comes back later",
     },
     slide3: {
+      title: "Review works on its own",
+      text: "Taken words come back for review on a schedule — the app reminds you when it's time.",
+      gradeHint: "Rate yourself: easier — less often, harder — more often.",
+      againHint: "“Again” brings the word back later in this same session.",
+    },
+    slide4: {
       title: "New cards — by button",
       text: "New words appear only when you tap “Generate new cards” yourself.",
     },
-    slide4: {
+    slide5: {
       title: "My words and Known",
       text: "Taken words are in “My words”, learned ones — in “Known”. Open them from the cards screen.",
     },
