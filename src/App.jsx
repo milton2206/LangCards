@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { I18nProvider } from "./i18n/I18nContext.jsx";
 import { translate } from "./i18n/index.js";
@@ -118,12 +118,22 @@ export default function App() {
     };
   }
 
+  // Была ли последняя генерация «случайной» («Удиви меня») — чтобы «Повторить»
+  // на экране ошибки повторял именно её, а не молча обычную генерацию.
+  const lastRandomRef = useRef(false);
+
   function handleGenerate() {
+    lastRandomRef.current = false;
     generate(buildParams());
   }
 
   function handleGenerateRandom() {
+    lastRandomRef.current = true;
     generate(buildParams({ random: true }));
+  }
+
+  function handleRetryGenerate() {
+    generate(buildParams({ random: lastRandomRef.current }));
   }
 
   // Ручное добавление своего слова: готовую карточку кладём в изучение текущей
@@ -175,6 +185,7 @@ export default function App() {
             onChangeGenerateMode={setGenerateMode}
             onGenerate={handleGenerate}
             onGenerateRandom={handleGenerateRandom}
+            onRetryGenerate={handleRetryGenerate}
             onClearError={clearError}
             onOpenSettings={() => setScreen("settings")}
             onOpenMyWords={() => setScreen("mywords")}

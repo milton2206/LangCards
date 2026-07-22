@@ -79,6 +79,7 @@ export default function CardScreen({
   onChangeGenerateMode,
   onGenerate,
   onGenerateRandom,
+  onRetryGenerate,
   onClearError,
   onOpenSettings,
   onOpenMyWords,
@@ -206,7 +207,13 @@ export default function CardScreen({
         <h1 className="cards__status-title">{t("errors.title")}</h1>
         <p className="cards__status-hint">{errorText}</p>
         <div className="cards__status-actions">
-          <button type="button" className="cards__retry" onClick={onGenerate}>
+          {/* Повторяем именно упавшую генерацию (обычную или «Удиви меня») —
+              App помнит тип последней попытки. */}
+          <button
+            type="button"
+            className="cards__retry"
+            onClick={onRetryGenerate}
+          >
             {t("common.retry")}
           </button>
           <button type="button" className="cards__ghost" onClick={onClearError}>
