@@ -114,6 +114,21 @@ export default {
     failed: "Couldn't create the card. Please try again.",
   },
 
+  // Looking up a word from the example (tap a word → translation → add to study).
+  lookup: {
+    loading: "Looking up…",
+    added: "Added to studying",
+  },
+
+  // Reviewing known words — optional self-check of the "Know" list.
+  knownReview: {
+    entry: "Review known words",
+    remember: "I remember",
+    restore: "Back to studying",
+    doneTitle: "All words reviewed",
+    doneHint: "Whatever slipped away is back in studying. The rest you truly know.",
+  },
+
   errors: {
     title: "Couldn't generate",
     offline: "No connection to server. Check your internet and try again.",

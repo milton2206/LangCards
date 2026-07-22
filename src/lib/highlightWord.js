@@ -9,6 +9,29 @@ function coreWord(word) {
 
 const LETTER_RE = /[\p{L}\p{M}]/u;
 
+/**
+ * Разбивает текст на сегменты для рендера с тапабельными словами:
+ * [{ text, isWord }]. Слова (isWord: true) — токены из букв/апострофов/дефисов,
+ * остальное (пробелы, знаки препинания) — обычные сегменты между ними.
+ */
+export function splitWords(text) {
+  const re = /[\p{L}\p{M}][\p{L}\p{M}'-]*/gu;
+  const segments = [];
+  let last = 0;
+  let m;
+  while ((m = re.exec(text))) {
+    if (m.index > last) {
+      segments.push({ text: text.slice(last, m.index), isWord: false });
+    }
+    segments.push({ text: m[0], isWord: true });
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) {
+    segments.push({ text: text.slice(last), isWord: false });
+  }
+  return segments;
+}
+
 // Разбивает текст на слова-токены с их позициями в исходной строке.
 function tokenize(text) {
   const re = /[\p{L}\p{M}][\p{L}\p{M}'-]*/gu;

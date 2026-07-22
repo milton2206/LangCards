@@ -61,6 +61,18 @@
   line-height: 1.4;
 }
 
+/* Кнопка «Повторить известные» — необязательная самопроверка списка «Знаю» */
+.mywords__review-known {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(108, 140, 255, 0.5);
+  border-radius: var(--radius-sm);
+  background-color: rgba(108, 140, 255, 0.1);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+}
+
 /* ---------- Вкладки переключения списков (в закреплённой шапке) ---------- */
 .wordtabs {
   display: flex;

@@ -9,6 +9,7 @@ import CardScreen from "./screens/CardScreen.jsx";
 import MyWordsScreen from "./screens/MyWordsScreen.jsx";
 import AddWordScreen from "./screens/AddWordScreen.jsx";
 import KnownWordsScreen from "./screens/KnownWordsScreen.jsx";
+import KnownReviewScreen from "./screens/KnownReviewScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
 import ReviewScreen from "./screens/ReviewScreen.jsx";
 import StatsScreen from "./screens/StatsScreen.jsx";
@@ -166,6 +167,7 @@ export default function App() {
             loading={loading}
             error={error}
             learnLang={settings.learnLang}
+            nativeLang={settings.nativeLang}
             dueCount={dueWords.length}
             generateCount={generateCount}
             onChangeGenerateCount={setGenerateCount}
@@ -177,6 +179,7 @@ export default function App() {
             onOpenSettings={() => setScreen("settings")}
             onOpenMyWords={() => setScreen("mywords")}
             onOpenAddWord={() => setScreen("addword")}
+            onAddWordFromExample={handleAddManualCard}
             onOpenReview={() => setScreen("review")}
             onOpenStats={() => setScreen("stats")}
             onOpenTutorial={() => setShowTutorial(true)}
@@ -241,6 +244,18 @@ export default function App() {
             onDelete={vocab.deleteWords}
             onBack={() => setScreen("cards")}
             onOpenMyWords={() => setScreen("mywords")}
+            onOpenKnownReview={() => setScreen("knownreview")}
+          />
+        )}
+
+        {screen === "knownreview" && (
+          <KnownReviewScreen
+            knownWords={vocab.knownWords}
+            wordInfo={vocab.wordInfo}
+            learnLang={settings.learnLang}
+            nativeLang={settings.nativeLang}
+            onRestore={vocab.restoreToStudy}
+            onBack={() => setScreen("known")}
           />
         )}
 

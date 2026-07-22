@@ -25,6 +25,7 @@ export default function KnownWordsScreen({
   onDelete,
   onBack,
   onOpenMyWords,
+  onOpenKnownReview,
 }) {
   const { t } = useI18n();
   const items = knownWords.map((word) => ({
@@ -88,6 +89,18 @@ export default function KnownWordsScreen({
           knownCount={items.length}
           onOpenMyWords={onOpenMyWords}
         />
+
+        {/* Повтор известных (идея Димы Еремы): необязательная самопроверка по
+            желанию — никакого расписания, только когда пользователь сам хочет. */}
+        {items.length > 0 && !sel.selectMode && (
+          <button
+            type="button"
+            className="mywords__review-known"
+            onClick={onOpenKnownReview}
+          >
+            🔄 {t("knownReview.entry")}
+          </button>
+        )}
 
         {limitNotice && (
           <p className="mywords__limit-notice" role="status">

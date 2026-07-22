@@ -1,0 +1,198 @@
+.knownreview {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.knownreview__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.knownreview__back {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.knownreview__remaining {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ---------- Карточка самопроверки ---------- */
+.knownreview__card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  padding: 28px 22px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.knownreview__word {
+  font-size: clamp(24px, 8vw, 34px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.knownreview__reveal {
+  align-self: flex-start;
+  min-height: 52px;
+  padding: 12px 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-elevated);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.knownreview__divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--border);
+}
+
+.knownreview__answer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.knownreview__translit {
+  color: var(--accent);
+  font-size: 15px;
+  letter-spacing: 0.5px;
+}
+
+.knownreview__translation {
+  font-size: 19px;
+  font-weight: 500;
+}
+
+.knownreview__example {
+  margin-top: 6px;
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.knownreview__example-translation {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.knownreview__limit {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 176, 32, 0.4);
+  background-color: rgba(255, 176, 32, 0.12);
+  color: #ffb020;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* ---------- Действия: Вернуть в изучение · Помню ---------- */
+.knownreview__actions {
+  display: flex;
+  gap: 10px;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom));
+}
+
+.knownreview__btn {
+  flex: 1;
+  min-width: 0;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.knownreview__btn--remember {
+  background-color: rgba(53, 200, 139, 0.14);
+  border-color: rgba(53, 200, 139, 0.5);
+  color: #35c88b;
+}
+
+.knownreview__btn--restore {
+  background-color: rgba(255, 176, 32, 0.14);
+  border-color: rgba(255, 176, 32, 0.5);
+  color: #ffb020;
+}
+
+/* ---------- Экран «всё просмотрено» ---------- */
+.knownreview--status {
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.knownreview__back-corner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.knownreview__status-emoji {
+  font-size: 56px;
+  line-height: 1;
+}
+
+.knownreview__status-title {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.knownreview__status-hint {
+  color: var(--text-muted);
+  font-size: 15px;
+  max-width: 32ch;
+}
+
+.knownreview__done {
+  margin-top: 12px;
+  min-height: 48px;
+  padding: 12px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+}
