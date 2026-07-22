@@ -650,7 +650,9 @@ export function useWordLists(pairKey, user) {
             translation: c.translation,
             example: c.example,
             exampleTranslation: c.exampleTranslation,
-            // Пометка режима «Контекст носителей» (у обычных слов её нет).
+            // Культурный контекст режима «Контекст носителей» (у обычных слов нет):
+            // register — короткий ярлык стиля, note — уместность/ситуация.
+            register: c.register || "",
             note: c.note || "",
           };
         }

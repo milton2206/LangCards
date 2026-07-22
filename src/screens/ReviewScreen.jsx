@@ -176,6 +176,9 @@ export default function ReviewScreen({
               <h1 id="review-word" className="review__word" lang={learnLang}>
                 {currentWord}
               </h1>
+              {info.register && (
+                <span className="review__register">{info.register}</span>
+              )}
               {info.translit && (
                 <p className="review__translit">{info.translit}</p>
               )}

@@ -211,6 +211,21 @@
   gap: 8px;
 }
 
+/* «Контекст носителей»: маленький ярлык стиля/регистра над выражением.
+   Заметный, но компактный — не перегружает карточку. */
+.cards__register {
+  align-self: flex-start;
+  display: inline-block;
+  padding: 3px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(108, 140, 255, 0.35);
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
 .cards__word {
   /* чуть меньший минимум/предпочтительное значение — длинным составным
      словам (нем. Ermessensspielraum) остаётся больше места на строку */

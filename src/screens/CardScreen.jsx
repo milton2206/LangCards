@@ -347,6 +347,11 @@ export default function CardScreen({
         style={cardStyle}
       >
         <div className="cards__word-block">
+          {/* «Контекст носителей»: короткий ярлык стиля/регистра над выражением
+              (сленг / вежливо / устарело …). У обычных слов поле пустое. */}
+          {card.register && (
+            <span className="cards__register">{card.register}</span>
+          )}
           <h1 id="card-word" className="cards__word" lang={learnLang}>
             {card.word}
           </h1>
