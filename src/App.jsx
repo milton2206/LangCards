@@ -18,6 +18,7 @@ import { useWordLists, getDueWords } from "./hooks/useWordLists.js";
 import { useCards } from "./hooks/useCards.js";
 import { useAuth } from "./hooks/useAuth.js";
 import { loadGenerateCount } from "./lib/generateCount.js";
+import { loadGenerateMode } from "./lib/generateMode.js";
 
 function loadSettings() {
   try {
@@ -54,6 +55,12 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("generateCount", String(generateCount));
   }, [generateCount]);
+
+  // Тип контента: обычные слова или «Контекст носителей» (идиомы/фразы).
+  const [generateMode, setGenerateMode] = useState(loadGenerateMode);
+  useEffect(() => {
+    localStorage.setItem("generateMode", generateMode);
+  }, [generateMode]);
 
   // Слова, которым сегодня пора на повтор (отдельно от потока новых карточек).
   const dueWords = getDueWords(vocab.takenWords, vocab.srsByWord, vocab.todayKey);
@@ -102,6 +109,7 @@ export default function App() {
         ...new Set([...vocab.takenWords, ...vocab.knownWords, ...deferred]),
       ],
       count: generateCount,
+      mode: generateMode,
     };
   }
 
@@ -144,6 +152,8 @@ export default function App() {
             dueCount={dueWords.length}
             generateCount={generateCount}
             onChangeGenerateCount={setGenerateCount}
+            generateMode={generateMode}
+            onChangeGenerateMode={setGenerateMode}
             onGenerate={handleGenerate}
             onClearError={clearError}
             onOpenSettings={() => setScreen("settings")}

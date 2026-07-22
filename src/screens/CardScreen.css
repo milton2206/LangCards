@@ -278,6 +278,34 @@
   word-break: break-word;
 }
 
+/* «Контекст носителей»: пометка об уместности/регистре выражения (когда и как
+   это говорят). Только у карточек-идиом; у обычных слов поле пустое. */
+.cards__note {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(108, 140, 255, 0.22);
+  background-color: rgba(108, 140, 255, 0.08);
+}
+
+.cards__note-label {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.cards__note-text {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 /* ---------- Три действия ---------- */
 .cards__actions {
   position: sticky;
@@ -334,6 +362,44 @@
 }
 
 .cards__count-chip.is-active {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--accent);
+}
+
+/* Переключатель типа контента (Слова / Контекст носителей) — метка сверху,
+   две кнопки во всю ширину под ней (подпись «Контекст носителей» длинная). */
+.cards__mode-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.cards__mode-options {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.cards__mode-chip {
+  flex: 1;
+  min-width: 0;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+
+.cards__mode-chip.is-active {
   border-color: var(--accent);
   background-color: rgba(108, 140, 255, 0.14);
   color: var(--accent);

@@ -650,6 +650,8 @@ export function useWordLists(pairKey, user) {
             translation: c.translation,
             example: c.example,
             exampleTranslation: c.exampleTranslation,
+            // Пометка режима «Контекст носителей» (у обычных слов её нет).
+            note: c.note || "",
           };
         }
         return { ...cur, wordInfo: info };

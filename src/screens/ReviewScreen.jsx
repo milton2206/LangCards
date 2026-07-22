@@ -195,6 +195,16 @@ export default function ReviewScreen({
                   </p>
                 </div>
               )}
+              {info.note && (
+                <div className="review__sentence-translation-block">
+                  <span className="review__sentence-translation-label">
+                    {t("cards.usageNote")}
+                  </span>
+                  <p className="review__sentence-translation" lang={nativeLang}>
+                    {info.note}
+                  </p>
+                </div>
+              )}
             </div>
           </>
         ) : (

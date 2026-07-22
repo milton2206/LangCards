@@ -88,6 +88,11 @@ export default {
     remaining: "Left in batch: {n}",
     countLabel: "Cards:",
     example: "Example",
+    // Content-type toggle and the "Native context" mode note.
+    modeLabel: "Generate:",
+    modeWords: "Words",
+    modeIdioms: "Native context",
+    usageNote: "When it's used",
   },
 
   errors: {

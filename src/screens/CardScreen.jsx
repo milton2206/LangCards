@@ -30,6 +30,34 @@ function GenerateCountPicker({ value, onChange, label }) {
   );
 }
 
+// Переключатель типа контента: обычные слова или «Контекст носителей»
+// (идиомы и живые фразы). Рядом с кнопкой генерации, как и выбор количества.
+function GenerateModePicker({ value, onChange }) {
+  const { t } = useI18n();
+  const modes = [
+    { id: "words", label: t("cards.modeWords") },
+    { id: "idioms", label: t("cards.modeIdioms") },
+  ];
+  return (
+    <div className="cards__mode-picker">
+      <span className="cards__count-label">{t("cards.modeLabel")}</span>
+      <div className="cards__mode-options" role="group">
+        {modes.map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            className={"cards__mode-chip" + (value === m.id ? " is-active" : "")}
+            aria-pressed={value === m.id}
+            onClick={() => onChange(m.id)}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /**
  * Главный экран. Карточки НЕ генерируются автоматически — только по кнопке
  * «Сгенерировать новые карточки». Текущая порция берётся из props (persist
@@ -44,6 +72,8 @@ export default function CardScreen({
   dueCount,
   generateCount,
   onChangeGenerateCount,
+  generateMode,
+  onChangeGenerateMode,
   onGenerate,
   onClearError,
   onOpenSettings,
@@ -260,6 +290,10 @@ export default function CardScreen({
             </>
           )}
           <div className="cards__status-actions">
+            <GenerateModePicker
+              value={generateMode}
+              onChange={onChangeGenerateMode}
+            />
             <GenerateCountPicker
               value={generateCount}
               onChange={onChangeGenerateCount}
@@ -333,6 +367,15 @@ export default function CardScreen({
             {card.exampleTranslation}
           </p>
         </div>
+
+        {/* «Контекст носителей»: пометка об уместности/регистре выражения.
+            У обычных слов поле пустое — блок не показывается. */}
+        {card.note && (
+          <div className="cards__note">
+            <span className="cards__note-label">{t("cards.usageNote")}</span>
+            <p className="cards__note-text">{card.note}</p>
+          </div>
+        )}
       </article>
 
       <div className="cards__actions">
@@ -367,6 +410,10 @@ export default function CardScreen({
             {t("action.take")}
           </button>
         </div>
+        <GenerateModePicker
+          value={generateMode}
+          onChange={onChangeGenerateMode}
+        />
         <GenerateCountPicker
           value={generateCount}
           onChange={onChangeGenerateCount}
