@@ -96,6 +96,24 @@ export default {
     usageNote: "When it's used",
   },
 
+  // Manually adding your own word (card generated from user input).
+  addWord: {
+    entry: "Add your own word",
+    title: "Your word",
+    hint: "Enter a word or phrase — in the language you're learning or your native one. AI will build a card with translation, transcription and an example.",
+    placeholder: "word or phrase",
+    generate: "Create card",
+    generating: "Creating card…",
+    add: "Add to studying",
+    another: "Another word",
+    addedTitle: "Word added",
+    addedHint: "It's in “My words” and will show up for review.",
+    addMore: "Add another",
+    openMyWords: "Open “My words”",
+    notRecognized: "Couldn't recognize the word. Check the spelling and try again.",
+    failed: "Couldn't create the card. Please try again.",
+  },
+
   errors: {
     title: "Couldn't generate",
     offline: "No connection to server. Check your internet and try again.",

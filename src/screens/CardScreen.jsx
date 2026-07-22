@@ -79,6 +79,7 @@ export default function CardScreen({
   onClearError,
   onOpenSettings,
   onOpenMyWords,
+  onOpenAddWord,
   onOpenReview,
   onOpenStats,
   onOpenTutorial,
@@ -310,6 +311,13 @@ export default function CardScreen({
             >
               🎲 {t("cards.surprise")}
             </button>
+            <button
+              type="button"
+              className="cards__generate"
+              onClick={onOpenAddWord}
+            >
+              ➕ {t("addWord.entry")}
+            </button>
           </div>
         </div>
       </section>
@@ -409,6 +417,13 @@ export default function CardScreen({
           onClick={onGenerateRandom}
         >
           🎲 {t("cards.surprise")}
+        </button>
+        <button
+          type="button"
+          className="cards__generate"
+          onClick={onOpenAddWord}
+        >
+          ➕ {t("addWord.entry")}
         </button>
       </div>
 

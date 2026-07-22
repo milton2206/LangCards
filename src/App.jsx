@@ -7,6 +7,7 @@ import StartScreen from "./screens/StartScreen.jsx";
 import OnboardingScreen from "./screens/OnboardingScreen.jsx";
 import CardScreen from "./screens/CardScreen.jsx";
 import MyWordsScreen from "./screens/MyWordsScreen.jsx";
+import AddWordScreen from "./screens/AddWordScreen.jsx";
 import KnownWordsScreen from "./screens/KnownWordsScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
 import ReviewScreen from "./screens/ReviewScreen.jsx";
@@ -124,6 +125,15 @@ export default function App() {
     generate(buildParams({ random: true }));
   }
 
+  // Ручное добавление своего слова: готовую карточку кладём в изучение текущей
+  // пары (takenWords + данные в wordInfo). take() возвращает false при достижении
+  // лимита активных слов — тогда карточку не добавляем и сообщаем об этом в UI.
+  function handleAddManualCard(card) {
+    const ok = vocab.take(card.word);
+    if (ok) vocab.rememberCards([card]);
+    return ok;
+  }
+
   function handleComplete(chosen) {
     setSettings(chosen);
     setScreen("cards");
@@ -166,6 +176,7 @@ export default function App() {
             onClearError={clearError}
             onOpenSettings={() => setScreen("settings")}
             onOpenMyWords={() => setScreen("mywords")}
+            onOpenAddWord={() => setScreen("addword")}
             onOpenReview={() => setScreen("review")}
             onOpenStats={() => setScreen("stats")}
             onOpenTutorial={() => setShowTutorial(true)}
@@ -206,6 +217,16 @@ export default function App() {
             onDelete={vocab.deleteWords}
             onBack={() => setScreen("cards")}
             onOpenKnown={() => setScreen("known")}
+          />
+        )}
+
+        {screen === "addword" && (
+          <AddWordScreen
+            learnLang={settings.learnLang}
+            nativeLang={settings.nativeLang}
+            onAdd={handleAddManualCard}
+            onOpenMyWords={() => setScreen("mywords")}
+            onBack={() => setScreen("cards")}
           />
         )}
 
