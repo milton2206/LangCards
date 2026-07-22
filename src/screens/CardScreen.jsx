@@ -382,7 +382,41 @@ export default function CardScreen({
         )}
       </article>
 
+      {/* Вторичные действия прокручиваются вместе с контентом (у их подписей нет
+          фона, поэтому над контентом они бы не читались). Нижний отступ = высота
+          плавающей панели кнопок + запас, чтобы последняя кнопка не пряталась под
+          закреплёнными кнопками. */}
       <div className="cards__actions">
+        <GenerateModePicker
+          value={generateMode}
+          onChange={onChangeGenerateMode}
+        />
+        <GenerateCountPicker
+          value={generateCount}
+          onChange={onChangeGenerateCount}
+          label={t("cards.countLabel")}
+        />
+        <button
+          type="button"
+          className="cards__generate"
+          onClick={onGenerate}
+        >
+          {t("cards.generate")}
+        </button>
+        <button
+          type="button"
+          className="cards__surprise"
+          onClick={onGenerateRandom}
+        >
+          🎲 {t("cards.surprise")}
+        </button>
+      </div>
+
+      {/* Плавающая панель основных действий: закреплена внизу. Фон панели
+          ПРОЗРАЧНЫЙ — залиты только сами кнопки (каждая со своим непрозрачным
+          фоном и тенью для читаемости над проезжающим контентом). Прозрачные
+          зоны пропускают тач/скролл к контенту под ними. */}
+      <div className="cards__actionbar">
         {limitNotice && (
           <p className="cards__limit-notice" role="status">
             {t("common.activeLimit", { max: MAX_ACTIVE_WORDS })}
@@ -414,29 +448,6 @@ export default function CardScreen({
             {t("action.take")}
           </button>
         </div>
-        <GenerateModePicker
-          value={generateMode}
-          onChange={onChangeGenerateMode}
-        />
-        <GenerateCountPicker
-          value={generateCount}
-          onChange={onChangeGenerateCount}
-          label={t("cards.countLabel")}
-        />
-        <button
-          type="button"
-          className="cards__generate"
-          onClick={onGenerate}
-        >
-          {t("cards.generate")}
-        </button>
-        <button
-          type="button"
-          className="cards__surprise"
-          onClick={onGenerateRandom}
-        >
-          🎲 {t("cards.surprise")}
-        </button>
       </div>
     </section>
   );
