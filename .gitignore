@@ -25,3 +25,15 @@ pnpm-debug.log*
 .idea
 *.suo
 *.sw?
+
+# Ключи сервисных аккаунтов Google Cloud
+*-key.json
+*-credentials.json
+service-account*.json
+gcp-*.json
+langcards-tts*.json
+*.pem
+
+# Локальные секреты (папка целиком)
+secrets/
+*.key
