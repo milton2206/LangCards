@@ -211,6 +211,30 @@
   gap: 8px;
 }
 
+/* Слово + компактная кнопка озвучки в одну строку (фаза 5.1) */
+.cards__word-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.cards__word-row .cards__word {
+  flex: 1;
+  min-width: 0;
+}
+
+.cards__word-row .playbtn {
+  margin-top: 6px; /* оптическое выравнивание с первой строкой слова */
+}
+
+/* Метка «ПРИМЕР» + кнопка озвучки примера */
+.cards__example-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 /* «Контекст носителей»: маленький ярлык стиля/регистра над выражением.
    Заметный, но компактный — не перегружает карточку. */
 .cards__register {

@@ -8,6 +8,7 @@ import { useI18n } from "../i18n/I18nContext.jsx";
 import LanguageSwitcher from "../components/LanguageSwitcher.jsx";
 import DailyBalance from "../components/DailyBalance.jsx";
 import WeekSchedule from "../components/WeekSchedule.jsx";
+import PlayButton from "../components/PlayButton.jsx";
 import { LANG_EMOJI } from "../data/onboarding.js";
 import "./CardScreen.css";
 
@@ -549,9 +550,14 @@ export default function CardScreen({
           {card.register && (
             <span className="cards__register">{card.register}</span>
           )}
-          <h1 id="card-word" className="cards__word" lang={learnLang}>
-            {card.word}
-          </h1>
+          {/* Слово + кнопка озвучки (фаза 5.1): без аудио карточка работает
+              как раньше — кнопка просто неактивна. */}
+          <div className="cards__word-row">
+            <h1 id="card-word" className="cards__word" lang={learnLang}>
+              {card.word}
+            </h1>
+            <PlayButton text={card.word} learnLang={learnLang} kind="word" />
+          </div>
           {card.translit && (
             <p className="cards__translit">{card.translit}</p>
           )}
@@ -561,7 +567,14 @@ export default function CardScreen({
         <div className="cards__divider" />
 
         <div className="cards__example">
-          <span className="cards__example-label">{t("cards.example")}</span>
+          <div className="cards__example-label-row">
+            <span className="cards__example-label">{t("cards.example")}</span>
+            <PlayButton
+              text={card.example}
+              learnLang={learnLang}
+              kind="example"
+            />
+          </div>
           {/* Каждое слово примера тапабельно: перевод + добавление в изучение
               прямо из контекста (лёгкий пунктир снизу — намёк на тап). */}
           <p className="cards__example-text" lang={learnLang}>

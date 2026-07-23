@@ -45,6 +45,7 @@ import {
 } from "./lib/localCache.js";
 import { loadGenerateCount } from "./lib/generateCount.js";
 import { loadGenerateMode } from "./lib/generateMode.js";
+import { prewarmTts } from "./lib/ttsClient.js";
 
 function loadSettings() {
   try {
@@ -416,7 +417,11 @@ export default function App() {
   // лимита активных слов — тогда карточку не добавляем и сообщаем об этом в UI.
   function handleAddManualCard(card) {
     const ok = vocab.take(card.word);
-    if (ok) vocab.rememberCards([card]);
+    if (ok) {
+      vocab.rememberCards([card]);
+      // Прогрев озвучки в момент создания карточки (фаза 5.1).
+      prewarmTts([card], learnLang);
+    }
     return ok;
   }
 

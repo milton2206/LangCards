@@ -39,3 +39,8 @@ alter table public.profiles
   drop column if exists schedule_mode;
 alter table public.profiles
   drop column if exists weekly_schedule;
+
+-- Фаза 5.1: кэш озвучки. Сначала удаляем объекты, потом bucket и политику.
+drop policy if exists "tts_cache_public_read" on storage.objects;
+delete from storage.objects where bucket_id = 'tts-cache';
+delete from storage.buckets where id = 'tts-cache';

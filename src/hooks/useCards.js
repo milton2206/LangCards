@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { prewarmTts } from "../lib/ttsClient.js";
 
 // Порция карточек хранится по языковым парам: { "de-ru": [...], "el-ru": [...] }.
 // При переключении языка показывается порция только текущей пары.
@@ -98,6 +99,9 @@ export function useCards(pairKey) {
           return;
         }
         setStore((prev) => ({ ...prev, [pairKey]: batch }));
+        // Озвучка создаётся в момент создания карточек (фаза 5.1): фоновый
+        // прогрев кэша, чтобы кнопка play не ждала генерацию при тапе.
+        prewarmTts(batch, params.learnLang);
       } catch (e) {
         setError(
           e.message === "Failed to fetch"

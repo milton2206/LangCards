@@ -43,6 +43,28 @@
   border-radius: var(--radius);
 }
 
+/* Ряды «текст + кнопка озвучки» (фаза 5.1) */
+.review__sentence-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.review__sentence-row .review__sentence {
+  flex: 1;
+  min-width: 0;
+}
+
+.review__sentence-row .playbtn {
+  margin-top: 6px;
+}
+
+.review__word-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* Лицо карточки: пример предложения целиком, изучаемое слово выделено */
 .review__sentence {
   font-size: clamp(20px, 6vw, 25px);

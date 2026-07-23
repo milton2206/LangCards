@@ -3,6 +3,7 @@ import { highlightWordInExample } from "../lib/highlightWord.js";
 import { formatInterval } from "../i18n/format.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { nextSrs } from "../hooks/useWordLists.js";
+import PlayButton from "../components/PlayButton.jsx";
 import "./ReviewScreen.css";
 
 const GRADES = [
@@ -148,19 +149,27 @@ export default function ReviewScreen({
       </header>
 
       <article className="review__card">
-        {/* Лицо: предложение целиком, изучаемое слово выделено */}
+        {/* Лицо: предложение целиком, изучаемое слово выделено. Рядом —
+            озвучка примера (фаза 5.1). */}
         {hasExample ? (
-          <p className="review__sentence" lang={learnLang}>
-            {segments.map((seg, i) =>
-              seg.highlight ? (
-                <mark key={i} className="review__highlight">
-                  {seg.text}
-                </mark>
-              ) : (
-                <span key={i}>{seg.text}</span>
-              ),
-            )}
-          </p>
+          <div className="review__sentence-row">
+            <p className="review__sentence" lang={learnLang}>
+              {segments.map((seg, i) =>
+                seg.highlight ? (
+                  <mark key={i} className="review__highlight">
+                    {seg.text}
+                  </mark>
+                ) : (
+                  <span key={i}>{seg.text}</span>
+                ),
+              )}
+            </p>
+            <PlayButton
+              text={info.example}
+              learnLang={learnLang}
+              kind="example"
+            />
+          </div>
         ) : (
           // Нет сохранённого примера (редкий случай для старых данных) —
           // показываем хотя бы само слово, чтобы экран оставался рабочим.
@@ -173,9 +182,16 @@ export default function ReviewScreen({
           <>
             <div className="review__divider" />
             <div className="review__answer">
-              <h1 id="review-word" className="review__word" lang={learnLang}>
-                {currentWord}
-              </h1>
+              <div className="review__word-row">
+                <h1 id="review-word" className="review__word" lang={learnLang}>
+                  {currentWord}
+                </h1>
+                <PlayButton
+                  text={currentWord}
+                  learnLang={learnLang}
+                  kind="word"
+                />
+              </div>
               {info.register && (
                 <span className="review__register">{info.register}</span>
               )}

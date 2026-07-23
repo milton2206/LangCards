@@ -32,6 +32,7 @@ pnpm-debug.log*
 service-account*.json
 gcp-*.json
 langcards-tts*.json
+evident-plane-*.json
 *.pem
 
 # Локальные секреты (папка целиком)

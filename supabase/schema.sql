@@ -303,3 +303,25 @@ alter table public.profiles
 
 alter table public.profiles
   add column if not exists weekly_schedule jsonb not null default '{}'::jsonb;
+
+-- ============================================================================
+-- Фаза 5.1 · Кэш озвучки (Supabase Storage)
+-- ----------------------------------------------------------------------------
+-- Bucket tts-cache — ОБЩИЙ кэш аудио для всех пользователей (одно и то же
+-- слово озвучивается один раз). Структура ключей: {learn_lang}/{sha256(text)}.mp3
+-- (например de/1f3a…9c.mp3). Bucket публичный: чтение — по публичному URL без
+-- авторизации (тег <audio> на клиенте), ЗАПИСЬ — только сервером через
+-- service_role (он обходит RLS); политик INSERT/UPDATE/DELETE нет НАМЕРЕННО,
+-- поэтому anon/authenticated ключи писать в кэш не могут. Идемпотентно.
+-- ============================================================================
+
+insert into storage.buckets (id, name, public)
+values ('tts-cache', 'tts-cache', true)
+on conflict (id) do nothing;
+
+-- Публичное чтение объектов кэша (для полноты; публичный bucket и так отдаёт
+-- файлы по /object/public/... без политик).
+drop policy if exists "tts_cache_public_read" on storage.objects;
+create policy "tts_cache_public_read"
+  on storage.objects for select
+  using (bucket_id = 'tts-cache');

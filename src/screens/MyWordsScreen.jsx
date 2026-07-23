@@ -3,6 +3,7 @@ import { useWordSelection } from "../hooks/useWordSelection.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import SelectBar from "../components/SelectBar.jsx";
 import WordListTabs from "../components/WordListTabs.jsx";
+import PlayButton from "../components/PlayButton.jsx";
 import "./MyWordsScreen.css";
 
 /**
@@ -110,8 +111,17 @@ export default function MyWordsScreen({
                     </span>
                   )}
                   <div className="mywords__item-text">
-                    <span className="mywords__word" lang={learnLang}>
-                      {item.word}
+                    <span className="mywords__word-row">
+                      <span className="mywords__word" lang={learnLang}>
+                        {item.word}
+                      </span>
+                      {!sel.selectMode && (
+                        <PlayButton
+                          text={item.word}
+                          learnLang={learnLang}
+                          kind="word"
+                        />
+                      )}
                     </span>
                     {item.translit && (
                       <span className="mywords__translit">
@@ -137,9 +147,18 @@ export default function MyWordsScreen({
 
                 {item.example && (
                   <div className="mywords__example">
-                    <p className="mywords__example-text" lang={learnLang}>
-                      {item.example}
-                    </p>
+                    <div className="mywords__example-row">
+                      <p className="mywords__example-text" lang={learnLang}>
+                        {item.example}
+                      </p>
+                      {!sel.selectMode && (
+                        <PlayButton
+                          text={item.example}
+                          learnLang={learnLang}
+                          kind="example"
+                        />
+                      )}
+                    </div>
                     {item.exampleTranslation && (
                       <p
                         className="mywords__example-translation"

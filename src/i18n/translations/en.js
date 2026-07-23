@@ -160,6 +160,13 @@ export default {
     offConfirm: "Turn off",
   },
 
+  // Card audio (phase 5.1).
+  tts: {
+    playWord: "Play word",
+    playExample: "Play example",
+    unavailable: "Audio unavailable",
+  },
+
   // Weekly language schedule (phase 4.5).
   schedule: {
     setupTitle: "How many days a week do you study?",

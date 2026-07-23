@@ -51,6 +51,24 @@
 }
 
 /* Мягкое сообщение о лимите активных слов — не блокировка, просто подсказка */
+/* Ряды «текст + кнопка озвучки» (фаза 5.1) */
+.mywords__word-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mywords__example-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.mywords__example-row .mywords__example-text {
+  flex: 1;
+  min-width: 0;
+}
+
 .mywords__limit-notice {
   padding: 10px 14px;
   border-radius: var(--radius-sm);
