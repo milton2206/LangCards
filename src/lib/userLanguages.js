@@ -108,3 +108,80 @@ export async function setPriorityLanguage(userId, learnLang, nativeLang) {
 export async function removeUserLanguage(userId, learnLang, nativeLang) {
   return updateUserLanguage(userId, learnLang, nativeLang, { isActive: false });
 }
+
+// ---------- Явный флаг мультиязычного режима (profiles.multi_lang_mode) ----------
+// Мультирежим — осознанный выбор пользователя, а не следствие числа языков.
+// Строка profiles создаётся автоматически при регистрации (триггер в БД).
+
+/**
+ * Читает флаг мультирежима. Офлайн-фолбэк: без Supabase / без сети / без строки —
+ * тихо false (новые пользователи и так стартуют с false).
+ */
+export async function getMultiLangMode(userId) {
+  if (!supabase || !userId) return false;
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("multi_lang_mode")
+      .eq("id", userId)
+      .maybeSingle();
+    if (error || !data) return false;
+    return Boolean(data.multi_lang_mode);
+  } catch {
+    return false;
+  }
+}
+
+/** Пишет флаг мультирежима. Возвращает { ok }. */
+export async function setMultiLangMode(userId, enabled) {
+  if (!supabase || !userId) return { ok: false };
+  try {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ multi_lang_mode: Boolean(enabled) })
+      .eq("id", userId);
+    return { ok: !error };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/**
+ * Выключение мультирежима: активной остаётся только приоритетная пара, прочие
+ * активные получают is_active=false. Прогресс в user_words НЕ трогается —
+ * при включении режима пары вернутся (reactivateAllLanguages).
+ */
+export async function deactivateNonPriorityLanguages(userId) {
+  if (!supabase || !userId) return { ok: false };
+  try {
+    const { error } = await supabase
+      .from(TABLE)
+      .update({ is_active: false })
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .eq("is_priority", false);
+    return { ok: !error };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/**
+ * Включение мультирежима: возвращаем ранее скрытые пары (is_active=true).
+ * Приоритет не меняется — активная приоритетная пара уже есть, триггер в БД
+ * это уважает. Если скрытых пар нет — просто no-op (возможность открыта,
+ * добавлять вторую пару никто не заставляет).
+ */
+export async function reactivateAllLanguages(userId) {
+  if (!supabase || !userId) return { ok: false };
+  try {
+    const { error } = await supabase
+      .from(TABLE)
+      .update({ is_active: true })
+      .eq("user_id", userId)
+      .eq("is_active", false);
+    return { ok: !error };
+  } catch {
+    return { ok: false };
+  }
+}

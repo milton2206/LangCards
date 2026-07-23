@@ -26,3 +26,8 @@ end $$;
 
 -- Функция триггера живёт отдельно от таблицы — удаляем последней.
 drop function if exists public.user_languages_priority_guard();
+
+-- Дополнение фазы 4.1: явный флаг мультиязычного режима в profiles.
+-- Сама таблица profiles и её политики остаются — убираем только колонку.
+alter table public.profiles
+  drop column if exists multi_lang_mode;
