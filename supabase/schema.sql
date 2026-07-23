@@ -281,3 +281,25 @@ on conflict (user_id, learn_lang, native_lang) do nothing;
 
 alter table public.profiles
   add column if not exists multi_lang_mode boolean not null default false;
+
+-- ============================================================================
+-- Фаза 4.5 · Недельное расписание языков
+-- ----------------------------------------------------------------------------
+-- Вместо смешивания языков внутри дня — раскладка по дням недели:
+--   study_days_per_week — сколько дней в неделю пользователь занимается (3–7);
+--   schedule_mode       — 'by_day' (один язык в день) | 'mixed' (как в 4.3);
+--   weekly_schedule     — раскладка: ключ = день недели (1=пн … 7=вс),
+--                         значение = пара вида "de-ru" или null (выходной).
+-- Раскладку считает клиент (см. src/lib/weeklySchedule.js) и сохраняет сюда,
+-- чтобы устройства видели одно расписание. RLS profiles уже покрывает —
+-- новых политик не нужно. Идемпотентно.
+-- ============================================================================
+
+alter table public.profiles
+  add column if not exists study_days_per_week integer not null default 7;
+
+alter table public.profiles
+  add column if not exists schedule_mode text not null default 'by_day';
+
+alter table public.profiles
+  add column if not exists weekly_schedule jsonb not null default '{}'::jsonb;

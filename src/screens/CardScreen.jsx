@@ -7,6 +7,8 @@ import { requestManualCard } from "../lib/manualCard.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import LanguageSwitcher from "../components/LanguageSwitcher.jsx";
 import DailyBalance from "../components/DailyBalance.jsx";
+import WeekSchedule from "../components/WeekSchedule.jsx";
+import { LANG_EMOJI } from "../data/onboarding.js";
 import "./CardScreen.css";
 
 // Переключатель «сколько карточек генерировать за раз» (5/10/20) — рядом с
@@ -80,6 +82,8 @@ export default function CardScreen({
   onSwitchLanguage,
   dailyBalance,
   quotaExhausted,
+  weekSchedule,
+  restDay,
   dueCount,
   generateCount,
   onChangeGenerateCount,
@@ -335,8 +339,9 @@ export default function CardScreen({
       </div>
     );
 
-  // Разбивка дневной нормы по языкам — только мультирежим (App передаёт null
-  // при multiLangMode=false: один язык, делить нечего).
+  // Разбивка дневной нормы по языкам — только мультирежим + scheduleMode='mixed'
+  // (App передаёт null в остальных случаях: один язык — делить нечего, а при
+  // 'by_day' вместо неё показывается обзор недели).
   const balanceStrip = dailyBalance ? (
     <DailyBalance
       items={dailyBalance}
@@ -349,6 +354,61 @@ export default function CardScreen({
     />
   ) : null;
 
+  // Обзор недельного расписания (фаза 4.5) — только мультирежим + 'by_day'.
+  const weekStrip = weekSchedule ? <WeekSchedule schedule={weekSchedule} /> : null;
+
+  // Неучебный день по расписанию: не блокируем — показываем отдых, повторения
+  // (они идут всегда — кнопка в сводке и здесь) и «Позаниматься всё равно»
+  // с выбором языка (выбор ставит дневной override в App).
+  if (restDay) {
+    return (
+      <section className="cards">
+        {topbar}
+        {dailySummary}
+        {weekStrip}
+        <div className="cards__center">
+          <div className="cards__status-emoji" aria-hidden="true">
+            😴
+          </div>
+          <h1 className="cards__status-title">{t("schedule.restTitle")}</h1>
+          <p className="cards__status-hint">{t("schedule.restHint")}</p>
+          <div className="cards__status-actions">
+            {dueCount > 0 && (
+              <button
+                type="button"
+                className="cards__retry"
+                onClick={onOpenReview}
+              >
+                {t("cards.reviewNow")}
+              </button>
+            )}
+            <p className="cards__rest-label">{t("schedule.studyAnyway")}</p>
+            <div className="cards__rest-langs">
+              {(languages || []).map((l) => (
+                <button
+                  key={`${l.learnLang}-${l.nativeLang}`}
+                  type="button"
+                  className="cards__rest-lang"
+                  onClick={() =>
+                    onSwitchLanguage({
+                      learnLang: l.learnLang,
+                      nativeLang: l.nativeLang,
+                    })
+                  }
+                >
+                  <span aria-hidden="true">
+                    {LANG_EMOJI[l.learnLang] || "🌐"}
+                  </span>{" "}
+                  {t(`lang.${l.learnLang}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   // Дневная норма языка выбрана (фаза 4.3): мягкая остановка вместо потока
   // новых карточек. Повторения НЕ ограничиваются (кнопка повтора в сводке и
   // здесь), переключение — чипами баланса выше, «Взять сверх нормы» — обход.
@@ -358,6 +418,7 @@ export default function CardScreen({
         {topbar}
         {dailySummary}
         {balanceStrip}
+        {weekStrip}
         <div className="cards__center">
           <div className="cards__status-emoji" aria-hidden="true">
             🎯
@@ -394,6 +455,7 @@ export default function CardScreen({
         {topbar}
         {dailySummary}
         {balanceStrip}
+        {weekStrip}
         <div className="cards__center">
           {empty ? (
             <>
@@ -455,6 +517,7 @@ export default function CardScreen({
       {topbar}
       {dailySummary}
       {balanceStrip}
+      {weekStrip}
 
       <div className="cards__progressbar" aria-hidden="true">
         <span

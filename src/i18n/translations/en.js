@@ -160,6 +160,29 @@ export default {
     offConfirm: "Turn off",
   },
 
+  // Weekly language schedule (phase 4.5).
+  schedule: {
+    setupTitle: "How many days a week do you study?",
+    setupMode: "How should languages be arranged?",
+    modeByDay: "By day",
+    modeMixed: "All at once",
+    modeByDayHint:
+      "One language per study day; the priority one comes up more often.",
+    modeMixedHint:
+      "All languages every day, the daily quota is split between them (as before).",
+    enable: "Turn on",
+    title: "Week schedule",
+    daysLabel: "Study days:",
+    today: "Today: {lang}",
+    restToday: "Rest day today",
+    restTitle: "Today is a rest day",
+    restHint:
+      "Due reviews are always available — the schedule never limits them. Want new words anyway? Pick a language.",
+    studyAnyway: "Study anyway:",
+    days: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+    aria: "Weekly language schedule",
+  },
+
   // Daily load balancing (phase 4.3): new-word quota per language.
   balance: {
     today: "Today:",

@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   fetchUserLanguages,
-  getMultiLangMode,
+  getProfilePrefs,
+  saveScheduleSettings,
   setMultiLangMode,
   deactivateNonPriorityLanguages,
   reactivateAllLanguages,
+  DEFAULT_SCHEDULE_PREFS,
 } from "../lib/userLanguages.js";
 
 /**
@@ -36,6 +38,13 @@ import {
 export function useUserLanguages(user) {
   const [languages, setLanguages] = useState([]);
   const [multiLangMode, setMultiLangModeState] = useState(false);
+  // Настройки недельного расписания (фаза 4.5) из profiles: дни в неделю,
+  // режим ('by_day' | 'mixed') и сохранённая раскладка недели.
+  const [schedulePrefs, setSchedulePrefs] = useState({
+    studyDaysPerWeek: DEFAULT_SCHEDULE_PREFS.studyDaysPerWeek,
+    scheduleMode: DEFAULT_SCHEDULE_PREFS.scheduleMode,
+    weeklySchedule: DEFAULT_SCHEDULE_PREFS.weeklySchedule,
+  });
   // true, пока после входа идёт первая загрузка языков (гейт от мигания
   // онбординга до того, как пары пришли из облака).
   const [loading, setLoading] = useState(Boolean(user));
@@ -45,6 +54,11 @@ export function useUserLanguages(user) {
     if (!user) {
       setLanguages([]);
       setMultiLangModeState(false);
+      setSchedulePrefs({
+        studyDaysPerWeek: DEFAULT_SCHEDULE_PREFS.studyDaysPerWeek,
+        scheduleMode: DEFAULT_SCHEDULE_PREFS.scheduleMode,
+        weeklySchedule: DEFAULT_SCHEDULE_PREFS.weeklySchedule,
+      });
       setLoading(false);
       return;
     }
@@ -52,13 +66,18 @@ export function useUserLanguages(user) {
     let active = true;
     setLoading(true);
     (async () => {
-      const [langs, multi] = await Promise.all([
+      const [langs, prefs] = await Promise.all([
         fetchUserLanguages(user.id),
-        getMultiLangMode(user.id),
+        getProfilePrefs(user.id),
       ]);
       if (active) {
         setLanguages(langs);
-        setMultiLangModeState(multi);
+        setMultiLangModeState(prefs.multiLangMode);
+        setSchedulePrefs({
+          studyDaysPerWeek: prefs.studyDaysPerWeek,
+          scheduleMode: prefs.scheduleMode,
+          weeklySchedule: prefs.weeklySchedule,
+        });
         setLoading(false);
       }
     })();
@@ -69,17 +88,33 @@ export function useUserLanguages(user) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  // Перечитать языки и флаг (после add/update/remove или внешних правок).
+  // Перечитать языки и настройки (после add/update/remove или внешних правок).
   const reload = useCallback(async () => {
     if (!user) return;
-    const [langs, multi] = await Promise.all([
+    const [langs, prefs] = await Promise.all([
       fetchUserLanguages(user.id),
-      getMultiLangMode(user.id),
+      getProfilePrefs(user.id),
     ]);
     setLanguages(langs);
-    setMultiLangModeState(multi);
+    setMultiLangModeState(prefs.multiLangMode);
+    setSchedulePrefs({
+      studyDaysPerWeek: prefs.studyDaysPerWeek,
+      scheduleMode: prefs.scheduleMode,
+      weeklySchedule: prefs.weeklySchedule,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  // Обновить настройки расписания: локально применяем СРАЗУ (офлайн-first,
+  // UI не ждёт сеть), сохранение в profiles — best-effort.
+  const updateSchedulePrefs = useCallback(
+    async (partial) => {
+      setSchedulePrefs((prev) => ({ ...prev, ...partial }));
+      if (user) await saveScheduleSettings(user.id, partial);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user?.id],
+  );
 
   // Явное включение/выключение мультирежима. Состояние меняем только после
   // успешной записи флага в БД — хук не врёт про сохранённое.
@@ -114,6 +149,11 @@ export function useUserLanguages(user) {
     priorityLanguage,
     multiLangMode,
     toggleMultiLangMode,
+    // Недельное расписание (фаза 4.5).
+    studyDaysPerWeek: schedulePrefs.studyDaysPerWeek,
+    scheduleMode: schedulePrefs.scheduleMode,
+    weeklySchedule: schedulePrefs.weeklySchedule,
+    updateSchedulePrefs,
     loading,
     reload,
   };

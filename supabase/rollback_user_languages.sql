@@ -31,3 +31,11 @@ drop function if exists public.user_languages_priority_guard();
 -- Сама таблица profiles и её политики остаются — убираем только колонку.
 alter table public.profiles
   drop column if exists multi_lang_mode;
+
+-- Фаза 4.5: недельное расписание языков (тоже только колонки profiles).
+alter table public.profiles
+  drop column if exists study_days_per_week;
+alter table public.profiles
+  drop column if exists schedule_mode;
+alter table public.profiles
+  drop column if exists weekly_schedule;

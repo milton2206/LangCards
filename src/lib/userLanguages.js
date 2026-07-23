@@ -132,6 +132,71 @@ export async function getMultiLangMode(userId) {
   }
 }
 
+// Настройки профиля одним запросом: флаг мультирежима + недельное расписание
+// (фаза 4.5). Фолбэки на каждом уровне:
+//   • колонок 4.5 ещё нет в облаке (SQL не выполнен) — повторяем запрос только
+//     по multi_lang_mode, расписание получает дефолты;
+//   • Supabase недоступен вовсе — тихо отдаём дефолты целиком.
+export const DEFAULT_SCHEDULE_PREFS = {
+  multiLangMode: false,
+  studyDaysPerWeek: 7,
+  scheduleMode: "by_day", // 'by_day' — один язык в день | 'mixed' — как в 4.3
+  weeklySchedule: {}, // { "1": "de-ru" | null, … "7": … }
+};
+
+export async function getProfilePrefs(userId) {
+  if (!supabase || !userId) return { ...DEFAULT_SCHEDULE_PREFS };
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(
+        "multi_lang_mode, study_days_per_week, schedule_mode, weekly_schedule",
+      )
+      .eq("id", userId)
+      .maybeSingle();
+    if (!error && data) {
+      return {
+        multiLangMode: Boolean(data.multi_lang_mode),
+        studyDaysPerWeek: data.study_days_per_week || 7,
+        scheduleMode:
+          data.schedule_mode === "mixed" ? "mixed" : "by_day",
+        weeklySchedule: data.weekly_schedule || {},
+      };
+    }
+    // Возможно, колонок 4.5 ещё нет — пробуем прочитать хотя бы флаг режима.
+    const multi = await getMultiLangMode(userId);
+    return { ...DEFAULT_SCHEDULE_PREFS, multiLangMode: multi };
+  } catch {
+    return { ...DEFAULT_SCHEDULE_PREFS };
+  }
+}
+
+/**
+ * Сохраняет настройки расписания (частично): { studyDaysPerWeek?, scheduleMode?,
+ * weeklySchedule? }. Возвращает { ok }; офлайн — { ok: false }, тихо.
+ */
+export async function saveScheduleSettings(userId, partial = {}) {
+  if (!supabase || !userId) return { ok: false };
+  const patch = {};
+  if (partial.studyDaysPerWeek != null) {
+    patch.study_days_per_week = partial.studyDaysPerWeek;
+  }
+  if (partial.scheduleMode != null) patch.schedule_mode = partial.scheduleMode;
+  if (partial.weeklySchedule != null) {
+    patch.weekly_schedule = partial.weeklySchedule;
+  }
+  if (Object.keys(patch).length === 0) return { ok: true };
+  try {
+    const { error } = await supabase
+      .from("profiles")
+      .update(patch)
+      .eq("id", userId);
+    return { ok: !error };
+  } catch {
+    return { ok: false };
+  }
+}
+
 /** Пишет флаг мультирежима. Возвращает { ok }. */
 export async function setMultiLangMode(userId, enabled) {
   if (!supabase || !userId) return { ok: false };

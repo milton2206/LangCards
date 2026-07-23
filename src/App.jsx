@@ -31,6 +31,10 @@ import {
 } from "./lib/userLanguages.js";
 import { computeDailyQuotas } from "./lib/dailyBalance.js";
 import {
+  buildWeeklySchedule,
+  todayScheduledPair,
+} from "./lib/weeklySchedule.js";
+import {
   loadActivePair,
   saveActivePair,
   getCacheOwner,
@@ -118,15 +122,39 @@ export default function App() {
   // загрузке). Офлайн-фолбэк: сохранённый выбор, затем старые settings.
   const [chosenPair, setChosenPair] = useState(loadActivePair);
 
+  // Недельное расписание (фаза 4.5): активно только в мультирежиме при
+  // scheduleMode='by_day'. В учебный день активным становится язык дня;
+  // dayOverridePair — сессионный «поверх расписания» выбор (переключатель или
+  // «Позаниматься всё равно» в выходной), при перезагрузке возвращаемся к
+  // расписанию — это осознанно мягкое поведение.
+  const scheduleActive =
+    userLangs.multiLangMode && userLangs.scheduleMode === "by_day";
+  const [dayOverridePair, setDayOverridePair] = useState(null);
+  const todayPairKey = scheduleActive
+    ? todayScheduledPair(userLangs.weeklySchedule)
+    : null;
+
   const activeLanguage = useMemo(() => {
     const langs = userLangs.languages;
+    const findPair = (p) =>
+      p &&
+      langs.find(
+        (l) => l.learnLang === p.learnLang && l.nativeLang === p.nativeLang,
+      );
     if (langs.length > 0) {
-      if (userLangs.multiLangMode && chosenPair) {
-        const found = langs.find(
-          (l) =>
-            l.learnLang === chosenPair.learnLang &&
-            l.nativeLang === chosenPair.nativeLang,
+      if (scheduleActive) {
+        // Режим «по дням»: сессионный override → язык дня → приоритетная
+        // (в выходной повторения идут по активной = приоритетной паре).
+        const override = findPair(dayOverridePair);
+        if (override) return override;
+        const scheduled = langs.find(
+          (l) => `${l.learnLang}-${l.nativeLang}` === todayPairKey,
         );
+        if (scheduled) return scheduled;
+        return userLangs.priorityLanguage;
+      }
+      if (userLangs.multiLangMode && chosenPair) {
+        const found = findPair(chosenPair);
         if (found) return found;
       }
       return userLangs.priorityLanguage;
@@ -140,6 +168,9 @@ export default function App() {
     userLangs.languages,
     userLangs.multiLangMode,
     userLangs.priorityLanguage,
+    scheduleActive,
+    todayPairKey,
+    dayOverridePair,
     chosenPair,
     settings.learnLang,
     settings.nativeLang,
@@ -192,12 +223,41 @@ export default function App() {
   // Слова, которым сегодня пора на повтор (отдельно от потока новых карточек).
   const dueWords = getDueWords(vocab.takenWords, vocab.srsByWord, vocab.todayKey);
 
+  // ---------- Пересчёт недельной раскладки (фаза 4.5) ----------
+  // Раскладка пересчитывается при добавлении/удалении языка, смене приоритета
+  // и числа учебных дней; сохраняется в profiles (best-effort, локально —
+  // сразу). Сравнение по JSON защищает от лишних записей и циклов.
+  useEffect(() => {
+    if (!scheduleActive || userLangs.loading || userLangs.languages.length === 0) {
+      return;
+    }
+    const next = buildWeeklySchedule(
+      userLangs.languages,
+      userLangs.studyDaysPerWeek,
+    );
+    if (JSON.stringify(next) !== JSON.stringify(userLangs.weeklySchedule)) {
+      userLangs.updateSchedulePrefs({ weeklySchedule: next });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    scheduleActive,
+    userLangs.loading,
+    userLangs.languages,
+    userLangs.studyDaysPerWeek,
+  ]);
+
   // ---------- Баланс дневной нагрузки (фаза 4.3) ----------
-  // Квоты новых слов по активным парам (только мультирежим; при false — null,
-  // баланса нет вообще). «Взято сегодня» считает useWordLists по takenDate.
-  // Повторения (SRS) в норму не входят и не режутся никогда.
+  // Ветка scheduleMode='mixed': квоты новых слов по активным парам. При
+  // 'by_day' полоса не показывается (вместо неё обзор недели), а лимитом
+  // служит собственный daily_new_limit языка дня (см. activeBalance ниже).
+  // «Взято сегодня» считает useWordLists по takenDate. Повторения (SRS) в
+  // норму не входят и не режутся никогда.
   const dailyBalance = useMemo(() => {
-    if (!userLangs.multiLangMode || userLangs.languages.length === 0) {
+    if (
+      !userLangs.multiLangMode ||
+      userLangs.scheduleMode !== "mixed" ||
+      userLangs.languages.length === 0
+    ) {
       return null;
     }
     const quotas = computeDailyQuotas(userLangs.languages);
@@ -214,9 +274,50 @@ export default function App() {
         done: taken >= quota,
       };
     });
-  }, [userLangs.multiLangMode, userLangs.languages, vocab.takenTodayByPair]);
+  }, [
+    userLangs.multiLangMode,
+    userLangs.scheduleMode,
+    userLangs.languages,
+    vocab.takenTodayByPair,
+  ]);
 
-  const activeBalance = dailyBalance?.find((b) => b.pairKey === pairKey) || null;
+  // Выходной по расписанию: сегодня язык не назначен и override не выбран.
+  const restDay = Boolean(
+    scheduleActive &&
+      Object.values(userLangs.weeklySchedule || {}).some(Boolean) &&
+      !todayPairKey &&
+      !dayOverridePair,
+  );
+
+  // Лимит новых слов активной пары на сегодня:
+  //   'mixed' — квота из разбивки 4.3; 'by_day' — собственный daily_new_limit
+  //   языка, выпавшего сегодня (или выбранного поверх расписания).
+  const activeBalance = useMemo(() => {
+    if (dailyBalance) {
+      return dailyBalance.find((b) => b.pairKey === pairKey) || null;
+    }
+    if (scheduleActive && !restDay && activeLanguage) {
+      const lang = userLangs.languages.find(
+        (l) =>
+          l.learnLang === activeLanguage.learnLang &&
+          l.nativeLang === activeLanguage.nativeLang,
+      );
+      if (!lang) return null;
+      const quota = Math.max(1, Number(lang.dailyNewLimit) || 10);
+      const taken = vocab.takenTodayByPair[pairKey] || 0;
+      return { pairKey, quota, taken, done: taken >= quota };
+    }
+    return null;
+  }, [
+    dailyBalance,
+    scheduleActive,
+    restDay,
+    activeLanguage,
+    userLangs.languages,
+    vocab.takenTodayByPair,
+    pairKey,
+  ]);
+
   const quotaExhausted = Boolean(activeBalance && activeBalance.done);
 
   // Короткий туториал показывается ОДИН раз при первом запуске (по флагу).
@@ -387,16 +488,43 @@ export default function App() {
     userLangs.reload();
   }
 
-  // Переключатель пар (мультирежим): выбор сохраняется и переживает перезагрузку.
+  // Переключатель пар. В режиме «по дням» выбор — сессионный override поверх
+  // расписания (перезагрузка вернёт язык дня); в остальных режимах выбор
+  // сохраняется и переживает перезагрузку.
   function handleSwitchLanguage(pair) {
+    if (scheduleActive) {
+      setDayOverridePair(pair);
+      return;
+    }
     saveActivePair(pair);
     setChosenPair(pair);
   }
 
   async function handleToggleMultiLang(enabled) {
+    setDayOverridePair(null);
     await userLangs.toggleMultiLangMode(enabled);
     // При выключении активной остаётся приоритетная пара — activeLanguage
     // вернётся к ней сам (multiLangMode=false → приоритетная).
+  }
+
+  // Включение мультирежима с ответами на вопросы (фаза 4.5): сколько дней в
+  // неделю и какой режим распределения. Сохраняем настройки, затем включаем —
+  // раскладку недели построит эффект пересчёта выше.
+  async function handleEnableMultiLang(prefs) {
+    setDayOverridePair(null);
+    await userLangs.updateSchedulePrefs({
+      studyDaysPerWeek: prefs.studyDaysPerWeek,
+      scheduleMode: prefs.scheduleMode,
+    });
+    await userLangs.toggleMultiLangMode(true);
+  }
+
+  // Правка расписания из «Моих языков» (в любой момент): дни/режим. Смена
+  // значений сбрасывает сессионный override — активный язык определит новая
+  // раскладка.
+  async function handleUpdateSchedule(partial) {
+    setDayOverridePair(null);
+    await userLangs.updateSchedulePrefs(partial);
   }
 
   // Смена приоритетной пары (мультирежим): один update — триггер в БД снимает
@@ -466,6 +594,8 @@ export default function App() {
             onSwitchLanguage={handleSwitchLanguage}
             dailyBalance={dailyBalance}
             quotaExhausted={quotaExhausted}
+            weekSchedule={scheduleActive ? userLangs.weeklySchedule : null}
+            restDay={restDay}
             dueCount={dueWords.length}
             generateCount={generateCount}
             onChangeGenerateCount={setGenerateCount}
@@ -579,7 +709,12 @@ export default function App() {
             languages={userLangs.languages}
             priorityLanguage={userLangs.priorityLanguage}
             activeLanguage={activeLanguage}
+            studyDaysPerWeek={userLangs.studyDaysPerWeek}
+            scheduleMode={userLangs.scheduleMode}
+            weeklySchedule={userLangs.weeklySchedule}
+            onEnableMultiLang={handleEnableMultiLang}
             onToggleMultiLang={handleToggleMultiLang}
+            onUpdateSchedule={handleUpdateSchedule}
             onReplaceSinglePair={handleReplaceSinglePair}
             onAddPair={handleAddPair}
             onSetPriority={handleSetPriority}

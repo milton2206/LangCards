@@ -480,6 +480,33 @@
   pointer-events: auto;
 }
 
+/* Выходной по расписанию (фаза 4.5): подпись и выбор языка для занятия */
+.cards__rest-label {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cards__rest-langs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.cards__rest-lang {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
 /* Мягкое сообщение о лимите активных слов — не блокировка, просто подсказка */
 .cards__limit-notice {
   padding: 10px 14px;

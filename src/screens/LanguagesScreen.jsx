@@ -4,6 +4,7 @@ import {
   LANG_EMOJI,
   optionLabelKey,
 } from "../data/onboarding.js";
+import WeekSchedule from "../components/WeekSchedule.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 // Переиспользуем стиль чипов настроек (settings__chip и т.д.) — без дублей.
 import "./SettingsScreen.css";
@@ -11,6 +12,9 @@ import "./LanguagesScreen.css";
 
 // Пресеты дневного лимита новых слов (значение хранится в user_languages).
 const LIMIT_PRESETS = [5, 10, 15, 20];
+
+// Варианты «сколько дней в неделю занимаюсь» (profiles.study_days_per_week).
+const DAYS_OPTIONS = [3, 4, 5, 6, 7];
 
 /**
  * Выбор языковой пары: те же опции, что в онбординге (ONBOARDING_STEPS), тот же
@@ -82,7 +86,12 @@ export default function LanguagesScreen({
   languages,
   priorityLanguage,
   activeLanguage,
+  studyDaysPerWeek,
+  scheduleMode,
+  weeklySchedule,
+  onEnableMultiLang,
   onToggleMultiLang,
+  onUpdateSchedule,
   onReplaceSinglePair,
   onAddPair,
   onSetPriority,
@@ -97,6 +106,10 @@ export default function LanguagesScreen({
   // Подсказка после включения режима с одной парой: не заставляем добавлять
   // вторую, просто предлагаем.
   const [justEnabled, setJustEnabled] = useState(false);
+  // Вопрос перед включением мультирежима (фаза 4.5): дни в неделю + режим.
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [setupDays, setSetupDays] = useState(studyDaysPerWeek || 7);
+  const [setupMode, setSetupMode] = useState(scheduleMode || "by_day");
 
   const keyOf = (l) => `${l.learnLang}-${l.nativeLang}`;
   const staying = priorityLanguage || languages[0] || activeLanguage;
@@ -107,9 +120,59 @@ export default function LanguagesScreen({
       setConfirmOff(true);
       return;
     }
-    await onToggleMultiLang(true);
+    // Включение — сначала вопрос про дни недели и режим распределения.
+    setSetupDays(studyDaysPerWeek || 7);
+    setSetupMode(scheduleMode || "by_day");
+    setSetupOpen(true);
+  }
+
+  async function handleSetupConfirm() {
+    setSetupOpen(false);
+    await onEnableMultiLang({
+      studyDaysPerWeek: setupDays,
+      scheduleMode: setupMode,
+    });
     if (languages.length <= 1) setJustEnabled(true);
   }
+
+  // Чипы «дни в неделю» и «режим» — общие для вопроса при включении и для
+  // редактирования расписания в мультирежиме.
+  const daysChips = (value, onPick) => (
+    <div className="langs__limit-chips">
+      {DAYS_OPTIONS.map((n) => (
+        <button
+          key={n}
+          type="button"
+          className={"langs__limit-chip" + (value === n ? " is-active" : "")}
+          aria-pressed={value === n}
+          onClick={() => onPick(n)}
+        >
+          {n}
+        </button>
+      ))}
+    </div>
+  );
+
+  const modeChips = (value, onPick) => (
+    <div className="settings__options">
+      <button
+        type="button"
+        className={"settings__chip" + (value === "by_day" ? " is-active" : "")}
+        aria-pressed={value === "by_day"}
+        onClick={() => onPick("by_day")}
+      >
+        📅 {t("schedule.modeByDay")}
+      </button>
+      <button
+        type="button"
+        className={"settings__chip" + (value === "mixed" ? " is-active" : "")}
+        aria-pressed={value === "mixed"}
+        onClick={() => onPick("mixed")}
+      >
+        🔀 {t("schedule.modeMixed")}
+      </button>
+    </div>
+  );
 
   async function handleConfirmOff() {
     setConfirmOff(false);
@@ -157,6 +220,37 @@ export default function LanguagesScreen({
             ? t("settings.multiLangOn")
             : t("settings.multiLangOff")}
         </button>
+
+        {/* Вопрос перед включением: сколько дней в неделю и какой режим */}
+        {setupOpen && (
+          <div className="langs__confirm langs__confirm--setup">
+            <p className="langs__confirm-title">{t("schedule.setupTitle")}</p>
+            {daysChips(setupDays, setSetupDays)}
+            <p className="langs__confirm-title">{t("schedule.setupMode")}</p>
+            {modeChips(setupMode, setSetupMode)}
+            <p className="langs__hint">
+              {setupMode === "by_day"
+                ? t("schedule.modeByDayHint")
+                : t("schedule.modeMixedHint")}
+            </p>
+            <div className="langs__confirm-actions">
+              <button
+                type="button"
+                className="langs__primary"
+                onClick={handleSetupConfirm}
+              >
+                {t("schedule.enable")}
+              </button>
+              <button
+                type="button"
+                className="langs__ghost"
+                onClick={() => setSetupOpen(false)}
+              >
+                {t("selectbar.cancel")}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Подтверждение выключения: показываем, какой язык останется */}
         {confirmOff && (
@@ -224,7 +318,27 @@ export default function LanguagesScreen({
           )}
         </div>
       ) : (
-        /* ---------- Мультирежим: список активных пар ---------- */
+        /* ---------- Мультирежим: расписание + список активных пар ---------- */
+        <>
+        {/* Расписание можно поменять в любой момент: дни, режим, обзор недели */}
+        <div className="langs__group">
+          <h2 className="langs__group-title">{t("schedule.title")}</h2>
+          <div className="langs__limit">
+            <span className="langs__limit-label">
+              {t("schedule.daysLabel")}
+            </span>
+            {daysChips(studyDaysPerWeek, (n) =>
+              onUpdateSchedule({ studyDaysPerWeek: n }),
+            )}
+          </div>
+          {modeChips(scheduleMode, (m) =>
+            onUpdateSchedule({ scheduleMode: m }),
+          )}
+          {scheduleMode === "by_day" && (
+            <WeekSchedule schedule={weeklySchedule} />
+          )}
+        </div>
+
         <div className="langs__group">
           <h2 className="langs__group-title">{t("languages.listTitle")}</h2>
 
@@ -335,6 +449,7 @@ export default function LanguagesScreen({
             </button>
           )}
         </div>
+        </>
       )}
     </section>
   );
