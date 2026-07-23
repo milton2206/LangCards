@@ -6,6 +6,7 @@ import { splitWords } from "../lib/highlightWord.js";
 import { requestManualCard } from "../lib/manualCard.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import LanguageSwitcher from "../components/LanguageSwitcher.jsx";
+import DailyBalance from "../components/DailyBalance.jsx";
 import "./CardScreen.css";
 
 // Переключатель «сколько карточек генерировать за раз» (5/10/20) — рядом с
@@ -77,6 +78,8 @@ export default function CardScreen({
   multiLangMode,
   activeLanguage,
   onSwitchLanguage,
+  dailyBalance,
+  quotaExhausted,
   dueCount,
   generateCount,
   onChangeGenerateCount,
@@ -110,6 +113,13 @@ export default function CardScreen({
     const ok = take(word);
     if (!ok) setLimitNotice(true);
   }
+
+  // «Взять сверх нормы» (фаза 4.3): мягкий обход дневной нормы на эту сессию.
+  // Сбрасывается при смене активной пары — у каждой пары своя норма.
+  const [overQuota, setOverQuota] = useState(false);
+  useEffect(() => {
+    setOverQuota(false);
+  }, [learnLang, nativeLang]);
 
   // Просмотр слова из примера (идея Димы): тап по слову → ИИ даёт перевод и
   // полную карточку (тем же manual-запросом, что и «Добавить своё слово») →
@@ -325,12 +335,65 @@ export default function CardScreen({
       </div>
     );
 
+  // Разбивка дневной нормы по языкам — только мультирежим (App передаёт null
+  // при multiLangMode=false: один язык, делить нечего).
+  const balanceStrip = dailyBalance ? (
+    <DailyBalance
+      items={dailyBalance}
+      activePairKey={
+        activeLanguage
+          ? `${activeLanguage.learnLang}-${activeLanguage.nativeLang}`
+          : ""
+      }
+      onSwitch={onSwitchLanguage}
+    />
+  ) : null;
+
+  // Дневная норма языка выбрана (фаза 4.3): мягкая остановка вместо потока
+  // новых карточек. Повторения НЕ ограничиваются (кнопка повтора в сводке и
+  // здесь), переключение — чипами баланса выше, «Взять сверх нормы» — обход.
+  if (quotaExhausted && !overQuota) {
+    return (
+      <section className="cards">
+        {topbar}
+        {dailySummary}
+        {balanceStrip}
+        <div className="cards__center">
+          <div className="cards__status-emoji" aria-hidden="true">
+            🎯
+          </div>
+          <h1 className="cards__status-title">{t("balance.quotaDoneTitle")}</h1>
+          <p className="cards__status-hint">{t("balance.quotaDoneHint")}</p>
+          <div className="cards__status-actions">
+            {dueCount > 0 && (
+              <button
+                type="button"
+                className="cards__retry"
+                onClick={onOpenReview}
+              >
+                {t("cards.reviewNow")}
+              </button>
+            )}
+            <button
+              type="button"
+              className={dueCount > 0 ? "cards__ghost" : "cards__retry"}
+              onClick={() => setOverQuota(true)}
+            >
+              {t("balance.takeMore")}
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   // Нет текущей карточки: либо порция ещё не сгенерирована, либо разобрана.
   if (empty || done) {
     return (
       <section className="cards">
         {topbar}
         {dailySummary}
+        {balanceStrip}
         <div className="cards__center">
           {empty ? (
             <>
@@ -391,6 +454,7 @@ export default function CardScreen({
     <section className="cards" aria-labelledby="card-word">
       {topbar}
       {dailySummary}
+      {balanceStrip}
 
       <div className="cards__progressbar" aria-hidden="true">
         <span

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "../lib/supabase.js";
 import { fetchCloudWords, pushCloudWords } from "../lib/cloudWords.js";
 import { mergeWordData } from "../lib/wordSync.js";
@@ -55,6 +55,7 @@ function startSrs(todayKey) {
     ease: 2.5, // коэффициент лёгкости (старт: среднее значение)
     repetitions: 0, // сколько раз успешно повторено подряд
     lastReviewed: null, // дата последнего повтора (старт: null)
+    takenDate: todayKey, // дата взятия — для дневной нормы новых слов (фаза 4.3)
   };
 }
 
@@ -69,7 +70,9 @@ function ensureSrsFields(store, todayKey) {
     let pairChanged = !data.srsByWord;
     for (const word of data.takenWords || []) {
       if (!srs[word]) {
-        srs[word] = startSrs(todayKey);
+        // Тихий фолбэк для старых слов: дата взятия неизвестна (takenDate:
+        // null) — в дневную норму (фаза 4.3) их не считаем, миграции нет.
+        srs[word] = { ...startSrs(todayKey), takenDate: null };
         pairChanged = true;
       }
     }
@@ -268,6 +271,21 @@ export function useWordLists(pairKey, user, options = {}) {
 
   // «Сегодня» по реальной локальной дате.
   const todayKey = toDayKey(new Date());
+
+  // Сколько НОВЫХ слов взято сегодня по КАЖДОЙ паре (для баланса дневной
+  // нагрузки, фаза 4.3). Считаем по takenDate в srs-записи; старые записи без
+  // takenDate (тихий фолбэк) взятыми сегодня не считаются. Повторения (SRS)
+  // сюда не входят — их никогда не режем.
+  const takenTodayByPair = useMemo(() => {
+    const result = {};
+    for (const [pair, data] of Object.entries(store)) {
+      const srs = data.srsByWord || {};
+      result[pair] = (data.takenWords || []).filter(
+        (w) => srs[w]?.takenDate === todayKey,
+      ).length;
+    }
+    return result;
+  }, [store, todayKey]);
 
   // ---------- Синхронизация с облаком ----------
   // Статус для UI: disabled (нет аккаунта/Supabase) | syncing | synced | offline | error.
@@ -682,6 +700,7 @@ export function useWordLists(pairKey, user, options = {}) {
     reviewWord, // самооценка при интервальном повторении (Этап 2)
     rememberCards,
     deleteWords, // полное удаление слов (режим выбора в списках)
+    takenTodayByPair, // взято новых слов сегодня по каждой паре (фаза 4.3)
     // Синхронизация с облаком (Supabase).
     syncStatus, // disabled | syncing | synced | offline | error
     syncReason, // код причины сбоя (offline | missing-table | error) — текст в UI

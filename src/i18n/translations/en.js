@@ -134,6 +134,16 @@ export default {
     aria: "Switch language",
   },
 
+  // Daily load balancing (phase 4.3): new-word quota per language.
+  balance: {
+    today: "Today:",
+    aria: "Daily new-word quota per language",
+    quotaDoneTitle: "Daily quota reached",
+    quotaDoneHint:
+      "You've taken today's new words for this language. Switch to a language with quota left, or review what you've taken — reviews are never limited.",
+    takeMore: "Take beyond the quota",
+  },
+
   // Reviewing known words — optional self-check of the "Know" list.
   knownReview: {
     entry: "Review known words",
@@ -229,6 +239,10 @@ export default {
       "Learn several languages in parallel: a pair switcher appears on the main screen. Each pair keeps its own progress.",
     multiLangOn: "On",
     multiLangOff: "Off",
+    // Priority pair (phase 4.3).
+    priorityTitle: "Priority pair",
+    priorityHint:
+      "The priority language gets the bigger share of the total daily new-word quota.",
   },
 
   sync: {

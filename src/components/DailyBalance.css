@@ -1,0 +1,53 @@
+/* Разбивка дневной нормы по языкам — компактная полоса чипов под сводкой */
+.balance {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.balance__label {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-right: 2px;
+}
+
+.balance__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 4px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+
+.balance__chip.is-active {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.14);
+}
+
+/* Норма выполнена — спокойный зелёный тон */
+.balance__chip.is-done {
+  border-color: rgba(53, 200, 139, 0.5);
+}
+
+.balance__code {
+  letter-spacing: 0.4px;
+}
+
+.balance__count {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.balance__check {
+  color: #35c88b;
+}

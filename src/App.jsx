@@ -24,7 +24,9 @@ import { useUserLanguages } from "./hooks/useUserLanguages.js";
 import {
   addUserLanguage,
   deactivateNonPriorityLanguages,
+  setPriorityLanguage,
 } from "./lib/userLanguages.js";
+import { computeDailyQuotas } from "./lib/dailyBalance.js";
 import {
   loadActivePair,
   saveActivePair,
@@ -187,6 +189,33 @@ export default function App() {
   // Слова, которым сегодня пора на повтор (отдельно от потока новых карточек).
   const dueWords = getDueWords(vocab.takenWords, vocab.srsByWord, vocab.todayKey);
 
+  // ---------- Баланс дневной нагрузки (фаза 4.3) ----------
+  // Квоты новых слов по активным парам (только мультирежим; при false — null,
+  // баланса нет вообще). «Взято сегодня» считает useWordLists по takenDate.
+  // Повторения (SRS) в норму не входят и не режутся никогда.
+  const dailyBalance = useMemo(() => {
+    if (!userLangs.multiLangMode || userLangs.languages.length === 0) {
+      return null;
+    }
+    const quotas = computeDailyQuotas(userLangs.languages);
+    return userLangs.languages.map((l) => {
+      const key = `${l.learnLang}-${l.nativeLang}`;
+      const taken = vocab.takenTodayByPair[key] || 0;
+      const quota = quotas[key] || 0;
+      return {
+        learnLang: l.learnLang,
+        nativeLang: l.nativeLang,
+        pairKey: key,
+        taken,
+        quota,
+        done: taken >= quota,
+      };
+    });
+  }, [userLangs.multiLangMode, userLangs.languages, vocab.takenTodayByPair]);
+
+  const activeBalance = dailyBalance?.find((b) => b.pairKey === pairKey) || null;
+  const quotaExhausted = Boolean(activeBalance && activeBalance.done);
+
   // Короткий туториал показывается ОДИН раз при первом запуске (по флагу).
   const [showTutorial, setShowTutorial] = useState(
     () => !localStorage.getItem("tutorialSeen"),
@@ -237,6 +266,13 @@ export default function App() {
     const deferred = vocab.skippedWords
       .filter((s) => (s.returnDate ?? "") > vocab.todayKey)
       .map((s) => s.word);
+    // Порция не превышает остаток дневной нормы языка (только мультирежим).
+    // Остаток 0 — пользователь идёт «сверх нормы» осознанно: не ограничиваем.
+    let count = generateCount;
+    if (activeBalance) {
+      const remaining = activeBalance.quota - activeBalance.taken;
+      if (remaining > 0 && remaining < count) count = remaining;
+    }
     return {
       learnLang,
       nativeLang,
@@ -245,7 +281,7 @@ export default function App() {
       exclude: [
         ...new Set([...vocab.takenWords, ...vocab.knownWords, ...deferred]),
       ],
-      count: generateCount,
+      count,
       mode: generateMode,
       // «Удиви меня»: тема/уровень рандомизируются на сервере; языковая пара
       // (learnLang/nativeLang) остаётся как выбрана.
@@ -347,6 +383,14 @@ export default function App() {
     // вернётся к ней сам (multiLangMode=false → приоритетная).
   }
 
+  // Смена приоритетной пары (мультирежим): один update — триггер в БД снимает
+  // приоритет с прежней; разбивка дневной нормы пересчитается от новых данных.
+  async function handleSetPriority(lang) {
+    if (!auth.user) return;
+    await setPriorityLanguage(auth.user.id, lang.learnLang, lang.nativeLang);
+    userLangs.reload();
+  }
+
   // ---------- Рендер с гейтами ----------
   // Простой сплэш на время восстановления сессии/загрузки языков (реюзаем
   // стили статус-экрана карточек, чтобы не плодить CSS).
@@ -404,6 +448,8 @@ export default function App() {
             multiLangMode={userLangs.multiLangMode}
             activeLanguage={activeLanguage}
             onSwitchLanguage={handleSwitchLanguage}
+            dailyBalance={dailyBalance}
+            quotaExhausted={quotaExhausted}
             dueCount={dueWords.length}
             generateCount={generateCount}
             onChangeGenerateCount={setGenerateCount}
@@ -505,6 +551,8 @@ export default function App() {
             multiLangMode={userLangs.multiLangMode}
             multiLangAvailable={Boolean(auth.configured && auth.user)}
             onToggleMultiLang={handleToggleMultiLang}
+            languages={userLangs.languages}
+            onSetPriority={handleSetPriority}
             onBack={() => setScreen("cards")}
             onOpenTutorial={() => setShowTutorial(true)}
             auth={authForUi}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   ONBOARDING_STEPS,
+  LANG_EMOJI,
   optionLabelKey,
   stepTitleKey,
 } from "../data/onboarding.js";
@@ -21,6 +22,8 @@ export default function SettingsScreen({
   multiLangMode,
   multiLangAvailable,
   onToggleMultiLang,
+  languages,
+  onSetPriority,
   onBack,
   onOpenTutorial,
   auth,
@@ -103,6 +106,33 @@ export default function SettingsScreen({
               ? t("settings.multiLangOn")
               : t("settings.multiLangOff")}
           </button>
+        </div>
+      )}
+
+      {/* Приоритетная пара (фаза 4.3): получает бóльшую долю дневной нормы.
+          Виден только в мультирежиме — в одноязычном приоритет и так один. */}
+      {multiLangAvailable && multiLangMode && languages?.length > 1 && (
+        <div className="settings__group">
+          <h2 className="settings__group-title">
+            {t("settings.priorityTitle")}
+          </h2>
+          <p className="settings__account-hint">{t("settings.priorityHint")}</p>
+          <div className="settings__options">
+            {languages.map((l) => (
+              <button
+                key={`${l.learnLang}-${l.nativeLang}`}
+                type="button"
+                className={
+                  "settings__chip" + (l.isPriority ? " is-active" : "")
+                }
+                aria-pressed={l.isPriority}
+                onClick={() => onSetPriority(l)}
+              >
+                <span aria-hidden="true">{LANG_EMOJI[l.learnLang] || "🌐"}</span>{" "}
+                {t(`lang.${l.learnLang}`)} → {t(`lang.${l.nativeLang}`)}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
