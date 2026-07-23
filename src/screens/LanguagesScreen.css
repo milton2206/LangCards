@@ -1,0 +1,242 @@
+.langs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.langs__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.langs__back {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.langs__title {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.langs__group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.langs__group-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.langs__hint {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Подсказка после включения режима — спокойный зелёный тон */
+.langs__hint--ok {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(53, 200, 139, 0.35);
+  background-color: rgba(53, 200, 139, 0.08);
+  color: #35c88b;
+}
+
+/* ---------- Карточка языковой пары в списке ---------- */
+.langs__item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+}
+
+.langs__item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.langs__item-name {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.langs__badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 176, 32, 0.45);
+  background-color: rgba(255, 176, 32, 0.12);
+  color: #ffb020;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Малые действия внутри карточки пары */
+.langs__mini {
+  align-self: flex-start;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.langs__mini--danger {
+  border-color: rgba(255, 107, 107, 0.4);
+  color: #ff8a8a;
+}
+
+/* ---------- Дневной лимит ---------- */
+.langs__limit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.langs__limit-label {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.langs__limit-chips {
+  display: flex;
+  gap: 6px;
+}
+
+.langs__limit-chip {
+  min-width: 38px;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+
+.langs__limit-chip.is-active {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--accent);
+}
+
+/* ---------- Подтверждения (выключение режима / удаление пары) ---------- */
+.langs__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 176, 32, 0.4);
+  background-color: rgba(255, 176, 32, 0.1);
+}
+
+.langs__confirm-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffb020;
+}
+
+.langs__confirm-text {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.langs__confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.langs__note {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ---------- Кнопки ---------- */
+.langs__primary {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.langs__primary:disabled {
+  opacity: 0.5;
+}
+
+.langs__primary--danger {
+  background-color: #ff6b6b;
+  color: #1a0505;
+}
+
+.langs__ghost {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.langs__ghost--wide {
+  width: 100%;
+  flex: none;
+}
+
+/* ---------- Пикер пары (реюз чипов настроек) ---------- */
+.langs__picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-elevated);
+}
+
+.langs__picker-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.langs__picker-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}

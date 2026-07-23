@@ -134,6 +134,32 @@ export default {
     aria: "Switch language",
   },
 
+  // "My languages" screen (phase 4.4): pairs and multi-language mode management.
+  languages: {
+    title: "My languages",
+    entry: "Manage languages",
+    multiToggle: "I'm learning several languages",
+    addFirstHint:
+      "Mode is on. Add a second pair whenever you're ready — no rush.",
+    activePair: "Active pair",
+    changePair: "Change pair",
+    addPair: "Add a pair",
+    listTitle: "Active pairs",
+    submitAdd: "Add",
+    submitChange: "Change",
+    priorityBadge: "priority",
+    makePriority: "Make priority",
+    limitLabel: "New words per day:",
+    remove: "Remove",
+    removeConfirmText:
+      "The pair will be hidden and all progress kept — bring the language back anytime by adding it again.",
+    lastPairNote: "You can't remove the last pair — at least one language must stay.",
+    offConfirmTitle: "Turn off multi-language mode?",
+    offConfirmText:
+      "{lang} will stay. Other pairs get hidden, their progress is kept.",
+    offConfirm: "Turn off",
+  },
+
   // Daily load balancing (phase 4.3): new-word quota per language.
   balance: {
     today: "Today:",

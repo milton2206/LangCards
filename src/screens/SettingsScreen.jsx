@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   ONBOARDING_STEPS,
-  LANG_EMOJI,
   optionLabelKey,
   stepTitleKey,
 } from "../data/onboarding.js";
@@ -17,13 +16,7 @@ import "./SettingsScreen.css";
 export default function SettingsScreen({
   settings,
   onChange,
-  activeLanguage,
-  onChangeLanguage,
-  multiLangMode,
-  multiLangAvailable,
-  onToggleMultiLang,
-  languages,
-  onSetPriority,
+  onOpenLanguages,
   onBack,
   onOpenTutorial,
   auth,
@@ -34,13 +27,6 @@ export default function SettingsScreen({
 }) {
   const { t } = useI18n();
   const [showInstall, setShowInstall] = useState(false);
-
-  // Языковая часть теперь живёт в user_languages (фаза 4.2): выбранное значение
-  // берём из активной пары, изменение уходит в onChangeLanguage (создаёт/
-  // активирует пару в облаке). Тема и уровень — по-прежнему в settings.
-  const isLangStep = (key) => key === "learnLang" || key === "nativeLang";
-  const selectedValue = (key) =>
-    isLangStep(key) ? activeLanguage?.[key] ?? settings[key] : settings[key];
 
   return (
     <section className="settings">
@@ -58,12 +44,28 @@ export default function SettingsScreen({
 
       <p className="settings__note">{t("settings.note")}</p>
 
-      {ONBOARDING_STEPS.map((step) => (
+      {/* Языки управляются на отдельном экране «Мои языки» (фаза 4.4):
+          смена пары, мультирежим, приоритет, дневные лимиты — всё там. */}
+      <div className="settings__group">
+        <h2 className="settings__group-title">{t("languages.title")}</h2>
+        <button
+          type="button"
+          className="settings__chip settings__chip--wide"
+          onClick={onOpenLanguages}
+        >
+          🌐 {t("languages.entry")}
+        </button>
+      </div>
+
+      {/* Тема и уровень — по-прежнему в settings (localStorage). */}
+      {ONBOARDING_STEPS.filter(
+        (step) => step.key === "topic" || step.key === "level",
+      ).map((step) => (
         <div className="settings__group" key={step.key}>
           <h2 className="settings__group-title">{t(stepTitleKey(step.key))}</h2>
           <div className="settings__options">
             {step.options.map((opt) => {
-              const active = selectedValue(step.key) === opt.id;
+              const active = settings[step.key] === opt.id;
               return (
                 <button
                   key={opt.id}
@@ -72,11 +74,7 @@ export default function SettingsScreen({
                     "settings__chip" + (active ? " is-active" : "")
                   }
                   aria-pressed={active}
-                  onClick={() =>
-                    isLangStep(step.key)
-                      ? onChangeLanguage(step.key, opt.id)
-                      : onChange(step.key, opt.id)
-                  }
+                  onClick={() => onChange(step.key, opt.id)}
                 >
                   <span aria-hidden="true">{opt.emoji}</span>{" "}
                   {t(optionLabelKey(step.key, opt.id))}
@@ -86,55 +84,6 @@ export default function SettingsScreen({
           </div>
         </div>
       ))}
-
-      {/* Мультиязычный режим — осознанный выбор (profiles.multi_lang_mode).
-          Доступен только с аккаунтом; при false интерфейс ровно как раньше. */}
-      {multiLangAvailable && (
-        <div className="settings__group">
-          <h2 className="settings__group-title">{t("settings.multiLang")}</h2>
-          <p className="settings__account-hint">{t("settings.multiLangHint")}</p>
-          <button
-            type="button"
-            className={
-              "settings__chip settings__chip--wide" +
-              (multiLangMode ? " is-active" : "")
-            }
-            aria-pressed={multiLangMode}
-            onClick={() => onToggleMultiLang(!multiLangMode)}
-          >
-            {multiLangMode
-              ? t("settings.multiLangOn")
-              : t("settings.multiLangOff")}
-          </button>
-        </div>
-      )}
-
-      {/* Приоритетная пара (фаза 4.3): получает бóльшую долю дневной нормы.
-          Виден только в мультирежиме — в одноязычном приоритет и так один. */}
-      {multiLangAvailable && multiLangMode && languages?.length > 1 && (
-        <div className="settings__group">
-          <h2 className="settings__group-title">
-            {t("settings.priorityTitle")}
-          </h2>
-          <p className="settings__account-hint">{t("settings.priorityHint")}</p>
-          <div className="settings__options">
-            {languages.map((l) => (
-              <button
-                key={`${l.learnLang}-${l.nativeLang}`}
-                type="button"
-                className={
-                  "settings__chip" + (l.isPriority ? " is-active" : "")
-                }
-                aria-pressed={l.isPriority}
-                onClick={() => onSetPriority(l)}
-              >
-                <span aria-hidden="true">{LANG_EMOJI[l.learnLang] || "🌐"}</span>{" "}
-                {t(`lang.${l.learnLang}`)} → {t(`lang.${l.nativeLang}`)}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="settings__group">
         <h2 className="settings__group-title">{t("settings.account")}</h2>

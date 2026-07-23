@@ -12,6 +12,7 @@ import AddWordScreen from "./screens/AddWordScreen.jsx";
 import KnownWordsScreen from "./screens/KnownWordsScreen.jsx";
 import KnownReviewScreen from "./screens/KnownReviewScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
+import LanguagesScreen from "./screens/LanguagesScreen.jsx";
 import ReviewScreen from "./screens/ReviewScreen.jsx";
 import StatsScreen from "./screens/StatsScreen.jsx";
 import AuthScreen from "./screens/AuthScreen.jsx";
@@ -25,6 +26,8 @@ import {
   addUserLanguage,
   deactivateNonPriorityLanguages,
   setPriorityLanguage,
+  updateUserLanguage,
+  removeUserLanguage,
 } from "./lib/userLanguages.js";
 import { computeDailyQuotas } from "./lib/dailyBalance.js";
 import {
@@ -336,39 +339,52 @@ export default function App() {
     setSettings((prev) => ({ ...prev, [key]: id }));
   }
 
-  // Смена языка в настройках. Одноязычный режим: новая пара заменяет
-  // единственную (приоритет → новой, старая скрывается, прогресс в user_words
-  // сохраняется). Мультирежим: пара добавляется/активируется, прочие остаются.
-  async function handleChangeLanguage(key, id) {
-    const current = activeLanguage || {
-      learnLang: settings.learnLang,
-      nativeLang: settings.nativeLang,
-    };
-    const next = {
-      learnLang: key === "learnLang" ? id : current.learnLang,
-      nativeLang: key === "nativeLang" ? id : current.nativeLang,
-    };
-    if (!next.learnLang || !next.nativeLang) return;
-    if (
-      next.learnLang === current.learnLang &&
-      next.nativeLang === current.nativeLang
-    ) {
-      return;
-    }
-    saveActivePair(next);
-    setChosenPair(next);
-    setSettings((prev) => ({ ...prev, ...next }));
+  // ---------- Обработчики экрана «Мои языки» (фаза 4.4) ----------
+
+  // Одноязычный режим: новая пара ЗАМЕНЯЕТ единственную (приоритет → новой,
+  // старая скрывается, прогресс в user_words сохраняется).
+  async function handleReplaceSinglePair(pair) {
+    saveActivePair(pair);
+    setChosenPair(pair);
+    setSettings((prev) => ({ ...prev, ...pair }));
     if (auth.user) {
-      if (userLangs.multiLangMode) {
-        await addUserLanguage(auth.user.id, next.learnLang, next.nativeLang);
-      } else {
-        await addUserLanguage(auth.user.id, next.learnLang, next.nativeLang, {
-          isPriority: true,
-        });
-        await deactivateNonPriorityLanguages(auth.user.id);
-      }
+      await addUserLanguage(auth.user.id, pair.learnLang, pair.nativeLang, {
+        isPriority: true,
+      });
+      await deactivateNonPriorityLanguages(auth.user.id);
       userLangs.reload();
     }
+  }
+
+  // Мультирежим: пара добавляется/реактивируется (upsert), прочие остаются.
+  // Сразу делаем её активной — на карточках появится честное пустое состояние
+  // с предложением сгенерировать карточки.
+  async function handleAddPair(pair) {
+    saveActivePair(pair);
+    setChosenPair(pair);
+    setSettings((prev) => ({ ...prev, ...pair }));
+    if (auth.user) {
+      await addUserLanguage(auth.user.id, pair.learnLang, pair.nativeLang);
+      userLangs.reload();
+    }
+  }
+
+  // Дневной лимит пары: правка сразу пересчитывает разбивку дня (4.3) —
+  // dailyBalance пересчитывается от обновлённого списка языков.
+  async function handleSetLimit(lang, limit) {
+    if (!auth.user) return;
+    await updateUserLanguage(auth.user.id, lang.learnLang, lang.nativeLang, {
+      dailyNewLimit: limit,
+    });
+    userLangs.reload();
+  }
+
+  // «Удаление» пары: is_active=false, слова остаются в user_words. Последнюю
+  // активную пару экран удалить не даёт (guard и здесь — на всякий случай).
+  async function handleRemoveLanguage(lang) {
+    if (!auth.user || userLangs.languages.length <= 1) return;
+    await removeUserLanguage(auth.user.id, lang.learnLang, lang.nativeLang);
+    userLangs.reload();
   }
 
   // Переключатель пар (мультирежим): выбор сохраняется и переживает перезагрузку.
@@ -546,13 +562,7 @@ export default function App() {
           <SettingsScreen
             settings={settings}
             onChange={updateSetting}
-            activeLanguage={activeLanguage}
-            onChangeLanguage={handleChangeLanguage}
-            multiLangMode={userLangs.multiLangMode}
-            multiLangAvailable={Boolean(auth.configured && auth.user)}
-            onToggleMultiLang={handleToggleMultiLang}
-            languages={userLangs.languages}
-            onSetPriority={handleSetPriority}
+            onOpenLanguages={() => setScreen("languages")}
             onBack={() => setScreen("cards")}
             onOpenTutorial={() => setShowTutorial(true)}
             auth={authForUi}
@@ -560,6 +570,22 @@ export default function App() {
             syncStatus={vocab.syncStatus}
             syncReason={vocab.syncReason}
             onRetrySync={vocab.retrySync}
+          />
+        )}
+
+        {screen === "languages" && (
+          <LanguagesScreen
+            multiLangMode={userLangs.multiLangMode}
+            languages={userLangs.languages}
+            priorityLanguage={userLangs.priorityLanguage}
+            activeLanguage={activeLanguage}
+            onToggleMultiLang={handleToggleMultiLang}
+            onReplaceSinglePair={handleReplaceSinglePair}
+            onAddPair={handleAddPair}
+            onSetPriority={handleSetPriority}
+            onSetLimit={handleSetLimit}
+            onRemove={handleRemoveLanguage}
+            onBack={() => setScreen("settings")}
           />
         )}
       </>
