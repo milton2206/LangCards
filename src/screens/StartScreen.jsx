@@ -18,8 +18,9 @@ export default function StartScreen({ onStart }) {
         <span className="start__status" role="status">
           {t("start.status")}
         </span>
+        {/* Обязательная регистрация (фаза 4.2): дальше — только через аккаунт */}
         <button type="button" className="start__cta" onClick={onStart}>
-          {t("start.cta")}
+          {t("settings.signInUp")}
         </button>
       </div>
     </section>

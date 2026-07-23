@@ -75,6 +75,13 @@
     background-color 0.15s;
 }
 
+/* Широкий чип-тумблер (мультиязычный режим) */
+.settings__chip--wide {
+  width: 100%;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+
 .settings__chip.is-active {
   border-color: var(--accent);
   background-color: rgba(108, 140, 255, 0.14);

@@ -1,0 +1,84 @@
+/* Переключатель языковой пары — компактный чип в шапке экрана карточек */
+.langswitch {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.langswitch__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.langswitch__code {
+  letter-spacing: 0.5px;
+}
+
+/* Прозрачная подложка на весь экран — тап мимо закрывает список */
+.langswitch__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+}
+
+/* Выпадающий список активных пар */
+.langswitch__list {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  min-width: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-elevated);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.langswitch__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font-size: 14px;
+  text-align: left;
+}
+
+.langswitch__item.is-active {
+  background-color: rgba(108, 140, 255, 0.14);
+}
+
+.langswitch__item-name {
+  font-weight: 700;
+}
+
+.langswitch__item-native {
+  color: var(--text-muted);
+  font-size: 13px;
+  /* длинные названия не раздувают список на 375px */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.langswitch__check {
+  margin-left: auto;
+  color: var(--accent);
+  font-weight: 700;
+}

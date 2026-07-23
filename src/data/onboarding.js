@@ -2,23 +2,33 @@
 // (заголовки, подписи опций) живут в словарях i18n — здесь только ключи, id и
 // эмодзи. Подписи резолвятся через t() по ключам optionLabelKey/stepTitleKey.
 
+// Флаги языков — общие для онбординга, настроек и переключателя пар.
+export const LANG_EMOJI = {
+  de: "🇩🇪",
+  en: "🇬🇧",
+  el: "🇬🇷",
+  es: "🇪🇸",
+  ru: "🇷🇺",
+  uk: "🇺🇦",
+};
+
 export const ONBOARDING_STEPS = [
   {
     key: "learnLang",
     options: [
-      { id: "de", emoji: "🇩🇪" },
-      { id: "en", emoji: "🇬🇧" },
-      { id: "el", emoji: "🇬🇷" },
-      { id: "es", emoji: "🇪🇸" },
-      { id: "ru", emoji: "🇷🇺" },
+      { id: "de", emoji: LANG_EMOJI.de },
+      { id: "en", emoji: LANG_EMOJI.en },
+      { id: "el", emoji: LANG_EMOJI.el },
+      { id: "es", emoji: LANG_EMOJI.es },
+      { id: "ru", emoji: LANG_EMOJI.ru },
     ],
   },
   {
     key: "nativeLang",
     options: [
-      { id: "ru", emoji: "🇷🇺" },
-      { id: "uk", emoji: "🇺🇦" },
-      { id: "en", emoji: "🇬🇧" },
+      { id: "ru", emoji: LANG_EMOJI.ru },
+      { id: "uk", emoji: LANG_EMOJI.uk },
+      { id: "en", emoji: LANG_EMOJI.en },
     ],
   },
   {

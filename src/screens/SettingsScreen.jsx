@@ -16,6 +16,11 @@ import "./SettingsScreen.css";
 export default function SettingsScreen({
   settings,
   onChange,
+  activeLanguage,
+  onChangeLanguage,
+  multiLangMode,
+  multiLangAvailable,
+  onToggleMultiLang,
   onBack,
   onOpenTutorial,
   auth,
@@ -26,6 +31,13 @@ export default function SettingsScreen({
 }) {
   const { t } = useI18n();
   const [showInstall, setShowInstall] = useState(false);
+
+  // Языковая часть теперь живёт в user_languages (фаза 4.2): выбранное значение
+  // берём из активной пары, изменение уходит в onChangeLanguage (создаёт/
+  // активирует пару в облаке). Тема и уровень — по-прежнему в settings.
+  const isLangStep = (key) => key === "learnLang" || key === "nativeLang";
+  const selectedValue = (key) =>
+    isLangStep(key) ? activeLanguage?.[key] ?? settings[key] : settings[key];
 
   return (
     <section className="settings">
@@ -48,7 +60,7 @@ export default function SettingsScreen({
           <h2 className="settings__group-title">{t(stepTitleKey(step.key))}</h2>
           <div className="settings__options">
             {step.options.map((opt) => {
-              const active = settings[step.key] === opt.id;
+              const active = selectedValue(step.key) === opt.id;
               return (
                 <button
                   key={opt.id}
@@ -57,7 +69,11 @@ export default function SettingsScreen({
                     "settings__chip" + (active ? " is-active" : "")
                   }
                   aria-pressed={active}
-                  onClick={() => onChange(step.key, opt.id)}
+                  onClick={() =>
+                    isLangStep(step.key)
+                      ? onChangeLanguage(step.key, opt.id)
+                      : onChange(step.key, opt.id)
+                  }
                 >
                   <span aria-hidden="true">{opt.emoji}</span>{" "}
                   {t(optionLabelKey(step.key, opt.id))}
@@ -67,6 +83,28 @@ export default function SettingsScreen({
           </div>
         </div>
       ))}
+
+      {/* Мультиязычный режим — осознанный выбор (profiles.multi_lang_mode).
+          Доступен только с аккаунтом; при false интерфейс ровно как раньше. */}
+      {multiLangAvailable && (
+        <div className="settings__group">
+          <h2 className="settings__group-title">{t("settings.multiLang")}</h2>
+          <p className="settings__account-hint">{t("settings.multiLangHint")}</p>
+          <button
+            type="button"
+            className={
+              "settings__chip settings__chip--wide" +
+              (multiLangMode ? " is-active" : "")
+            }
+            aria-pressed={multiLangMode}
+            onClick={() => onToggleMultiLang(!multiLangMode)}
+          >
+            {multiLangMode
+              ? t("settings.multiLangOn")
+              : t("settings.multiLangOff")}
+          </button>
+        </div>
+      )}
 
       <div className="settings__group">
         <h2 className="settings__group-title">{t("settings.account")}</h2>

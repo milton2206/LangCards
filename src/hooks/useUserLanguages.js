@@ -36,16 +36,21 @@ import {
 export function useUserLanguages(user) {
   const [languages, setLanguages] = useState([]);
   const [multiLangMode, setMultiLangModeState] = useState(false);
+  // true, пока после входа идёт первая загрузка языков (гейт от мигания
+  // онбординга до того, как пары пришли из облака).
+  const [loading, setLoading] = useState(Boolean(user));
 
   useEffect(() => {
     // Нет пользователя (гость/выход) — языков нет, режим одноязычный.
     if (!user) {
       setLanguages([]);
       setMultiLangModeState(false);
+      setLoading(false);
       return;
     }
 
     let active = true;
+    setLoading(true);
     (async () => {
       const [langs, multi] = await Promise.all([
         fetchUserLanguages(user.id),
@@ -54,6 +59,7 @@ export function useUserLanguages(user) {
       if (active) {
         setLanguages(langs);
         setMultiLangModeState(multi);
+        setLoading(false);
       }
     })();
 
@@ -108,6 +114,7 @@ export function useUserLanguages(user) {
     priorityLanguage,
     multiLangMode,
     toggleMultiLangMode,
+    loading,
     reload,
   };
 }

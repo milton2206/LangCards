@@ -5,6 +5,7 @@ import { GENERATE_COUNT_OPTIONS } from "../lib/generateCount.js";
 import { splitWords } from "../lib/highlightWord.js";
 import { requestManualCard } from "../lib/manualCard.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import LanguageSwitcher from "../components/LanguageSwitcher.jsx";
 import "./CardScreen.css";
 
 // Переключатель «сколько карточек генерировать за раз» (5/10/20) — рядом с
@@ -72,6 +73,10 @@ export default function CardScreen({
   error,
   learnLang,
   nativeLang,
+  languages,
+  multiLangMode,
+  activeLanguage,
+  onSwitchLanguage,
   dueCount,
   generateCount,
   onChangeGenerateCount,
@@ -241,6 +246,15 @@ export default function CardScreen({
         <span className="cards__badge">{takenWords.length}</span>
       </button>
       <div className="cards__topbar-actions">
+        {/* Переключатель языковой пары — ТОЛЬКО при multiLangMode=true.
+            В одноязычном режиме его нет вообще — интерфейс как раньше. */}
+        {multiLangMode && languages?.length > 0 && (
+          <LanguageSwitcher
+            languages={languages}
+            activeLanguage={activeLanguage}
+            onSwitch={onSwitchLanguage}
+          />
+        )}
         <button
           type="button"
           className="cards__icon-btn"

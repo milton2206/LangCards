@@ -120,6 +120,20 @@ export default {
     added: "Added to studying",
   },
 
+  // Migrating local (anonymous) progress into the account on first sign-in.
+  migrate: {
+    title: "Move your progress to the account?",
+    text: "This device already has learned words. We'll move them into your account — they merge with the cloud, nothing gets lost or duplicated.",
+    transfer: "Move my progress",
+    fresh: "Start fresh",
+    hint: "“Start fresh” removes the local words from this device.",
+  },
+
+  // Language pair switcher (multi-language mode).
+  langSwitch: {
+    aria: "Switch language",
+  },
+
   // Reviewing known words — optional self-check of the "Know" list.
   knownReview: {
     entry: "Review known words",
@@ -209,6 +223,12 @@ export default {
     signInUp: "Sign in / Sign up",
     howto: "How to use",
     install: "Install on phone",
+    // Multi-language mode (explicit choice, phase 4.2).
+    multiLang: "Multi-language mode",
+    multiLangHint:
+      "Learn several languages in parallel: a pair switcher appears on the main screen. Each pair keeps its own progress.",
+    multiLangOn: "On",
+    multiLangOff: "Off",
   },
 
   sync: {
@@ -225,7 +245,7 @@ export default {
   auth: {
     signin: "Sign in",
     signup: "Sign up",
-    note: "An account is for future word syncing across devices. Right now words are stored on this device.",
+    note: "An account keeps your progress safe and syncs it across devices.",
     tabsAria: "Sign in or sign up",
     email: "Email",
     password: "Password",

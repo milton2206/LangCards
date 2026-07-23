@@ -248,8 +248,13 @@ export function getDueWords(takenWords, srsByWord, todayKey) {
  * Списки слов, разделённые по языковой паре (pairKey, напр. "de-ru").
  * Возвращает срезы ТОЛЬКО текущей пары; слова других пар сохраняются, но не
  * показываются, пока не переключишься обратно.
+ *
+ * options.holdSync — придержать первичную синхронизацию с облаком (используется,
+ * пока пользователь не ответил на предложение «перенести прогресс в аккаунт»:
+ * до решения локальные слова не должны сливаться в облако).
  */
-export function useWordLists(pairKey, user) {
+export function useWordLists(pairKey, user, options = {}) {
+  const { holdSync = false } = options;
   const [store, setStore] = useState(loadStore);
 
   // localStorage — источник правды для UI (мгновенно и работает офлайн). Облако
@@ -432,8 +437,9 @@ export function useWordLists(pairKey, user) {
   }, []);
 
   // Настройка синхронизации на время, пока есть вошедший пользователь.
+  // holdSync=true (решение о переносе прогресса ещё не принято) — не стартуем.
   useEffect(() => {
-    if (!user || !supabase) {
+    if (!user || !supabase || holdSync) {
       setSyncStatus("disabled");
       setSyncReason(null);
       syncedUserRef.current = null;
@@ -489,7 +495,7 @@ export function useWordLists(pairKey, user) {
       window.removeEventListener("offline", onOffline);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, holdSync]);
 
   // Обновляет срез текущей пары в общем хранилище + планирует отправку в облако.
   const updatePair = useCallback(
