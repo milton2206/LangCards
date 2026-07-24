@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
-import { fetchTtsUrl, MAX_TTS_TEXT_LEN } from "../lib/ttsClient.js";
+import { fetchTtsUrl, playUrl, MAX_TTS_TEXT_LEN } from "../lib/ttsClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./PlayButton.css";
-
-// Один активный плеер на всё приложение: новый тап останавливает предыдущий звук.
-let currentAudio = null;
 
 /**
  * Компактная кнопка озвучки (фаза 5.1). text — что озвучить (как есть),
@@ -52,9 +49,8 @@ export default function PlayButton({ text, learnLang, kind = "word" }) {
     }
 
     try {
-      if (currentAudio) currentAudio.pause();
-      const audio = new Audio(url);
-      currentAudio = audio;
+      // Общий плеер (ttsClient): новый звук останавливает предыдущий.
+      const audio = playUrl(url);
       audio.onended = () => setState("idle");
       audio.onerror = () => setState("idle");
       await audio.play();

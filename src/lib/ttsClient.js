@@ -10,6 +10,25 @@ export const MAX_TTS_TEXT_LEN = 300;
 
 const urlCache = new Map(); // "lang|text" → url
 
+// Один активный звук на всё приложение: кнопка на карточке и последовательное
+// чтение текста (фаза 6.1) делят его, чтобы не звучать одновременно.
+let currentAudio = null;
+
+export function stopCurrentAudio() {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+}
+
+/** Создаёт и возвращает <audio> для url, остановив предыдущий звук. */
+export function playUrl(url) {
+  stopCurrentAudio();
+  const audio = new Audio(url);
+  currentAudio = audio;
+  return audio;
+}
+
 export async function fetchTtsUrl({ text, learnLang }) {
   const clean = String(text ?? "").trim();
   if (!clean || !learnLang || clean.length > MAX_TTS_TEXT_LEN) return null;

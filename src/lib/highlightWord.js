@@ -3,8 +3,10 @@
 const ARTICLE_RE =
   /^(der|die|das|den|dem|des|ein|eine|einen|einem|einer|the|a|an|to|el|la|los|las|un|una|unos|unas|ο|η|το|οι|τα|των|του|της|τον|την)\s+/iu;
 
-function coreWord(word) {
-  return word.replace(ARTICLE_RE, "").trim();
+// Смысловое ядро слова (без артикля). Экспортируется — режим чтения (фаза 6.1)
+// помечает им уже знакомые слова в тексте.
+export function coreWord(word) {
+  return String(word).replace(ARTICLE_RE, "").trim();
 }
 
 const LETTER_RE = /[\p{L}\p{M}]/u;

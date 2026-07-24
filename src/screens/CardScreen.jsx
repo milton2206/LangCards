@@ -3,7 +3,8 @@ import { pickCurrentCard, MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
 import { GENERATE_COUNT_OPTIONS } from "../lib/generateCount.js";
 import { splitWords } from "../lib/highlightWord.js";
-import { requestManualCard } from "../lib/manualCard.js";
+import { useWordLookup } from "../hooks/useWordLookup.js";
+import WordLookupSheet from "../components/WordLookupSheet.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import LanguageSwitcher from "../components/LanguageSwitcher.jsx";
 import DailyBalance from "../components/DailyBalance.jsx";
@@ -97,6 +98,7 @@ export default function CardScreen({
   onOpenSettings,
   onOpenMyWords,
   onOpenAddWord,
+  onOpenReading,
   onAddWordFromExample,
   onOpenReview,
   onOpenStats,
@@ -127,42 +129,13 @@ export default function CardScreen({
   }, [learnLang, nativeLang]);
 
   // Просмотр слова из примера (идея Димы): тап по слову → ИИ даёт перевод и
-  // полную карточку (тем же manual-запросом, что и «Добавить своё слово») →
-  // можно сразу добавить слово в изучение.
-  // lookup: { word, status: "loading"|"ready"|"error"|"added"|"limit", card?, errorText? }
-  const [lookup, setLookup] = useState(null);
-
-  async function openLookup(word) {
-    setLookup({ word, status: "loading" });
-    try {
-      const c = await requestManualCard({ learnLang, nativeLang, word });
-      // Обновляем только если этот запрос всё ещё актуален (шторку не закрыли).
-      setLookup((prev) =>
-        prev && prev.word === word && prev.status === "loading"
-          ? { word, status: "ready", card: c }
-          : prev,
-      );
-    } catch (err) {
-      const errorText =
-        err.code === "notRecognized"
-          ? t("addWord.notRecognized")
-          : err.code === "offline"
-            ? t("errors.offline")
-            : err.raw || t("addWord.failed");
-      setLookup((prev) =>
-        prev && prev.word === word && prev.status === "loading"
-          ? { word, status: "error", errorText }
-          : prev,
-      );
-    }
-  }
-
-  function handleLookupAdd() {
-    const ok = onAddWordFromExample(lookup.card);
-    setLookup((prev) => ({ ...prev, status: ok ? "added" : "limit" }));
-  }
-
-  const closeLookup = () => setLookup(null);
+  // полную карточку → можно сразу добавить слово в изучение. Логика и шторка
+  // общие с режимом чтения (фаза 6.1) — см. useWordLookup/WordLookupSheet.
+  const lookup = useWordLookup({
+    learnLang,
+    nativeLang,
+    onAdd: onAddWordFromExample,
+  });
 
   // Запоминаем данные показанных карточек для экранов «Мои слова»/«Известные».
   useEffect(() => {
@@ -507,6 +480,13 @@ export default function CardScreen({
             >
               ➕ {t("addWord.entry")}
             </button>
+            <button
+              type="button"
+              className="cards__generate"
+              onClick={onOpenReading}
+            >
+              📖 {t("reading.entry")}
+            </button>
           </div>
         </div>
       </section>
@@ -584,7 +564,7 @@ export default function CardScreen({
                   key={i}
                   type="button"
                   className="cards__example-word"
-                  onClick={() => openLookup(seg.text)}
+                  onClick={() => lookup.open(seg.text)}
                 >
                   {seg.text}
                 </button>
@@ -643,6 +623,13 @@ export default function CardScreen({
         >
           ➕ {t("addWord.entry")}
         </button>
+        <button
+          type="button"
+          className="cards__generate"
+          onClick={onOpenReading}
+        >
+          📖 {t("reading.entry")}
+        </button>
       </div>
 
       {/* Плавающая панель основных действий: закреплена внизу. Фон панели
@@ -683,75 +670,14 @@ export default function CardScreen({
         </div>
       </div>
 
-      {/* Шторка просмотра слова из примера: перевод от ИИ + «Добавить в изучение».
-          Тап по подложке закрывает; сама шторка клики не пропускает. */}
-      {lookup && (
-        <div className="cards__lookup-overlay" onClick={closeLookup}>
-          <div
-            className="cards__lookup"
-            role="dialog"
-            aria-label={lookup.word}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="cards__lookup-head">
-              <span className="cards__lookup-word" lang={learnLang}>
-                {lookup.card ? lookup.card.word : lookup.word}
-              </span>
-              <button
-                type="button"
-                className="cards__lookup-close"
-                onClick={closeLookup}
-                aria-label={t("common.close")}
-              >
-                ✕
-              </button>
-            </div>
-
-            {lookup.status === "loading" && (
-              <p className="cards__lookup-hint">{t("lookup.loading")}</p>
-            )}
-
-            {lookup.status === "error" && (
-              <p className="cards__lookup-error">{lookup.errorText}</p>
-            )}
-
-            {lookup.card && (
-              <div className="cards__lookup-body">
-                {lookup.card.translit && (
-                  <p className="cards__lookup-translit">
-                    {lookup.card.translit}
-                  </p>
-                )}
-                <p className="cards__lookup-translation" lang={nativeLang}>
-                  {lookup.card.translation}
-                </p>
-              </div>
-            )}
-
-            {lookup.status === "limit" && (
-              <p className="cards__lookup-error">
-                {t("common.activeLimit", { max: MAX_ACTIVE_WORDS })}
-              </p>
-            )}
-
-            {lookup.status === "ready" && (
-              <button
-                type="button"
-                className="cards__lookup-add"
-                onClick={handleLookupAdd}
-              >
-                {t("addWord.add")}
-              </button>
-            )}
-
-            {lookup.status === "added" && (
-              <p className="cards__lookup-added" role="status">
-                ✓ {t("lookup.added")}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Шторка просмотра слова — общая с режимом чтения (фаза 6.1) */}
+      <WordLookupSheet
+        lookup={lookup.lookup}
+        learnLang={learnLang}
+        nativeLang={nativeLang}
+        onAdd={lookup.add}
+        onClose={lookup.close}
+      />
     </section>
   );
 }

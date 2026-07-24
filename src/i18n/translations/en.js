@@ -160,6 +160,26 @@ export default {
     offConfirm: "Turn off",
   },
 
+  // Reading mode (phase 6.1).
+  reading: {
+    entry: "Read a text",
+    title: "Reading",
+    generate: "New text",
+    generating: "Writing your text…",
+    emptyHint:
+      "A short text for your topic and level, weaving in words you're already learning. Tap a word for its translation, tap ¶ for the grammar of that sentence.",
+    newShare: "New words:",
+    playAll: "Play the whole text",
+    grammarAria: "Explain this sentence's grammar",
+    grammarLoading: "Looking at the sentence…",
+    grammarFailed: "Couldn't explain this sentence. Please try again.",
+    failed: "Couldn't write the text. Please try again.",
+    offline: "Reading mode needs a connection. Cards and reviews still work.",
+    saved: "Text {n} of {total}",
+    older: "Earlier text",
+    newer: "Later text",
+  },
+
   // Card audio (phase 5.1).
   tts: {
     playWord: "Play word",

@@ -9,6 +9,7 @@ import MigrateScreen from "./screens/MigrateScreen.jsx";
 import CardScreen from "./screens/CardScreen.jsx";
 import MyWordsScreen from "./screens/MyWordsScreen.jsx";
 import AddWordScreen from "./screens/AddWordScreen.jsx";
+import ReadingScreen from "./screens/ReadingScreen.jsx";
 import KnownWordsScreen from "./screens/KnownWordsScreen.jsx";
 import KnownReviewScreen from "./screens/KnownReviewScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
@@ -613,6 +614,7 @@ export default function App() {
             onOpenSettings={() => setScreen("settings")}
             onOpenMyWords={() => setScreen("mywords")}
             onOpenAddWord={() => setScreen("addword")}
+            onOpenReading={() => setScreen("reading")}
             onAddWordFromExample={handleAddManualCard}
             onOpenReview={() => setScreen("review")}
             onOpenStats={() => setScreen("stats")}
@@ -663,6 +665,20 @@ export default function App() {
             nativeLang={nativeLang}
             onAdd={handleAddManualCard}
             onOpenMyWords={() => setScreen("mywords")}
+            onBack={() => setScreen("cards")}
+          />
+        )}
+
+        {screen === "reading" && (
+          <ReadingScreen
+            pairKey={pairKey}
+            learnLang={learnLang}
+            nativeLang={nativeLang}
+            topic={settings.topic}
+            level={settings.level}
+            takenWords={vocab.takenWords}
+            knownWords={vocab.knownWords}
+            onAddWord={handleAddManualCard}
             onBack={() => setScreen("cards")}
           />
         )}

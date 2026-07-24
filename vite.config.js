@@ -74,6 +74,44 @@ function devApiTts() {
   };
 }
 
+// Dev-плагин: локально обслуживает POST /api/reading тем же кодом, что и
+// serverless-функция на Vercel (режим чтения, фаза 6.1).
+function devApiReading() {
+  return {
+    name: "dev-api-reading",
+    async configureServer(server) {
+      server.middlewares.use("/api/reading", async (req, res) => {
+        if (req.method !== "POST") {
+          res.statusCode = 405;
+          res.end("Method Not Allowed");
+          return;
+        }
+        try {
+          const chunks = [];
+          for await (const chunk of req) chunks.push(chunk);
+          const raw = Buffer.concat(chunks).toString("utf8");
+          const params = raw ? JSON.parse(raw) : {};
+          // Импортируем лениво, чтобы ошибка ключа не роняла запуск дев-сервера.
+          const { generateReadingText, explainGrammar } =
+            await server.ssrLoadModule("/lib/reading.js");
+          const result =
+            params.action === "grammar"
+              ? await explainGrammar(params)
+              : await generateReadingText(params);
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify(result));
+        } catch (err) {
+          res.statusCode = err.status || 500;
+          res.setHeader("Content-Type", "application/json");
+          res.end(
+            JSON.stringify({ error: err.message || "Ошибка режима чтения" }),
+          );
+        }
+      });
+    },
+  };
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   // Vite сам НЕ кладёт .env/.env.local в process.env — а dev-middleware
@@ -86,7 +124,7 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [react(), devApiCards(), devApiTts()],
+    plugins: [react(), devApiCards(), devApiTts(), devApiReading()],
     server: {
       // Уважаем порт из окружения (PORT), иначе стандартный 5173
       port: process.env.PORT ? Number(process.env.PORT) : 5173,

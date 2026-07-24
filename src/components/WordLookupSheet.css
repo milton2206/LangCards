@@ -1,0 +1,143 @@
+/* Шторка просмотра слова (общая: пример на карточке + текст в режиме чтения) */
+.lookup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30; /* поверх плавающей панели кнопок карточки (z-index 20) */
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.55);
+}
+
+.lookup {
+  width: 100%;
+  max-width: var(--maxw);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px calc(18px + env(safe-area-inset-bottom));
+  border-radius: var(--radius) var(--radius) 0 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  background-color: var(--bg-elevated);
+  /* длинный разбор не должен выталкивать кнопку «Взять» за экран */
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.lookup__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lookup__word {
+  font-size: 22px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.lookup__head-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lookup__close {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.lookup__hint {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.lookup__error {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 176, 32, 0.4);
+  background-color: rgba(255, 176, 32, 0.12);
+  color: #ffb020;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.lookup__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lookup__translit {
+  color: var(--accent);
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.lookup__translation {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* Короткий пример внутри шторки */
+.lookup__example {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 12px;
+  border-left: 3px solid var(--accent);
+}
+
+.lookup__example-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.lookup__example-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.lookup__example-translation {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.lookup__add {
+  min-height: 48px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.lookup__added {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(53, 200, 139, 0.4);
+  background-color: rgba(53, 200, 139, 0.1);
+  color: #35c88b;
+  font-size: 14px;
+  font-weight: 600;
+}
