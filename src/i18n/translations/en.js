@@ -175,6 +175,11 @@ export default {
     grammarFailed: "Couldn't explain this sentence. Please try again.",
     failed: "Couldn't write the text. Please try again.",
     offline: "Reading mode needs a connection. Cards and reviews still work.",
+    tipNoWords:
+      "Tap any unfamiliar word — you'll see its translation and can take it into study. That's how your vocabulary grows.",
+    tipFewWords:
+      "Take a few more words and the next text will feel noticeably more familiar.",
+    toCards: "Go to cards",
     saved: "Text {n} of {total}",
     older: "Earlier text",
     newer: "Later text",

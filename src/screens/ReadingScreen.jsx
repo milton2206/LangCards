@@ -7,6 +7,7 @@ import {
   requestGrammar,
 } from "../lib/readingClient.js";
 import { fetchTtsUrl, playUrl, stopCurrentAudio } from "../lib/ttsClient.js";
+import { ENOUGH_WORDS_FOR_READING } from "../hooks/useWordLists.js";
 import { useWordLookup } from "../hooks/useWordLookup.js";
 import WordLookupSheet from "../components/WordLookupSheet.jsx";
 import PlayButton from "../components/PlayButton.jsx";
@@ -52,6 +53,10 @@ export default function ReadingScreen({
   const [playingAll, setPlayingAll] = useState(false);
   const playAllRef = useRef(false);
 
+  // Мягкое предложение взять ещё слов (состояние «мало слов») можно закрыть —
+  // это предложение, а не условие: закрыли и читаем дальше.
+  const [fewHintClosed, setFewHintClosed] = useState(false);
+
   const [offline, setOffline] = useState(
     typeof navigator !== "undefined" && !navigator.onLine,
   );
@@ -90,6 +95,13 @@ export default function ReadingScreen({
 
   const current = texts[index] || null;
 
+  // Три состояния по числу взятых слов пары. Режим доступен ВСЕГДА — при нуле
+  // слов текст просто целиком новый (это обычный адаптированный текст под
+  // уровень), а подсказки лишь объясняют, как набирать слова.
+  const takenCount = (takenWords || []).length;
+  const noWords = takenCount === 0;
+  const fewWords = takenCount > 0 && takenCount < ENOUGH_WORDS_FOR_READING;
+
   async function handleGenerate() {
     if (loading || offline) return;
     setLoading(true);
@@ -102,6 +114,8 @@ export default function ReadingScreen({
         topic,
         level,
         // Слова пользователя — их и просим вплести в текст.
+        // Всё, что есть, уходит в промпт; при нуле слов сервер опирается
+        // только на уровень (см. buildReadingPrompt).
         knownWords: takenWords || [],
         newWordShare: share,
       });
@@ -233,6 +247,12 @@ export default function ReadingScreen({
         </div>
       )}
 
+      {/* Ноль взятых слов: не предупреждение, а объяснение входа — тапайте
+          по незнакомым словам, так и набирается словарь. */}
+      {current && !loading && noWords && (
+        <p className="reading__tip">💡 {t("reading.tipNoWords")}</p>
+      )}
+
       {current && !loading && (
         <article className="reading__text">
           {current.title && (
@@ -323,6 +343,28 @@ export default function ReadingScreen({
             );
           })}
         </article>
+      )}
+
+      {/* Мало слов: мягкое предложение (не условие) — взять ещё и вернуться.
+          Закрывается и больше не мешает; кнопка ведёт на существующий экран
+          карточек (onBack), новых экранов не заводим. */}
+      {current && !loading && fewWords && !fewHintClosed && (
+        <div className="reading__few" role="status">
+          <p className="reading__few-text">{t("reading.tipFewWords")}</p>
+          <div className="reading__few-actions">
+            <button type="button" className="reading__few-cta" onClick={onBack}>
+              {t("reading.toCards")}
+            </button>
+            <button
+              type="button"
+              className="reading__few-close"
+              onClick={() => setFewHintClosed(true)}
+              aria-label={t("common.close")}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Управление: доля новых слов, новый текст, история сохранённых текстов */}

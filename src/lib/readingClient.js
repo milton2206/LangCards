@@ -66,6 +66,7 @@ export async function requestReadingText({
   topic,
   level,
   knownWords = [],
+  newWordShare,
 }) {
   let res;
   try {
@@ -76,9 +77,12 @@ export async function requestReadingText({
         action: "text",
         learnLang,
         nativeLang,
+        // Уровень — обязательный ориентир генерации: при нуле взятых слов он
+        // единственный, поэтому доходить до сервера должен всегда.
         topic,
         level,
         knownWords,
+        newWordShare,
       }),
     });
   } catch {
