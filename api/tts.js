@@ -12,9 +12,12 @@ async function readBody(req) {
 }
 
 /**
- * Серверная функция озвучки (фаза 5.1): { text, learnLang } → { url }.
+ * Серверная функция озвучки (фаза 5.1): { text, learnLang, rate? } → { url }.
  * Кэш в Supabase Storage общий для всех пользователей; ключи Google и
  * service role Supabase живут ТОЛЬКО в переменных окружения сервера.
+ *
+ * rate (фаза 6.2) — скорость речи для аудирования; допустимых значений ровно
+ * три (см. TTS_RATES), любое другое приводится к ближайшему.
  */
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -23,8 +26,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { text, learnLang } = await readBody(req);
-    const result = await getOrCreateSpeech({ text, learnLang });
+    const { text, learnLang, rate } = await readBody(req);
+    const result = await getOrCreateSpeech({ text, learnLang, rate });
     res.status(200).json(result);
   } catch (err) {
     const status = err.status || 500;

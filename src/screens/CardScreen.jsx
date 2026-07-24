@@ -99,6 +99,7 @@ export default function CardScreen({
   onOpenMyWords,
   onOpenAddWord,
   onOpenReading,
+  onOpenListening,
   onAddWordFromExample,
   onOpenReview,
   onOpenStats,
@@ -487,6 +488,14 @@ export default function CardScreen({
             >
               📖 {t("reading.entry")}
             </button>
+            {/* Ещё один способ позаниматься сегодняшним языком (фаза 6.2) */}
+            <button
+              type="button"
+              className="cards__generate"
+              onClick={onOpenListening}
+            >
+              🎧 {t("listening.entry")}
+            </button>
           </div>
         </div>
       </section>
@@ -629,6 +638,14 @@ export default function CardScreen({
           onClick={onOpenReading}
         >
           📖 {t("reading.entry")}
+        </button>
+        {/* Ещё один способ позаниматься сегодняшним языком (фаза 6.2) */}
+        <button
+          type="button"
+          className="cards__generate"
+          onClick={onOpenListening}
+        >
+          🎧 {t("listening.entry")}
         </button>
       </div>
 

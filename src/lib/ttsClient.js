@@ -8,7 +8,11 @@
 // Совпадает с серверным MAX_TTS_TEXT_LEN — не гоняем заведомо неудачные запросы.
 export const MAX_TTS_TEXT_LEN = 300;
 
-const urlCache = new Map(); // "lang|text" → url
+// Обычная скорость (совпадает с DEFAULT_TTS_RATE на сервере): карточки и режим
+// чтения ничего про скорость не знают и продолжают ходить за тем же аудио.
+const DEFAULT_RATE = 1;
+
+const urlCache = new Map(); // "lang|rate|text" → url
 
 // Один активный звук на всё приложение: кнопка на карточке и последовательное
 // чтение текста (фаза 6.1) делят его, чтобы не звучать одновременно.
@@ -29,18 +33,19 @@ export function playUrl(url) {
   return audio;
 }
 
-export async function fetchTtsUrl({ text, learnLang }) {
+export async function fetchTtsUrl({ text, learnLang, rate = DEFAULT_RATE }) {
   const clean = String(text ?? "").trim();
   if (!clean || !learnLang || clean.length > MAX_TTS_TEXT_LEN) return null;
 
-  const key = `${learnLang}|${clean}`;
+  // Скорость — часть ключа: на сервере это отдельная запись в кэше (фаза 6.2).
+  const key = `${learnLang}|${rate}|${clean}`;
   if (urlCache.has(key)) return urlCache.get(key);
 
   try {
     const res = await fetch("/api/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: clean, learnLang }),
+      body: JSON.stringify({ text: clean, learnLang, rate }),
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -68,5 +73,21 @@ export function prewarmTts(cards, learnLang) {
     }
   })().catch(() => {
     // тихо: прогрев не должен ничего ломать
+  });
+}
+
+/**
+ * Прогрев набора фраз на конкретной скорости (фаза 6.2, аудирование): пока
+ * пользователь слушает первую фразу, остальные уже готовятся. Тот же принцип,
+ * что и prewarmTts: последовательно, без ожидания, ошибки глотаем.
+ */
+export function prewarmPhrases(texts, learnLang, rate = DEFAULT_RATE) {
+  if (!Array.isArray(texts) || texts.length === 0 || !learnLang) return;
+  (async () => {
+    for (const text of texts) {
+      if (text) await fetchTtsUrl({ text, learnLang, rate });
+    }
+  })().catch(() => {
+    // тихо: прогрев не обязателен
   });
 }

@@ -10,6 +10,7 @@ import CardScreen from "./screens/CardScreen.jsx";
 import MyWordsScreen from "./screens/MyWordsScreen.jsx";
 import AddWordScreen from "./screens/AddWordScreen.jsx";
 import ReadingScreen from "./screens/ReadingScreen.jsx";
+import ListeningScreen from "./screens/ListeningScreen.jsx";
 import KnownWordsScreen from "./screens/KnownWordsScreen.jsx";
 import KnownReviewScreen from "./screens/KnownReviewScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
@@ -46,6 +47,10 @@ import {
 } from "./lib/localCache.js";
 import { loadGenerateCount } from "./lib/generateCount.js";
 import { loadGenerateMode } from "./lib/generateMode.js";
+import {
+  loadListeningLevel,
+  saveListeningLevel,
+} from "./lib/listeningLevels.js";
 import { prewarmTts } from "./lib/ttsClient.js";
 
 function loadSettings() {
@@ -221,6 +226,13 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("generateMode", generateMode);
   }, [generateMode]);
+
+  // Сложность аудирования (фаза 6.2): скорость речи + длина фразы. Как и
+  // количество карточек, выбор сохраняется между сессиями.
+  const [listeningLevel, setListeningLevel] = useState(loadListeningLevel);
+  useEffect(() => {
+    saveListeningLevel(listeningLevel);
+  }, [listeningLevel]);
 
   // Слова, которым сегодня пора на повтор (отдельно от потока новых карточек).
   const dueWords = getDueWords(vocab.takenWords, vocab.srsByWord, vocab.todayKey);
@@ -615,6 +627,7 @@ export default function App() {
             onOpenMyWords={() => setScreen("mywords")}
             onOpenAddWord={() => setScreen("addword")}
             onOpenReading={() => setScreen("reading")}
+            onOpenListening={() => setScreen("listening")}
             onAddWordFromExample={handleAddManualCard}
             onOpenReview={() => setScreen("review")}
             onOpenStats={() => setScreen("stats")}
@@ -679,6 +692,23 @@ export default function App() {
             takenWords={vocab.takenWords}
             knownWords={vocab.knownWords}
             onAddWord={handleAddManualCard}
+            onBack={() => setScreen("cards")}
+          />
+        )}
+
+        {/* Аудирование (фаза 6.2): фразы вокруг активных слов АКТИВНОЙ пары —
+            то есть языка, который назначило расписание на сегодня. */}
+        {screen === "listening" && (
+          <ListeningScreen
+            pairKey={pairKey}
+            learnLang={learnLang}
+            nativeLang={nativeLang}
+            topic={settings.topic}
+            level={settings.level}
+            takenWords={vocab.takenWords}
+            levelId={listeningLevel}
+            onChangeLevel={setListeningLevel}
+            scheduleActive={scheduleActive}
             onBack={() => setScreen("cards")}
           />
         )}

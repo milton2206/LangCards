@@ -59,6 +59,10 @@ export function saveText(pairKey, text) {
 /**
  * Запрашивает новый текст для чтения. Возвращает объект текста или бросает
  * Error с .code для локализованного сообщения: offline | server.
+ *
+ * sentences/sentenceLength не обязательны — их задаёт аудирование (фаза 6.2),
+ * которое ходит за фразами сюда же, чтобы не заводить вторую генерацию.
+ * Без них поведение режима чтения прежнее.
  */
 export async function requestReadingText({
   learnLang,
@@ -67,6 +71,8 @@ export async function requestReadingText({
   level,
   knownWords = [],
   newWordShare,
+  sentences,
+  sentenceLength,
 }) {
   let res;
   try {
@@ -83,6 +89,8 @@ export async function requestReadingText({
         level,
         knownWords,
         newWordShare,
+        sentences,
+        sentenceLength,
       }),
     });
   } catch {

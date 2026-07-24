@@ -1,0 +1,443 @@
+.listening {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.listening__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.listening__back {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.listening__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.listening__progress {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.listening__schedule {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ---------- Служебные состояния ---------- */
+.listening__notice {
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.listening__error {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 176, 32, 0.4);
+  background-color: rgba(255, 176, 32, 0.12);
+  color: #ffb020;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.listening__center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.listening__emoji {
+  font-size: 52px;
+  line-height: 1;
+}
+
+.listening__done-title {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.listening__spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent);
+  animation: listening-spin 0.9s linear infinite;
+}
+
+@keyframes listening-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .listening__spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+/* Спокойные подсказки: при нуле слов и при малом их числе */
+.listening__tip {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(108, 140, 255, 0.25);
+  background-color: rgba(108, 140, 255, 0.08);
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: left;
+}
+
+/* ---------- Подход ---------- */
+.listening__practice {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Прослушать / переслушать — главное действие экрана, поэтому крупное */
+.listening__play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 84px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.listening__play-glyph {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.listening__play.is-playing {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.12);
+  color: var(--accent);
+}
+
+.listening__play:disabled {
+  opacity: 0.6;
+}
+
+/* Как отвечать: выбрать вариант или вписать услышанное */
+.listening__modes {
+  display: flex;
+  gap: 6px;
+}
+
+.listening__mode-chip {
+  flex: 1;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.listening__mode-chip.is-active {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--accent);
+}
+
+/* ---------- Варианты ответа ---------- */
+.listening__options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.listening__option {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.45;
+  text-align: left;
+  overflow-wrap: break-word;
+}
+
+.listening__option:disabled {
+  opacity: 0.75;
+}
+
+.listening__option.is-correct {
+  border-color: rgba(53, 200, 139, 0.6);
+  background-color: rgba(53, 200, 139, 0.12);
+  color: #35c88b;
+  opacity: 1;
+}
+
+.listening__option.is-wrong {
+  border-color: rgba(255, 107, 107, 0.6);
+  background-color: rgba(255, 107, 107, 0.12);
+  color: #ff6b6b;
+  opacity: 1;
+}
+
+/* ---------- Ввод услышанного ---------- */
+.listening__input-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.listening__input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px; /* 16px — iOS не зумит поле при фокусе */
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.listening__input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.listening__check {
+  width: 100%;
+  min-height: 48px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.listening__check:disabled {
+  opacity: 0.5;
+}
+
+/* ---------- Проверка и разбор ---------- */
+.listening__result {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.listening__result.is-correct {
+  border-color: rgba(53, 200, 139, 0.35);
+  background-color: rgba(53, 200, 139, 0.07);
+}
+
+.listening__result.is-wrong {
+  border-color: rgba(255, 107, 107, 0.35);
+  background-color: rgba(255, 107, 107, 0.07);
+}
+
+.listening__verdict {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.listening__phrase {
+  font-size: 17px;
+  line-height: 1.6;
+  /* break-word, а не anywhere: во флекс-колонке anywhere рвёт слова даже
+     тогда, когда они целиком помещаются на следующей строке. */
+  overflow-wrap: break-word;
+}
+
+.listening__translation {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Пословный разбор написанного */
+.listening__diff {
+  font-size: 16px;
+  line-height: 1.8;
+  overflow-wrap: break-word;
+}
+
+/* inline-block — чтобы перенос строки шёл МЕЖДУ словами разбора, а не внутри
+   слова: разорванное пополам слово в разборе ошибки читается как опечатка. */
+.listening__diff-word {
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.listening__diff-word.is-missing {
+  color: #35c88b;
+  border-bottom: 2px solid rgba(53, 200, 139, 0.6);
+}
+
+.listening__diff-word.is-extra {
+  color: #ff6b6b;
+  text-decoration: line-through;
+}
+
+.listening__legend {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.listening__result-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.listening__grammar-btn {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.listening__grammar-btn.is-open {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--accent);
+}
+
+.listening__grammar-btn:disabled {
+  opacity: 0.45;
+}
+
+.listening__next {
+  flex: 1;
+  min-height: 44px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.listening__grammar {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(108, 140, 255, 0.25);
+  background-color: rgba(108, 140, 255, 0.08);
+}
+
+.listening__grammar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---------- Управление ---------- */
+.listening__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom));
+}
+
+.listening__level {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.listening__level-label {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.listening__level-chips {
+  display: flex;
+  gap: 6px;
+}
+
+.listening__level-chip {
+  flex: 1;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.listening__level-chip.is-active {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--accent);
+}
+
+.listening__level-hint {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.listening__generate {
+  width: 100%;
+  min-height: 48px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.listening__generate:disabled {
+  opacity: 0.5;
+}

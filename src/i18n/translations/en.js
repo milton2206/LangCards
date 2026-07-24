@@ -185,6 +185,44 @@ export default {
     newer: "Later text",
   },
 
+  // Listening practice (phase 6.2).
+  listening: {
+    entry: "Listen to phrases",
+    title: "Listening",
+    start: "Start a round ({n} phrases)",
+    restart: "New round ({n} phrases)",
+    generating: "Preparing your phrases…",
+    emptyHint:
+      "A phrase plays — you pick what you heard from the options or type it in. Phrases are built around the words you're already learning, and you can replay as often as you like.",
+    progress: "Phrase {n} of {total}",
+    listen: "Play",
+    replay: "Play again",
+    modeChoice: "Pick",
+    modeType: "Type",
+    inputPlaceholder: "what you heard",
+    check: "Check",
+    right: "Correct",
+    wrong: "Not quite",
+    diffLegend:
+      "Struck through — extra words; underlined — what the phrase had and your answer missed.",
+    explain: "Explain",
+    next: "Next phrase",
+    finish: "Finish the round",
+    doneTitle: "Round complete",
+    doneHint: "Heard correctly: {n} of {total}. You can start a new round.",
+    levelLabel: "Difficulty:",
+    level: { slow: "Slow", normal: "Normal", fast: "Fast" },
+    levelHint:
+      "Speed changes right away; phrase length applies to the next round.",
+    audioFailed: "Couldn't load the audio. Please try again.",
+    failed: "Couldn't prepare the phrases. Please try again.",
+    offline: "Listening needs a connection. Cards and reviews still work.",
+    tipNoWords:
+      "You have no words of your own yet, so phrases will simply match your level. Take some words on the cards and they'll start showing up here.",
+    tipFewWords:
+      "Take a few more words and the phrases will get noticeably easier to recognise by ear.",
+  },
+
   // Card audio (phase 5.1).
   tts: {
     playWord: "Play word",
