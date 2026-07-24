@@ -97,12 +97,17 @@ export default function LanguagesScreen({
   onSetPriority,
   onSetLimit,
   onRemove,
+  onStartPlacement,
   onBack,
 }) {
   const { t } = useI18n();
   const [confirmOff, setConfirmOff] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [confirmRemoveKey, setConfirmRemoveKey] = useState(null);
+  // Только что добавленная (или заменённая) пара — ей предлагаем тест на
+  // уровень. Предложение закрывается одним тапом и больше не возвращается:
+  // уровень нового языка можно задать и руками в настройках.
+  const [justAddedPair, setJustAddedPair] = useState(null);
   // Подсказка после включения режима с одной парой: не заставляем добавлять
   // вторую, просто предлагаем.
   const [justEnabled, setJustEnabled] = useState(false);
@@ -186,6 +191,57 @@ export default function LanguagesScreen({
       {t(`lang.${l.learnLang}`)} → {t(`lang.${l.nativeLang}`)}
     </>
   );
+
+  // Предложение пройти тест для только что добавленной пары. Тест на КАЖДУЮ
+  // пару отдельно: у нового языка свой уровень, и мерить его надо заново.
+  const placementPrompt = justAddedPair && onStartPlacement && (
+    <div className="langs__confirm langs__confirm--setup" role="status">
+      <p className="langs__confirm-title">
+        {t("placement.newPairTitle", {
+          lang: t(`lang.${justAddedPair.learnLang}`),
+        })}
+      </p>
+      <p className="langs__confirm-text">{t("placement.newPairText")}</p>
+      <div className="langs__confirm-actions">
+        <button
+          type="button"
+          className="langs__primary"
+          onClick={() => {
+            const pair = justAddedPair;
+            setJustAddedPair(null);
+            onStartPlacement(pair);
+          }}
+        >
+          🎯 {t("placement.entry")}
+        </button>
+        <button
+          type="button"
+          className="langs__ghost"
+          onClick={() => setJustAddedPair(null)}
+        >
+          {t("placement.later")}
+        </button>
+      </div>
+    </div>
+  );
+
+  // Кнопка «проверить уровень» у конкретной пары: доступна всегда, показывает
+  // текущий результат, если тест уже проходили.
+  const placementButton = (l) =>
+    onStartPlacement && (
+      <button
+        type="button"
+        className="langs__mini"
+        onClick={() => onStartPlacement(l)}
+      >
+        🎯{" "}
+        {l.placementLevel
+          ? t("placement.retestWithLevel", {
+              level: l.placementLevel.toUpperCase(),
+            })
+          : t("placement.entry")}
+      </button>
+    );
 
   return (
     <section className="langs">
@@ -296,6 +352,8 @@ export default function LanguagesScreen({
           {activeLanguage && (
             <p className="langs__item-name">{pairName(activeLanguage)}</p>
           )}
+          {activeLanguage && !showPicker && placementButton(activeLanguage)}
+          {placementPrompt}
           {showPicker ? (
             <PairPicker
               initialLearn={activeLanguage?.learnLang}
@@ -303,6 +361,9 @@ export default function LanguagesScreen({
               submitLabel={t("languages.submitChange")}
               onSubmit={(pair) => {
                 setShowPicker(false);
+                // Сменили язык — прежний уровень к нему отношения не имеет,
+                // предлагаем измерить (но не заставляем).
+                setJustAddedPair(pair);
                 onReplaceSinglePair(pair);
               }}
               onCancel={() => setShowPicker(false)}
@@ -341,6 +402,8 @@ export default function LanguagesScreen({
 
         <div className="langs__group">
           <h2 className="langs__group-title">{t("languages.listTitle")}</h2>
+
+          {placementPrompt}
 
           {languages.map((l) => {
             const key = keyOf(l);
@@ -385,6 +448,9 @@ export default function LanguagesScreen({
                     ))}
                   </div>
                 </div>
+
+                {/* Уровень измеряется по паре: у каждого языка он свой */}
+                {placementButton(l)}
 
                 {confirmRemoveKey === key ? (
                   <div className="langs__confirm">
@@ -435,6 +501,8 @@ export default function LanguagesScreen({
               onSubmit={(pair) => {
                 setShowPicker(false);
                 setJustEnabled(false);
+                // Новому языку — своё измерение уровня (предложение, не условие).
+                setJustAddedPair(pair);
                 onAddPair(pair);
               }}
               onCancel={() => setShowPicker(false)}

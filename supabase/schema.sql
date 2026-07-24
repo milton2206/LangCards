@@ -325,3 +325,67 @@ drop policy if exists "tts_cache_public_read" on storage.objects;
 create policy "tts_cache_public_read"
   on storage.objects for select
   using (bucket_id = 'tts-cache');
+
+-- ============================================================================
+-- Фаза 6.3 · Тест на определение уровня (placement)
+-- ----------------------------------------------------------------------------
+-- placement_items — ОБЩИЙ банк заданий, а не персональные вопросы. Генерируется
+-- один раз на изучаемый язык (см. lib/placement.js) и дальше переиспользуется
+-- всеми пользователями: генерация «под конкретного пользователя» запрещена, иначе
+-- каждый тест стоил бы денег.
+--
+-- Почему нет колонки native_lang: банк общий для любого родного языка, поэтому
+-- и вопрос, и все варианты — ТОЛЬКО на изучаемом языке (vocab: короткое
+-- определение → выбрать слово; cloze: предложение с пропуском «___»). Перевод
+-- заданию не нужен, а интерфейс вокруг него локализован обычным i18n.
+--
+-- Доступ: читают все авторизованные (тест проходят вошедшие пользователи),
+-- пишет ТОЛЬКО сервер через service_role — политик insert/update/delete нет
+-- НАМЕРЕННО, поэтому anon/authenticated ключом банк не испортить.
+-- Идемпотентно.
+-- ============================================================================
+
+create table if not exists public.placement_items (
+  id             uuid primary key default gen_random_uuid(),
+  learn_lang     text not null,
+  level          text not null,          -- 'a1' | 'a2' | 'b1' | 'b2' | 'c1'
+  type           text not null,          -- 'vocab' | 'cloze'
+  question       text not null,
+  options        jsonb not null default '[]'::jsonb,
+  correct_answer text not null,
+  created_at     timestamptz not null default now()
+);
+
+-- Основной запрос теста: «весь банк одного языка» (и подсчёт по уровням).
+create index if not exists placement_items_lang_level_idx
+  on public.placement_items (learn_lang, level);
+
+-- Защита от дублей при повторном наполнении банка: одинаковый вопрос на одном
+-- языке лежит в одном экземпляре. Именно она делает генерацию идемпотентной —
+-- сервер вставляет с on conflict do nothing.
+create unique index if not exists placement_items_unique_question_idx
+  on public.placement_items (learn_lang, question);
+
+alter table public.placement_items enable row level security;
+
+drop policy if exists "placement_items_read_authenticated" on public.placement_items;
+create policy "placement_items_read_authenticated"
+  on public.placement_items for select
+  to authenticated
+  using (true);
+
+-- ---------- Результат теста: по языковой паре, не глобально ----------
+-- Немецкий B1 и греческий A1 у одного пользователя — норма, поэтому уровень
+-- живёт в user_languages, а не в profiles. NULL = тест не проходили: у таких
+-- пар уровень по-прежнему берётся из ручной настройки, ничего не переписываем.
+alter table public.user_languages
+  add column if not exists placement_level text;
+
+-- ============================================================================
+-- Проверка фазы 6.3 (по желанию, в SQL Editor):
+--   select learn_lang, level, type, count(*)
+--     from public.placement_items group by 1,2,3 order by 1,2,3;
+--   Ожидаемо после наполнения банка: по ~20 заданий на каждый уровень языка,
+--   типы vocab и cloze примерно поровну.
+--   select learn_lang, native_lang, placement_level from public.user_languages;
+-- ============================================================================

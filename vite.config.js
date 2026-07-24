@@ -112,6 +112,47 @@ function devApiReading() {
   };
 }
 
+// Dev-плагин: локально обслуживает POST /api/placement тем же кодом, что и
+// serverless-функция на Vercel (банк заданий теста на уровень, фаза 6.3).
+function devApiPlacement() {
+  return {
+    name: "dev-api-placement",
+    async configureServer(server) {
+      server.middlewares.use("/api/placement", async (req, res) => {
+        if (req.method !== "POST") {
+          res.statusCode = 405;
+          res.end("Method Not Allowed");
+          return;
+        }
+        try {
+          const chunks = [];
+          for await (const chunk of req) chunks.push(chunk);
+          const raw = Buffer.concat(chunks).toString("utf8");
+          const params = raw ? JSON.parse(raw) : {};
+          // Импортируем лениво, чтобы ошибка ключей не роняла запуск дев-сервера.
+          const { ensurePlacementBank, countBank } =
+            await server.ssrLoadModule("/lib/placement.js");
+          const result =
+            params.action === "count"
+              ? await countBank(params.learnLang)
+              : await ensurePlacementBank({
+                  learnLang: params.learnLang,
+                  force: Boolean(params.force),
+                });
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify(result));
+        } catch (err) {
+          res.statusCode = err.status || 500;
+          res.setHeader("Content-Type", "application/json");
+          res.end(
+            JSON.stringify({ error: err.message || "Ошибка банка заданий" }),
+          );
+        }
+      });
+    },
+  };
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   // Vite сам НЕ кладёт .env/.env.local в process.env — а dev-middleware
@@ -124,7 +165,13 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [react(), devApiCards(), devApiTts(), devApiReading()],
+    plugins: [
+      react(),
+      devApiCards(),
+      devApiTts(),
+      devApiReading(),
+      devApiPlacement(),
+    ],
     server: {
       // Уважаем порт из окружения (PORT), иначе стандартный 5173
       port: process.env.PORT ? Number(process.env.PORT) : 5173,

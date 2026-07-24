@@ -77,6 +77,56 @@
   margin-top: 20px;
 }
 
+/* ---------- Развилка шага уровня: тест или выбор вручную (фаза 6.3) ---------- */
+/* Обе кнопки одинаковые по весу: тест не навязывается, пропуск — один тап. */
+.onb__choice {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.onb__choice-btn {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 14px;
+  row-gap: 2px;
+  width: 100%;
+  min-height: 72px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  text-align: left;
+}
+
+.onb__choice-btn:active {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.12);
+}
+
+.onb__choice-emoji {
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.onb__choice-label {
+  font-size: 17px;
+  font-weight: 600;
+  overflow-wrap: break-word;
+}
+
+.onb__choice-hint {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: break-word;
+}
+
 /* Крупная кнопка выбора под палец */
 .onb__option {
   display: flex;

@@ -17,27 +17,42 @@ function toLanguage(row) {
     dailyNewLimit: row.daily_new_limit,
     isActive: row.is_active,
     createdAt: row.created_at,
+    // Результат теста на уровень (фаза 6.3), по паре. null = тест не проходили:
+    // уровень такой пары берётся из ручной настройки, как и раньше.
+    placementLevel: row.placement_level || null,
   };
+}
+
+const BASE_COLUMNS =
+  "learn_lang, native_lang, is_priority, daily_new_limit, is_active, created_at";
+const COLUMNS_WITH_PLACEMENT = `${BASE_COLUMNS}, placement_level`;
+
+function selectLanguages(userId, columns) {
+  return supabase
+    .from(TABLE)
+    .select(columns)
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: true });
 }
 
 /**
  * Активные языки пользователя (в порядке добавления).
  * Офлайн-фолбэк: если Supabase не настроен или недоступен — ТИХО возвращаем
  * пустой массив; приложение продолжает работать как раньше (localStorage).
+ * Если колонки placement_level ещё нет в облаке (SQL фазы 6.3 не выполнен) —
+ * читаем без неё, как это уже сделано для колонок расписания в getProfilePrefs:
+ * новая фаза не должна ронять список языков у тех, кто не обновил схему.
  */
 export async function fetchUserLanguages(userId) {
   if (!supabase || !userId) return [];
   try {
-    const { data, error } = await supabase
-      .from(TABLE)
-      .select(
-        "learn_lang, native_lang, is_priority, daily_new_limit, is_active, created_at",
-      )
-      .eq("user_id", userId)
-      .eq("is_active", true)
-      .order("created_at", { ascending: true });
-    if (error) return [];
-    return (data || []).map(toLanguage);
+    const { data, error } = await selectLanguages(userId, COLUMNS_WITH_PLACEMENT);
+    if (!error) return (data || []).map(toLanguage);
+
+    const legacy = await selectLanguages(userId, BASE_COLUMNS);
+    if (legacy.error) return [];
+    return (legacy.data || []).map(toLanguage);
   } catch {
     return [];
   }
@@ -89,6 +104,34 @@ export async function updateUserLanguage(userId, learnLang, nativeLang, changes 
     return { ok: !error };
   } catch {
     return { ok: false };
+  }
+}
+
+/**
+ * Сохраняет результат теста на уровень для КОНКРЕТНОЙ пары (фаза 6.3).
+ * Пары независимы: немецкий B1 и греческий A1 у одного пользователя — норма.
+ * Возвращает { ok }; если колонки placement_level в облаке ещё нет — { ok: false,
+ * reason: 'missing-column' }, и вызывающий код просто оставляет уровень в
+ * локальных настройках (тест не должен падать из-за неприменённой миграции).
+ */
+export async function savePlacementLevel(userId, learnLang, nativeLang, level) {
+  if (!supabase || !userId || !level) return { ok: false };
+  try {
+    const { error } = await supabase
+      .from(TABLE)
+      .update({ placement_level: level })
+      .eq("user_id", userId)
+      .eq("learn_lang", learnLang)
+      .eq("native_lang", nativeLang);
+    if (!error) return { ok: true };
+    return {
+      ok: false,
+      reason: /placement_level/i.test(error.message || "")
+        ? "missing-column"
+        : "error",
+    };
+  } catch {
+    return { ok: false, reason: "error" };
   }
 }
 

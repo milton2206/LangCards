@@ -11,6 +11,7 @@ import MyWordsScreen from "./screens/MyWordsScreen.jsx";
 import AddWordScreen from "./screens/AddWordScreen.jsx";
 import ReadingScreen from "./screens/ReadingScreen.jsx";
 import ListeningScreen from "./screens/ListeningScreen.jsx";
+import PlacementScreen from "./screens/PlacementScreen.jsx";
 import KnownWordsScreen from "./screens/KnownWordsScreen.jsx";
 import KnownReviewScreen from "./screens/KnownReviewScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
@@ -30,6 +31,7 @@ import {
   setPriorityLanguage,
   updateUserLanguage,
   removeUserLanguage,
+  savePlacementLevel,
 } from "./lib/userLanguages.js";
 import { computeDailyQuotas } from "./lib/dailyBalance.js";
 import {
@@ -210,6 +212,32 @@ export default function App() {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeLanguage?.learnLang, activeLanguage?.nativeLang]);
+
+  // ---------- Тест на определение уровня (фаза 6.3) ----------
+  // Тест идёт ПО ПАРЕ и запускается из трёх мест: онбординг, «Мои языки»
+  // (новая пара), настройки («проверить уровень заново»). Контекст помнит,
+  // куда вернуться и по какой паре мерили.
+  //   { learnLang, nativeLang, returnTo: 'onboarding'|'languages'|'settings' }
+  const [placement, setPlacement] = useState(null);
+  // Черновик онбординга, если тест запущен прямо из него: после теста (или
+  // отказа) возвращаемся к своим ответам, а не начинаем мастер заново.
+  const [onboardingDraft, setOnboardingDraft] = useState(null);
+
+  // Уровень активной пары: если по ней проходили тест, он и есть уровень
+  // генерации. Пары независимы — немецкий B1 и греческий A1 нормальны. Пары
+  // без теста (placementLevel = null) НЕ трогаем: у существующих пользователей
+  // уровень остаётся тем, что они выбрали руками.
+  useEffect(() => {
+    const level = activeLanguage?.placementLevel;
+    if (!level) return;
+    setSettings((prev) =>
+      prev.level === level ? prev : { ...prev, level },
+    );
+  }, [
+    activeLanguage?.learnLang,
+    activeLanguage?.nativeLang,
+    activeLanguage?.placementLevel,
+  ]);
 
   // Слова: синхронизация придержана, пока не решён вопрос переноса прогресса.
   const vocab = useWordLists(pairKey, auth.user, { holdSync: migrationAsk });
@@ -440,8 +468,11 @@ export default function App() {
 
   // Онбординг завершён: тема/уровень в settings, языковая пара — в
   // user_languages (первая пара станет приоритетной автоматически).
-  async function handleComplete(chosen) {
+  // placementLevel задан, если уровень пришёл из теста (фаза 6.3) — тогда он
+  // же записывается в пару, чтобы уровень жил по паре, а не глобально.
+  async function handleComplete(chosen, placementLevel = null) {
     setSettings(chosen);
+    setOnboardingDraft(null);
     const pair = { learnLang: chosen.learnLang, nativeLang: chosen.nativeLang };
     saveActivePair(pair);
     setChosenPair(pair);
@@ -450,12 +481,73 @@ export default function App() {
       await addUserLanguage(auth.user.id, pair.learnLang, pair.nativeLang, {
         isPriority: true,
       });
+      if (placementLevel) {
+        await savePlacementLevel(
+          auth.user.id,
+          pair.learnLang,
+          pair.nativeLang,
+          placementLevel,
+        );
+      }
       userLangs.reload();
     }
   }
 
   function updateSetting(key, id) {
     setSettings((prev) => ({ ...prev, [key]: id }));
+    // Ручная правка уровня у пары, которая уже знает свой уровень (проходили
+    // тест или правили результат), пишется в саму пару — иначе переключение
+    // языков вернуло бы прежнее значение. Пары без теста не трогаем.
+    if (key === "level" && auth.user && activeLanguage?.placementLevel) {
+      (async () => {
+        await savePlacementLevel(
+          auth.user.id,
+          activeLanguage.learnLang,
+          activeLanguage.nativeLang,
+          id,
+        );
+        userLangs.reload();
+      })();
+    }
+  }
+
+  // ---------- Тест на уровень: запуск, применение, отказ ----------
+  // Тест необязателен ВЕЗДЕ: с любого экрана из него можно выйти одним тапом,
+  // и тогда уровень остаётся тем, что был (или выбирается руками).
+  function handleStartPlacement(context) {
+    setPlacement(context);
+  }
+
+  async function handleApplyPlacement(level) {
+    const ctx = placement;
+    setPlacement(null);
+    if (!ctx) return;
+
+    if (ctx.returnTo === "onboarding") {
+      // Уровень из теста завершает онбординг вместо шага самооценки.
+      await handleComplete({ ...ctx.draft, level }, level);
+      return;
+    }
+
+    if (auth.user) {
+      await savePlacementLevel(auth.user.id, ctx.learnLang, ctx.nativeLang, level);
+      userLangs.reload();
+    }
+    // Если мерили активную пару — уровень сразу применяется к генерации.
+    if (ctx.learnLang === learnLang && ctx.nativeLang === nativeLang) {
+      setSettings((prev) => ({ ...prev, level }));
+    }
+    setScreen(ctx.returnTo === "settings" ? "settings" : "languages");
+  }
+
+  function handleCancelPlacement() {
+    const ctx = placement;
+    setPlacement(null);
+    // Из онбординга возвращаемся к мастеру с сохранённым черновиком (шаг
+    // уровня), с остальных экранов — туда, откуда пришли.
+    if (ctx && ctx.returnTo !== "onboarding") {
+      setScreen(ctx.returnTo === "settings" ? "settings" : "languages");
+    }
   }
 
   // ---------- Обработчики экрана «Мои языки» (фаза 4.4) ----------
@@ -587,11 +679,32 @@ export default function App() {
   } else if (auth.user && userLangs.loading && !activeLanguage) {
     // Языки ещё грузятся и офлайн-фолбэка нет — не мигаем онбордингом.
     content = splash;
+  } else if (placement) {
+    // Тест на уровень перекрывает и онбординг: из него он и запускается.
+    content = (
+      <PlacementScreen
+        learnLang={placement.learnLang}
+        nativeLang={placement.nativeLang}
+        onApply={handleApplyPlacement}
+        onCancel={handleCancelPlacement}
+      />
+    );
   } else if (needsSetup) {
     content = (
       <OnboardingScreen
-        initial={settings}
+        initial={onboardingDraft || settings}
+        // Вернулись из теста — открываем сразу шаг уровня, а не начало мастера.
+        initialStep={onboardingDraft ? SETTINGS_KEYS.length - 1 : 0}
         onComplete={handleComplete}
+        onStartPlacement={(draft) => {
+          setOnboardingDraft(draft);
+          handleStartPlacement({
+            learnLang: draft.learnLang,
+            nativeLang: draft.nativeLang,
+            returnTo: "onboarding",
+            draft,
+          });
+        }}
         onBack={() => {}}
       />
     );
@@ -746,6 +859,14 @@ export default function App() {
             onOpenLanguages={() => setScreen("languages")}
             onBack={() => setScreen("cards")}
             onOpenTutorial={() => setShowTutorial(true)}
+            placementLevel={activeLanguage?.placementLevel || null}
+            onStartPlacement={() =>
+              handleStartPlacement({
+                learnLang,
+                nativeLang,
+                returnTo: "settings",
+              })
+            }
             auth={authForUi}
             onOpenAuth={() => setScreen("auth")}
             syncStatus={vocab.syncStatus}
@@ -771,6 +892,13 @@ export default function App() {
             onSetPriority={handleSetPriority}
             onSetLimit={handleSetLimit}
             onRemove={handleRemoveLanguage}
+            onStartPlacement={(pair) =>
+              handleStartPlacement({
+                learnLang: pair.learnLang,
+                nativeLang: pair.nativeLang,
+                returnTo: "languages",
+              })
+            }
             onBack={() => setScreen("settings")}
           />
         )}

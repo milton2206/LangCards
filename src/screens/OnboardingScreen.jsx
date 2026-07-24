@@ -13,11 +13,24 @@ import "./OnboardingScreen.css";
  * На каждом шаге — один выбор из крупных кнопок. Выбор на промежуточных
  * шагах автоматически переводит на следующий; на последнем — появляется
  * кнопка «Начать».
+ *
+ * Шаг уровня (фаза 6.3) начинается с равноправной развилки: пройти тест или
+ * выбрать уровень самому. Тест НЕ обязателен — «выбрать самому» это один тап,
+ * и дальше шаг работает ровно как раньше. initialStep нужен возврату из теста:
+ * мастер открывается на шаге уровня с уже сделанными ответами.
  */
-export default function OnboardingScreen({ initial, onComplete, onBack }) {
+export default function OnboardingScreen({
+  initial,
+  initialStep = 0,
+  onComplete,
+  onStartPlacement,
+  onBack,
+}) {
   const { t } = useI18n();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(initialStep);
   const [draft, setDraft] = useState(() => ({ ...initial }));
+  // Развилка шага уровня: null — показываем выбор, "manual" — обычные варианты.
+  const [levelMode, setLevelMode] = useState(null);
 
   const current = ONBOARDING_STEPS[step];
   const isLast = step === ONBOARDING_STEPS.length - 1;
@@ -28,6 +41,14 @@ export default function OnboardingScreen({ initial, onComplete, onBack }) {
   const hintKey = stepHintKey(current.key);
   const hint = t(hintKey);
   const hasHint = hint !== hintKey; // не у всех шагов есть подсказка
+
+  // Развилку показываем только на шаге уровня, только пока уровень не выбран
+  // и только если тест вообще доступен (запуск приходит сверху).
+  const showLevelChoice =
+    current.key === "level" &&
+    Boolean(onStartPlacement) &&
+    levelMode !== "manual" &&
+    !selected;
 
   function choose(optionId) {
     setDraft((prev) => ({ ...prev, [current.key]: optionId }));
@@ -74,6 +95,46 @@ export default function OnboardingScreen({ initial, onComplete, onBack }) {
         </h1>
         {hasHint && <p className="onb__hint">{hint}</p>}
 
+        {/* Две равноправные кнопки: измерить уровень или выбрать его самому.
+            Ни одна не «главная» — тест это предложение, а не условие входа. */}
+        {showLevelChoice && (
+          <div className="onb__choice">
+            <button
+              type="button"
+              className="onb__choice-btn"
+              onClick={() => onStartPlacement(draft)}
+            >
+              <span className="onb__choice-emoji" aria-hidden="true">
+                🎯
+              </span>
+              <span className="onb__choice-label">
+                {t("placement.entryOnboarding")}
+              </span>
+              <span className="onb__choice-hint">
+                {t("placement.entryOnboardingHint")}
+              </span>
+            </button>
+            <button
+              type="button"
+              className="onb__choice-btn"
+              onClick={() => setLevelMode("manual")}
+            >
+              <span className="onb__choice-emoji" aria-hidden="true">
+                ✍️
+              </span>
+              <span className="onb__choice-label">
+                {t("placement.chooseSelf")}
+              </span>
+              <span className="onb__choice-hint">
+                {t("placement.chooseSelfHint")}
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* Пока показана развилка, список уровней не мешается: выбор из него —
+            это и есть ветка «выбрать самому». */}
+        {!showLevelChoice && (
         <div className="onb__options" role="radiogroup" aria-label={title}>
           {current.options.map((opt) => {
             const active = selected === opt.id;
@@ -99,9 +160,10 @@ export default function OnboardingScreen({ initial, onComplete, onBack }) {
             );
           })}
         </div>
+        )}
       </div>
 
-      {isLast && (
+      {isLast && !showLevelChoice && (
         <div className="onb__footer">
           <button
             type="button"

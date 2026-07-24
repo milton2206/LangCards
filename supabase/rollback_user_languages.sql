@@ -44,3 +44,26 @@ alter table public.profiles
 drop policy if exists "tts_cache_public_read" on storage.objects;
 delete from storage.objects where bucket_id = 'tts-cache';
 delete from storage.buckets where id = 'tts-cache';
+
+-- Фаза 6.3: тест на определение уровня. Банк заданий общий (не персональные
+-- данные) — его удаление означает, что при следующем тесте язык будет
+-- сгенерирован заново, то есть заново оплачен. Колонка placement_level
+-- убирается вместе с ним; ручной уровень в настройках приложения не зависит от
+-- этой колонки и сохраняется.
+do $$
+begin
+  if exists (
+    select 1 from pg_tables
+    where schemaname = 'public' and tablename = 'placement_items'
+  ) then
+    drop policy if exists "placement_items_read_authenticated" on public.placement_items;
+    drop index if exists public.placement_items_lang_level_idx;
+    drop index if exists public.placement_items_unique_question_idx;
+    drop table public.placement_items;
+  end if;
+end $$;
+
+-- Колонку убираем только если сама таблица языков ещё существует (выше её мог
+-- удалить откат фазы 4.1 — тогда и колонки уже нет).
+alter table if exists public.user_languages
+  drop column if exists placement_level;

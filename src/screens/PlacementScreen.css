@@ -1,0 +1,261 @@
+.placement {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.placement__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.placement__back {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.placement__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.placement__lang {
+  flex: 0 0 auto;
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* ---------- Служебные состояния ---------- */
+.placement__center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.placement__emoji {
+  font-size: 52px;
+  line-height: 1;
+}
+
+.placement__notice {
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.placement__hint {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.placement__spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent);
+  animation: placement-spin 0.9s linear infinite;
+}
+
+@keyframes placement-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .placement__spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+/* ---------- Прогресс ---------- */
+.placement__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.placement__progress-bar {
+  height: 6px;
+  border-radius: 999px;
+  background-color: var(--border);
+  overflow: hidden;
+}
+
+.placement__progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background-color: var(--accent);
+  transition: width 0.25s ease;
+}
+
+.placement__progress-label {
+  align-self: flex-end;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ---------- Задание ---------- */
+.placement__question {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Что делать — на родном языке пользователя */
+.placement__prompt {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Сам материал задания — на изучаемом языке, крупно */
+.placement__text {
+  padding: 18px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  font-size: 19px;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+}
+
+.placement__options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.placement__option {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.45;
+  text-align: left;
+  overflow-wrap: break-word;
+}
+
+.placement__option:active {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.12);
+}
+
+.placement__skip {
+  align-self: center;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  text-decoration: underline;
+}
+
+.placement__footnote {
+  margin-top: auto;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom));
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+/* ---------- Результат ---------- */
+.placement__result {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.placement__manual {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(108, 140, 255, 0.25);
+  background-color: rgba(108, 140, 255, 0.08);
+}
+
+.placement__manual-title {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.placement__manual-chips {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.placement__manual-chip {
+  min-width: 52px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.placement__manual-chip.is-active {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--accent);
+}
+
+.placement__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.placement__primary {
+  width: 100%;
+  min-height: 48px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.placement__ghost {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+}

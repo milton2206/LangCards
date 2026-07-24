@@ -19,6 +19,8 @@ export default function SettingsScreen({
   onOpenLanguages,
   onBack,
   onOpenTutorial,
+  placementLevel,
+  onStartPlacement,
   auth,
   onOpenAuth,
   syncStatus,
@@ -82,6 +84,27 @@ export default function SettingsScreen({
               );
             })}
           </div>
+
+          {/* Уровень можно не выбирать на глаз, а измерить — и переизмерить
+              когда угодно (фаза 6.3). Тест идёт по АКТИВНОЙ языковой паре. */}
+          {step.key === "level" && onStartPlacement && (
+            <>
+              <button
+                type="button"
+                className="settings__chip settings__chip--wide"
+                onClick={onStartPlacement}
+              >
+                🎯 {t("placement.retest")}
+              </button>
+              <p className="settings__account-hint">
+                {placementLevel
+                  ? t("placement.currentResult", {
+                      level: placementLevel.toUpperCase(),
+                    })
+                  : t("placement.neverTested")}
+              </p>
+            </>
+          )}
         </div>
       ))}
 

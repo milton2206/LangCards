@@ -185,6 +185,46 @@ export default {
     newer: "Later text",
   },
 
+  // Placement test (phase 6.3).
+  placement: {
+    title: "Level check",
+    entry: "Check my level",
+    entryOnboarding: "Take the test",
+    entryOnboardingHint:
+      "15–18 short questions, no timer — we'll suggest a level and you can adjust it.",
+    chooseSelf: "Pick it myself",
+    chooseSelfHint: "If you already know your level, just choose it from the list.",
+    chooseManually: "Choose a level myself",
+    preparing: "Preparing the questions…",
+    preparingHint:
+      "For a new language this happens once — after that the test opens right away.",
+    progress: "{n} of {total}",
+    promptVocab: "Which word fits the meaning?",
+    promptCloze: "Which word is missing?",
+    dontKnow: "I don't know",
+    noTimer: "No timer — take your time. \"I don't know\" is a fine answer too.",
+    resultTitle: "Looks like {level}",
+    resultHint: "Correct answers: {n} of {total}.",
+    startWith: "Start at {level}",
+    chooseOther: "Choose a different level",
+    manualTitle: "Your level:",
+    retest: "Check my level again",
+    currentResult: "Tested level for this pair: {level}.",
+    neverTested:
+      "This language pair hasn't been tested yet — the level was chosen by hand.",
+    retestWithLevel: "Test again ({level})",
+    newPairTitle: "Check your level: {lang}",
+    newPairText:
+      "Every language has its own level. The test takes a couple of minutes, or you can simply pick a level in settings.",
+    later: "Later",
+    offline: "The test needs a connection. Cards, reviews and settings still work.",
+    failed: "Couldn't prepare the test. Try later or pick a level yourself.",
+    empty: "No questions for this language yet. Pick a level yourself — the test will come later.",
+    noTable:
+      "The question bank isn't set up. Run the SQL from supabase/schema.sql in your Supabase project.",
+    noAccount: "The test is available once you're signed in.",
+  },
+
   // Listening practice (phase 6.2).
   listening: {
     entry: "Listen to phrases",
