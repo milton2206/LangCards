@@ -292,6 +292,24 @@ export default {
       "Take a few more words and you'll get more varied tasks.",
   },
 
+  // Word source for reading and listening (one setting for both modes).
+  wordSource: {
+    label: "Word source:",
+    mine: "My words",
+    mixed: "Mixed",
+    new: "New",
+    hint: {
+      mine: "Only from words you've taken — reinforcing the familiar.",
+      mixed: "Familiar words mixed with new ones — best for learning.",
+      new: "Unfamiliar words at your level — growing your vocabulary.",
+    },
+    newOnListening:
+      "Listening tasks are built around your words, so “New” behaves like “Mixed”.",
+    fewMine:
+      "You have few taken words yet — there won't be much variety and words will start to repeat.",
+    switchMixed: "Switch to “Mixed”",
+  },
+
   // Card audio (phase 5.1).
   tts: {
     playWord: "Play word",

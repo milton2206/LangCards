@@ -212,19 +212,25 @@ export async function requestGapSet({
   level,
   takenWords = [],
   sentenceLength,
+  source = "mixed",
 }) {
   const text = await requestReadingText({
     learnLang,
     nativeLang,
     topic,
     level,
-    // Активные слова пары — их и вплетаем, из них же берём пропуск.
+    // Активные слова пары уходят в промпт всегда; сервер по source решает,
+    // вплетать их (mine/mixed) или избегать (new). Пропуск делаем из takenWords.
     knownWords: takenWords,
     newWordShare: NEW_WORD_SHARE,
     sentences: PHRASES_PER_SET,
     sentenceLength,
+    source,
   });
 
+  // Пропуск всегда берём из активных слов пользователя, даже если источник —
+  // «Новые»: искать в тексте нечего, кроме взятых слов (в «Новых» их там мало,
+  // поэтому набор для gap выйдет короче — это ожидаемо).
   const usedKeys = new Set();
   const items = [];
   for (const s of text.sentences) {
@@ -243,6 +249,7 @@ export async function requestGapSet({
 
   return {
     format: "gap",
+    source,
     items,
     index: 0,
     correctCount: 0,

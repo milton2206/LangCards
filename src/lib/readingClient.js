@@ -5,7 +5,7 @@
 //   • объяснения грамматики — по хешу (предложение + родной язык), повторный
 //     тап того же предложения мгновенный и по API не бьёт.
 
-const TEXTS_KEY = "readingTexts"; // { "de-ru": [ {…текст}, … ] }
+const TEXTS_KEY = "readingTexts"; // { "de-ru|mixed": [ {…текст}, … ] }
 const GRAMMAR_KEY = "readingGrammar"; // { "<hash>": { points: [] } }
 
 // Сколько текстов держим на пару — история «перечитать», без разрастания хранилища.
@@ -39,21 +39,28 @@ function saveJSON(key, value) {
   }
 }
 
-// ---------- Кэш текстов (по языковой паре) ----------
+// ---------- Кэш текстов (по языковой паре И источнику слов) ----------
+// Ключ включает источник (mine/mixed/new): тексты «только мои» и «только новые»
+// — разные, и кэш не должен отдавать один вместо другого (фаза 6.1/6.2).
 
-export function loadTexts(pairKey) {
+function textsKey(pairKey, source = "mixed") {
+  return `${pairKey}|${source}`;
+}
+
+export function loadTexts(pairKey, source) {
   const store = loadJSON(TEXTS_KEY, {});
-  const list = store[pairKey];
+  const list = store[textsKey(pairKey, source)];
   return Array.isArray(list) ? list : [];
 }
 
-export function saveText(pairKey, text) {
+export function saveText(pairKey, source, text) {
   const store = loadJSON(TEXTS_KEY, {});
-  const list = Array.isArray(store[pairKey]) ? store[pairKey] : [];
+  const key = textsKey(pairKey, source);
+  const list = Array.isArray(store[key]) ? store[key] : [];
   // Новый текст — первым; храним ограниченную историю.
-  store[pairKey] = [text, ...list].slice(0, MAX_TEXTS_PER_PAIR);
+  store[key] = [text, ...list].slice(0, MAX_TEXTS_PER_PAIR);
   saveJSON(TEXTS_KEY, store);
-  return store[pairKey];
+  return store[key];
 }
 
 /**
@@ -73,6 +80,7 @@ export async function requestReadingText({
   newWordShare,
   sentences,
   sentenceLength,
+  source,
 }) {
   let res;
   try {
@@ -91,6 +99,8 @@ export async function requestReadingText({
         newWordShare,
         sentences,
         sentenceLength,
+        // Источник слов (mine/mixed/new) — уходит в тот же промпт генерации.
+        source,
       }),
     });
   } catch {

@@ -61,6 +61,7 @@ import {
   loadListeningFormat,
   saveListeningFormat,
 } from "./lib/listeningLevels.js";
+import { loadWordSource, saveWordSource } from "./lib/wordSource.js";
 import { prewarmTts } from "./lib/ttsClient.js";
 
 // Id тем-пресетов и запасная тема: когда выбранная своя тема удалена или
@@ -306,6 +307,13 @@ export default function App() {
   useEffect(() => {
     saveListeningFormat(listeningFormat);
   }, [listeningFormat]);
+
+  // Источник слов для чтения И аудирования (6.1/6.2): ОДНА общая настройка на
+  // оба режима — mine / mixed / new. Сохраняется между сессиями.
+  const [wordSource, setWordSource] = useState(loadWordSource);
+  useEffect(() => {
+    saveWordSource(wordSource);
+  }, [wordSource]);
 
   // Слова, которым сегодня пора на повтор (отдельно от потока новых карточек).
   const dueWords = getDueWords(vocab.takenWords, vocab.srsByWord, vocab.todayKey);
@@ -892,6 +900,8 @@ export default function App() {
             level={settings.level}
             takenWords={vocab.takenWords}
             knownWords={vocab.knownWords}
+            wordSource={wordSource}
+            onChangeWordSource={setWordSource}
             onAddWord={handleAddManualCard}
             onBack={() => setScreen("cards")}
           />
@@ -912,6 +922,8 @@ export default function App() {
             onChangeLevel={setListeningLevel}
             formatId={listeningFormat}
             onChangeFormat={setListeningFormat}
+            wordSource={wordSource}
+            onChangeWordSource={setWordSource}
             scheduleActive={scheduleActive}
             onBack={() => setScreen("cards")}
           />

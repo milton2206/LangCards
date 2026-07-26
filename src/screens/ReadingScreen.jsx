@@ -10,12 +10,10 @@ import { fetchTtsUrl, playUrl, stopCurrentAudio } from "../lib/ttsClient.js";
 import { ENOUGH_WORDS_FOR_READING } from "../hooks/useWordLists.js";
 import { useWordLookup } from "../hooks/useWordLookup.js";
 import WordLookupSheet from "../components/WordLookupSheet.jsx";
+import WordSourcePicker from "../components/WordSourcePicker.jsx";
 import PlayButton from "../components/PlayButton.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./ReadingScreen.css";
-
-// Доля новых (незнакомых) слов — регулируется пользователем.
-const SHARE_OPTIONS = [0.1, 0.2, 0.3];
 
 /**
  * Режим чтения (фаза 6.1): короткий текст под уровень и тему, где каждое слово
@@ -35,17 +33,19 @@ export default function ReadingScreen({
   level,
   takenWords,
   knownWords,
+  wordSource,
+  onChangeWordSource,
   onAddWord,
   onBack,
 }) {
   const { t } = useI18n();
 
-  // История текстов пары: [0] — самый свежий.
-  const [texts, setTexts] = useState(() => loadTexts(pairKey));
+  // История текстов пары И источника: [0] — самый свежий. Ключ кэша включает
+  // источник (mine/mixed/new), чтобы тексты разных источников не смешивались.
+  const [texts, setTexts] = useState(() => loadTexts(pairKey, wordSource));
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [share, setShare] = useState(0.2);
 
   // Разбор грамматики: { sentence, status, points?, errorText? }
   const [grammar, setGrammar] = useState(null);
@@ -78,6 +78,14 @@ export default function ReadingScreen({
       stopCurrentAudio();
     };
   }, []);
+
+  // Смена источника (или пары) — показываем историю текстов ИМЕННО этого
+  // источника: «только мои» и «только новые» тексты не смешиваются.
+  useEffect(() => {
+    setTexts(loadTexts(pairKey, wordSource));
+    setIndex(0);
+    setGrammar(null);
+  }, [pairKey, wordSource]);
 
   const lookup = useWordLookup({ learnLang, nativeLang, onAdd: onAddWord });
 
@@ -113,13 +121,14 @@ export default function ReadingScreen({
         nativeLang,
         topic,
         level,
-        // Слова пользователя — их и просим вплести в текст.
-        // Всё, что есть, уходит в промпт; при нуле слов сервер опирается
-        // только на уровень (см. buildReadingPrompt).
+        // Слова пользователя всегда уходят в промпт; сервер по source решает,
+        // вплетать их (mine/mixed) или избегать (new). При нуле слов «Мои» на
+        // сервере трактуется как «Смешанно» (уровень-онли).
         knownWords: takenWords || [],
-        newWordShare: share,
+        source: wordSource,
       });
-      const list = saveText(pairKey, text);
+      // Сохраняем и показываем в истории ИМЕННО этого источника.
+      const list = saveText(pairKey, wordSource, text);
       setTexts(list);
       setIndex(0);
     } catch (err) {
@@ -367,26 +376,14 @@ export default function ReadingScreen({
         </div>
       )}
 
-      {/* Управление: доля новых слов, новый текст, история сохранённых текстов */}
+      {/* Управление: источник слов, новый текст, история сохранённых текстов */}
       <div className="reading__controls">
-        <div className="reading__share">
-          <span className="reading__share-label">{t("reading.newShare")}</span>
-          <div className="reading__share-chips">
-            {SHARE_OPTIONS.map((s) => (
-              <button
-                key={s}
-                type="button"
-                className={
-                  "reading__share-chip" + (share === s ? " is-active" : "")
-                }
-                aria-pressed={share === s}
-                onClick={() => setShare(s)}
-              >
-                {Math.round(s * 100)}%
-              </button>
-            ))}
-          </div>
-        </div>
+        <WordSourcePicker
+          value={wordSource}
+          onChange={onChangeWordSource}
+          takenCount={takenCount}
+          context="reading"
+        />
 
         <button
           type="button"

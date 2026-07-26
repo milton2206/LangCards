@@ -21,6 +21,7 @@ import {
   LISTENING_FORMATS,
 } from "../lib/listeningLevels.js";
 import { ENOUGH_WORDS_FOR_READING } from "../hooks/useWordLists.js";
+import WordSourcePicker from "../components/WordSourcePicker.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./ListeningScreen.css";
 
@@ -49,11 +50,20 @@ export default function ListeningScreen({
   onChangeLevel,
   formatId,
   onChangeFormat,
+  wordSource,
+  onChangeWordSource,
   scheduleActive,
   onBack,
 }) {
   const { t } = useI18n();
   const listeningLevel = getListeningLevel(levelId);
+
+  // Источник слов для формата «пропущенное слово» (gap строит фразы через
+  // генерацию чтения). «Новые» для gap не подходит — пропуск берётся из
+  // активных слов, а «Новые» их избегает, поэтому для gap трактуем «Новые» как
+  // «Смешанно» (в пикере это честно подписано). Формат «на слух» источник не
+  // использует вовсе — он всегда про активные слова пользователя.
+  const gapSource = wordSource === "new" ? "mixed" : wordSource;
 
   // Текущий подход пары: переживает уход с экрана и перезагрузку.
   const [set, setSet] = useState(() => loadSet(pairKey));
@@ -102,7 +112,7 @@ export default function ListeningScreen({
     setError(null);
   }, [pairKey]);
 
-  // Смена формата: старый набор другого формата не показываем (нужен новый),
+  // Смена формата или источника: старый набор не подходит (нужен новый),
   // сбрасываем ввод и глушим звук.
   useEffect(() => {
     stopCurrentAudio();
@@ -110,10 +120,17 @@ export default function ListeningScreen({
     setGrammar(null);
     setTyped("");
     setError(null);
-  }, [formatId]);
+  }, [formatId, gapSource]);
 
-  // Набор показываем, только если он того же формата, что выбран сейчас.
-  const activeSet = set && set.format === formatId ? set : null;
+  // Набор показываем, только если он того же формата, что выбран сейчас. Для gap
+  // источник тоже должен совпадать: тексты «Мои»/«Смешанно» — разные, кэш не
+  // должен подсунуть один вместо другого. Формат «на слух» источник игнорирует.
+  const activeSet =
+    set &&
+    set.format === formatId &&
+    (formatId === "soundalike" || set.source === gapSource)
+      ? set
+      : null;
   const items = activeSet?.items || [];
   const index = activeSet?.index || 0;
   const current = index < items.length ? items[index] : null;
@@ -203,6 +220,9 @@ export default function ListeningScreen({
         takenWords: takenWords || [],
         wordInfo: wordInfo || {},
         sentenceLength: listeningLevel.length,
+        // gap строит фразы через генерацию чтения с источником; «на слух»
+        // источник не использует. Стамп source на наборе — для сверки с кэшем.
+        source: gapSource,
       });
       if (!next.items.length) {
         // Нечего показать: для gap не нашли активных слов в предложениях, для
@@ -641,6 +661,16 @@ export default function ListeningScreen({
       {!offline && (
         <div className="listening__controls">
           {formatPicker}
+          {/* Источник слов — только для «пропущенного слова»: формат «на слух»
+              всегда про активные слова пользователя, источник ему не нужен. */}
+          {formatId === "gap" && (
+            <WordSourcePicker
+              value={wordSource}
+              onChange={onChangeWordSource}
+              takenCount={takenCount}
+              context="listening"
+            />
+          )}
           {levelPicker}
           <button
             type="button"
