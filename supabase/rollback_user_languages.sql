@@ -67,3 +67,8 @@ end $$;
 -- удалить откат фазы 4.1 — тогда и колонки уже нет).
 alter table if exists public.user_languages
   drop column if exists placement_level;
+
+-- Свои темы пользователя: тоже колонка user_languages. Пресеты в коде — их
+-- удаление колонки не касается.
+alter table if exists public.user_languages
+  drop column if exists custom_topics;

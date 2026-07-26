@@ -4,6 +4,7 @@ import {
   getProfilePrefs,
   saveScheduleSettings,
   setMultiLangMode,
+  setCustomTopics,
   deactivateNonPriorityLanguages,
   reactivateAllLanguages,
   DEFAULT_SCHEDULE_PREFS,
@@ -140,6 +141,26 @@ export function useUserLanguages(user) {
     [user?.id],
   );
 
+  // Свои темы пары: обновляем локально СРАЗУ (офлайн-first, UI не ждёт сеть),
+  // запись в user_languages — best-effort. Массив передаёт вызывающий код уже
+  // собранным (добавил/удалил); хранилище ещё раз чистит и режет по лимиту.
+  const updateCustomTopics = useCallback(
+    async (learnLang, nativeLang, topics) => {
+      setLanguages((prev) =>
+        prev.map((l) =>
+          l.learnLang === learnLang && l.nativeLang === nativeLang
+            ? { ...l, customTopics: topics }
+            : l,
+        ),
+      );
+      if (user) {
+        await setCustomTopics(user.id, learnLang, nativeLang, topics);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user?.id],
+  );
+
   // Приоритетная пара: помеченная is_priority, иначе первая по порядку.
   const priorityLanguage =
     languages.find((l) => l.isPriority) || languages[0] || null;
@@ -154,6 +175,8 @@ export function useUserLanguages(user) {
     scheduleMode: schedulePrefs.scheduleMode,
     weeklySchedule: schedulePrefs.weeklySchedule,
     updateSchedulePrefs,
+    // Свои темы генерации по паре.
+    updateCustomTopics,
     loading,
     reload,
   };

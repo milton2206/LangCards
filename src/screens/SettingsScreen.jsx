@@ -6,6 +6,7 @@ import {
 } from "../data/onboarding.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import InstallGuide from "../components/InstallGuide.jsx";
+import TopicPicker from "../components/TopicPicker.jsx";
 import "./SettingsScreen.css";
 
 /**
@@ -21,6 +22,10 @@ export default function SettingsScreen({
   onOpenTutorial,
   placementLevel,
   onStartPlacement,
+  customTopics,
+  canManageTopics,
+  onAddCustomTopic,
+  onRemoveCustomTopic,
   auth,
   onOpenAuth,
   syncStatus,
@@ -59,31 +64,45 @@ export default function SettingsScreen({
         </button>
       </div>
 
-      {/* Тема и уровень — по-прежнему в settings (localStorage). */}
+      {/* Тема и уровень — по-прежнему в settings (localStorage). Выбранная
+          тема может быть пресетом ИЛИ своей темой пары; и то, и другое — просто
+          settings.topic. */}
       {ONBOARDING_STEPS.filter(
         (step) => step.key === "topic" || step.key === "level",
       ).map((step) => (
         <div className="settings__group" key={step.key}>
           <h2 className="settings__group-title">{t(stepTitleKey(step.key))}</h2>
-          <div className="settings__options">
-            {step.options.map((opt) => {
-              const active = settings[step.key] === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  className={
-                    "settings__chip" + (active ? " is-active" : "")
-                  }
-                  aria-pressed={active}
-                  onClick={() => onChange(step.key, opt.id)}
-                >
-                  <span aria-hidden="true">{opt.emoji}</span>{" "}
-                  {t(optionLabelKey(step.key, opt.id))}
-                </button>
-              );
-            })}
-          </div>
+
+          {step.key === "topic" ? (
+            <TopicPicker
+              value={settings.topic}
+              customTopics={customTopics}
+              canManage={canManageTopics}
+              onSelect={(id) => onChange("topic", id)}
+              onAddCustom={onAddCustomTopic}
+              onRemoveCustom={onRemoveCustomTopic}
+            />
+          ) : (
+            <div className="settings__options">
+              {step.options.map((opt) => {
+                const active = settings[step.key] === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    className={
+                      "settings__chip" + (active ? " is-active" : "")
+                    }
+                    aria-pressed={active}
+                    onClick={() => onChange(step.key, opt.id)}
+                  >
+                    <span aria-hidden="true">{opt.emoji}</span>{" "}
+                    {t(optionLabelKey(step.key, opt.id))}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Уровень можно не выбирать на глаз, а измерить — и переизмерить
               когда угодно (фаза 6.3). Тест идёт по АКТИВНОЙ языковой паре. */}

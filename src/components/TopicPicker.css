@@ -1,0 +1,123 @@
+.topicpicker {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ---------- Блок «Мои темы» ---------- */
+.topicpicker__custom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+}
+
+.topicpicker__custom-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.topicpicker__custom-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.topicpicker__counter {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.topicpicker__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Своя тема: чип выбора + отдельная кнопка удаления */
+.topicpicker__item {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.topicpicker__chip {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.topicpicker__remove {
+  flex: 0 0 auto;
+  width: 40px;
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.topicpicker__remove:active {
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+}
+
+/* ---------- Добавление ---------- */
+.topicpicker__add {
+  display: flex;
+  gap: 6px;
+}
+
+.topicpicker__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-elevated);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px; /* 16px — iOS не зумит поле при фокусе */
+}
+
+.topicpicker__input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.topicpicker__input:disabled {
+  opacity: 0.5;
+}
+
+.topicpicker__add-btn {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.topicpicker__add-btn:disabled {
+  opacity: 0.4;
+}
+
+.topicpicker__hint {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}

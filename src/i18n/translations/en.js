@@ -185,6 +185,21 @@ export default {
     newer: "Later text",
   },
 
+  // Custom generation topics (presets live in code, custom ones per pair).
+  topics: {
+    myTopics: "My topics",
+    placeholder: "e.g. cycling",
+    addAria: "Custom topic name",
+    add: "Add",
+    remove: "Remove topic “{topic}”",
+    hint: "Up to 3 words. At most {max} custom topics per language.",
+    limitReached:
+      "No more than {max} custom topics per language. Remove one to add another.",
+    duplicate: "You already have that topic.",
+    needAccount:
+      "Custom topics appear once you're signed in — they're stored on the language pair.",
+  },
+
   // Placement test (phase 6.3).
   placement: {
     title: "Level check",

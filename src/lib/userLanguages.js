@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { sanitizeTopic } from "../../lib/topicSanitize.js";
 
 // Работа со списком языковых пар пользователя (таблица user_languages).
 //
@@ -20,12 +21,17 @@ function toLanguage(row) {
     // Результат теста на уровень (фаза 6.3), по паре. null = тест не проходили:
     // уровень такой пары берётся из ручной настройки, как и раньше.
     placementLevel: row.placement_level || null,
+    // Свои темы пользователя по этой паре (пресеты сюда НЕ входят — они в коде).
+    customTopics: Array.isArray(row.custom_topics) ? row.custom_topics : [],
   };
 }
 
 const BASE_COLUMNS =
   "learn_lang, native_lang, is_priority, daily_new_limit, is_active, created_at";
-const COLUMNS_WITH_PLACEMENT = `${BASE_COLUMNS}, placement_level`;
+// Необязательные колонки новых фаз: если их ещё нет в облаке (SQL не выполнен),
+// select с ними падает — тогда откатываемся к BASE_COLUMNS (список языков не
+// должен ломаться из-за неприменённой миграции).
+const COLUMNS_WITH_EXTRAS = `${BASE_COLUMNS}, placement_level, custom_topics`;
 
 function selectLanguages(userId, columns) {
   return supabase
@@ -40,14 +46,15 @@ function selectLanguages(userId, columns) {
  * Активные языки пользователя (в порядке добавления).
  * Офлайн-фолбэк: если Supabase не настроен или недоступен — ТИХО возвращаем
  * пустой массив; приложение продолжает работать как раньше (localStorage).
- * Если колонки placement_level ещё нет в облаке (SQL фазы 6.3 не выполнен) —
- * читаем без неё, как это уже сделано для колонок расписания в getProfilePrefs:
- * новая фаза не должна ронять список языков у тех, кто не обновил схему.
+ * Если колонок новых фаз (placement_level, custom_topics) ещё нет в облаке
+ * (SQL не выполнен) — читаем без них, как это сделано для колонок расписания в
+ * getProfilePrefs: новая фаза не должна ронять список языков у тех, кто не
+ * обновил схему.
  */
 export async function fetchUserLanguages(userId) {
   if (!supabase || !userId) return [];
   try {
-    const { data, error } = await selectLanguages(userId, COLUMNS_WITH_PLACEMENT);
+    const { data, error } = await selectLanguages(userId, COLUMNS_WITH_EXTRAS);
     if (!error) return (data || []).map(toLanguage);
 
     const legacy = await selectLanguages(userId, BASE_COLUMNS);
@@ -132,6 +139,43 @@ export async function savePlacementLevel(userId, learnLang, nativeLang, level) {
     };
   } catch {
     return { ok: false, reason: "error" };
+  }
+}
+
+// Максимум своих тем на языковую пару. Пресеты не считаются и не ограничиваются.
+export const MAX_CUSTOM_TOPICS = 3;
+
+/**
+ * Перезаписывает список своих тем пары целиком (клиент сам считает новый массив:
+ * добавить/удалить). Пишем массивом, а не «добавь один» — так нет гонок и проще
+ * держать порядок и лимит. Каждая тема ещё раз чистится sanitizeTopic (защита в
+ * два эшелона), пустые отбрасываются, дубликаты (без учёта регистра) убираются,
+ * и всего не больше MAX_CUSTOM_TOPICS. Возвращает { ok, topics } — где topics
+ * это фактически сохранённый (очищенный) массив.
+ */
+export async function setCustomTopics(userId, learnLang, nativeLang, topics) {
+  const clean = [];
+  const seen = new Set();
+  for (const raw of Array.isArray(topics) ? topics : []) {
+    const t = sanitizeTopic(raw);
+    if (!t) continue;
+    const key = t.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    clean.push(t);
+    if (clean.length >= MAX_CUSTOM_TOPICS) break;
+  }
+  if (!supabase || !userId) return { ok: false, topics: clean };
+  try {
+    const { error } = await supabase
+      .from(TABLE)
+      .update({ custom_topics: clean })
+      .eq("user_id", userId)
+      .eq("learn_lang", learnLang)
+      .eq("native_lang", nativeLang);
+    return { ok: !error, topics: clean };
+  } catch {
+    return { ok: false, topics: clean };
   }
 }
 

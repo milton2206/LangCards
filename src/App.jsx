@@ -20,7 +20,12 @@ import ReviewScreen from "./screens/ReviewScreen.jsx";
 import StatsScreen from "./screens/StatsScreen.jsx";
 import AuthScreen from "./screens/AuthScreen.jsx";
 import Tutorial from "./components/Tutorial.jsx";
-import { EMPTY_SETTINGS, SETTINGS_KEYS } from "./data/onboarding.js";
+import {
+  EMPTY_SETTINGS,
+  SETTINGS_KEYS,
+  ONBOARDING_STEPS,
+} from "./data/onboarding.js";
+import { sanitizeTopic } from "../lib/topicSanitize.js";
 import { useWordLists, getDueWords } from "./hooks/useWordLists.js";
 import { useCards } from "./hooks/useCards.js";
 import { useAuth } from "./hooks/useAuth.js";
@@ -32,6 +37,7 @@ import {
   updateUserLanguage,
   removeUserLanguage,
   savePlacementLevel,
+  MAX_CUSTOM_TOPICS,
 } from "./lib/userLanguages.js";
 import { computeDailyQuotas } from "./lib/dailyBalance.js";
 import {
@@ -54,6 +60,15 @@ import {
   saveListeningLevel,
 } from "./lib/listeningLevels.js";
 import { prewarmTts } from "./lib/ttsClient.js";
+
+// Id тем-пресетов и запасная тема: когда выбранная своя тема удалена или
+// принадлежит другой паре, откатываемся к пресету, чтобы генерация не осталась
+// с несуществующей темой. Пресеты всегда в коде — их набор фиксирован.
+const PRESET_TOPIC_OPTIONS = ONBOARDING_STEPS.find(
+  (s) => s.key === "topic",
+).options;
+const PRESET_TOPIC_IDS = new Set(PRESET_TOPIC_OPTIONS.map((o) => o.id));
+const FALLBACK_TOPIC = PRESET_TOPIC_OPTIONS[0].id;
 
 function loadSettings() {
   try {
@@ -237,6 +252,25 @@ export default function App() {
     activeLanguage?.learnLang,
     activeLanguage?.nativeLang,
     activeLanguage?.placementLevel,
+  ]);
+
+  // Своя тема принадлежит паре. При переключении пары (или удалении темы)
+  // выбранная тема может оказаться чужой/несуществующей — тогда откатываемся к
+  // пресету, чтобы генерация не ушла с темой, которой у этой пары нет. Пресеты
+  // валидны всегда. settings.topic в зависимостях НЕ держим намеренно: сброс
+  // нужен на смену пары и её списка своих тем, а не на каждый выбор темы.
+  useEffect(() => {
+    const topic = settings.topic;
+    if (!topic || PRESET_TOPIC_IDS.has(topic)) return;
+    const own = activeLanguage?.customTopics || [];
+    if (!own.includes(topic)) {
+      setSettings((prev) => ({ ...prev, topic: FALLBACK_TOPIC }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    activeLanguage?.learnLang,
+    activeLanguage?.nativeLang,
+    activeLanguage?.customTopics,
   ]);
 
   // Слова: синхронизация придержана, пока не решён вопрос переноса прогресса.
@@ -509,6 +543,49 @@ export default function App() {
         userLangs.reload();
       })();
     }
+  }
+
+  // ---------- Свои темы активной пары ----------
+  // Свои темы можно вести только когда есть пара и аккаунт (хранятся в
+  // user_languages). Пресеты в этот список не входят и не ограничиваются.
+  const activeCustomTopics = activeLanguage?.customTopics || [];
+  const canManageTopics = Boolean(auth.user && activeLanguage);
+
+  // Добавить свою тему: чистим/режем как на сервере, отбрасываем пустое и
+  // дубликаты, держим лимит. Добавленную тему сразу делаем выбранной.
+  async function handleAddCustomTopic(name) {
+    if (!canManageTopics) return;
+    const clean = sanitizeTopic(name);
+    if (!clean) return;
+    const current = activeLanguage.customTopics || [];
+    const existing = current.find(
+      (topic) => topic.toLowerCase() === clean.toLowerCase(),
+    );
+    if (existing) {
+      updateSetting("topic", existing); // уже есть — просто выбираем её
+      return;
+    }
+    if (current.length >= MAX_CUSTOM_TOPICS) return;
+    const next = [...current, clean];
+    await userLangs.updateCustomTopics(
+      activeLanguage.learnLang,
+      activeLanguage.nativeLang,
+      next,
+    );
+    updateSetting("topic", clean);
+  }
+
+  // Удалить свою тему: пресеты не трогаются (их тут нет). Если удалили выбранную
+  // тему — сброс на пресет сделает эффект валидации выше (customTopics изменится).
+  async function handleRemoveCustomTopic(name) {
+    if (!canManageTopics) return;
+    const current = activeLanguage.customTopics || [];
+    const next = current.filter((topic) => topic !== name);
+    await userLangs.updateCustomTopics(
+      activeLanguage.learnLang,
+      activeLanguage.nativeLang,
+      next,
+    );
   }
 
   // ---------- Тест на уровень: запуск, применение, отказ ----------
@@ -867,6 +944,10 @@ export default function App() {
                 returnTo: "settings",
               })
             }
+            customTopics={activeCustomTopics}
+            canManageTopics={canManageTopics}
+            onAddCustomTopic={handleAddCustomTopic}
+            onRemoveCustomTopic={handleRemoveCustomTopic}
             auth={authForUi}
             onOpenAuth={() => setScreen("auth")}
             syncStatus={vocab.syncStatus}
