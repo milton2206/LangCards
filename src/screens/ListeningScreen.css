@@ -151,6 +151,42 @@
   opacity: 0.6;
 }
 
+/* Вопрос формата: «Какое слово пропущено?» / «Что вы услышали?» */
+.listening__prompt {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Предложение с пропуском (формат gap) */
+.listening__sentence {
+  font-size: 18px;
+  line-height: 1.7;
+  overflow-wrap: break-word;
+}
+
+/* Сам пропуск: заметное подчёркнутое место, длина НЕ выдаёт слово */
+.listening__blank {
+  display: inline-block;
+  color: var(--accent);
+  letter-spacing: 2px;
+  font-weight: 700;
+  vertical-align: baseline;
+}
+
+/* Подставленное/правильное слово при раскрытии */
+.listening__answer {
+  color: #35c88b;
+  font-weight: 700;
+}
+
+/* Что именно вписал пользователь, если ошибся */
+.listening__youwrote {
+  color: #ff6b6b;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
 /* Как отвечать: выбрать вариант или вписать услышанное */
 .listening__modes {
   display: flex;
@@ -385,6 +421,36 @@
   flex-direction: column;
   gap: 10px;
   padding-bottom: calc(4px + env(safe-area-inset-bottom));
+}
+
+/* Выбор формата: пропущенное слово / на слух */
+.listening__format {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.listening__format-chips {
+  display: flex;
+  gap: 6px;
+}
+
+.listening__format-chip {
+  flex: 1;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.listening__format-chip.is-active {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--accent);
 }
 
 .listening__level {

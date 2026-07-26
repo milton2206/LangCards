@@ -42,3 +42,39 @@ export function saveListeningLevel(id) {
     // ignore
   }
 }
+
+// Формат аудирования (фаза 6.2):
+//   gap        — «пропущенное слово»: звучит всё предложение, одно слово скрыто;
+//   soundalike — «на слух»: звучит слово, варианты похожи по звучанию (сложнее).
+// Второй формат — для продвинутых: включается, когда пользователь его выбрал,
+// а на высоких уровнях (B2/C1) он же по умолчанию.
+export const LISTENING_FORMATS = ["gap", "soundalike"];
+export const DEFAULT_LISTENING_FORMAT = "gap";
+const FORMAT_KEY = "listeningFormat";
+const HIGH_LEVELS = new Set(["b2", "c1"]);
+
+// Формат по умолчанию для уровня: на высоких — сразу «на слух».
+export function defaultFormatForLevel(level) {
+  return HIGH_LEVELS.has(String(level || "").toLowerCase())
+    ? "soundalike"
+    : DEFAULT_LISTENING_FORMAT;
+}
+
+// Сохранённый выбор пользователя главнее; если его нет — берём умолчание уровня.
+export function loadListeningFormat(level) {
+  try {
+    const raw = localStorage.getItem(FORMAT_KEY);
+    if (LISTENING_FORMATS.includes(raw)) return raw;
+  } catch {
+    // ignore
+  }
+  return defaultFormatForLevel(level);
+}
+
+export function saveListeningFormat(id) {
+  try {
+    localStorage.setItem(FORMAT_KEY, id);
+  } catch {
+    // ignore
+  }
+}

@@ -58,6 +58,8 @@ import { loadGenerateMode } from "./lib/generateMode.js";
 import {
   loadListeningLevel,
   saveListeningLevel,
+  loadListeningFormat,
+  saveListeningFormat,
 } from "./lib/listeningLevels.js";
 import { prewarmTts } from "./lib/ttsClient.js";
 
@@ -295,6 +297,15 @@ export default function App() {
   useEffect(() => {
     saveListeningLevel(listeningLevel);
   }, [listeningLevel]);
+
+  // Формат аудирования: «пропущенное слово» или «на слух». Умолчание зависит от
+  // уровня (на высоких — сразу «на слух»), дальше главенствует выбор пользователя.
+  const [listeningFormat, setListeningFormat] = useState(() =>
+    loadListeningFormat(settings.level),
+  );
+  useEffect(() => {
+    saveListeningFormat(listeningFormat);
+  }, [listeningFormat]);
 
   // Слова, которым сегодня пора на повтор (отдельно от потока новых карточек).
   const dueWords = getDueWords(vocab.takenWords, vocab.srsByWord, vocab.todayKey);
@@ -896,8 +907,11 @@ export default function App() {
             topic={settings.topic}
             level={settings.level}
             takenWords={vocab.takenWords}
+            wordInfo={vocab.wordInfo}
             levelId={listeningLevel}
             onChangeLevel={setListeningLevel}
+            formatId={listeningFormat}
+            onChangeFormat={setListeningFormat}
             scheduleActive={scheduleActive}
             onBack={() => setScreen("cards")}
           />

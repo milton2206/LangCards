@@ -240,42 +240,56 @@ export default {
     noAccount: "The test is available once you're signed in.",
   },
 
-  // Listening practice (phase 6.2).
+  // Listening practice (phase 6.2): two formats — fill-the-gap and sound-alike.
   listening: {
-    entry: "Listen to phrases",
+    entry: "Listening",
     title: "Listening",
-    start: "Start a round ({n} phrases)",
-    restart: "New round ({n} phrases)",
-    generating: "Preparing your phrases…",
-    emptyHint:
-      "A phrase plays — you pick what you heard from the options or type it in. Phrases are built around the words you're already learning, and you can replay as often as you like.",
-    progress: "Phrase {n} of {total}",
+    start: "Start a round ({n})",
+    restart: "New round ({n})",
+    generating: "Preparing your tasks…",
+    emptyHintGap:
+      "A whole sentence plays with one word hidden on screen. You listen and type the missing word — the first words won't give it away. Tasks are built around the words you're already learning.",
+    emptyHintSoundalike:
+      "A word plays, and the options sound alike — the first sound won't give it away. An advanced format. Words come from the ones you're already learning.",
+    progress: "Task {n} of {total}",
     listen: "Play",
     replay: "Play again",
-    modeChoice: "Pick",
-    modeType: "Type",
-    inputPlaceholder: "what you heard",
+    gapPrompt: "Which word is missing?",
+    soundalikePrompt: "What did you hear?",
+    inputPlaceholder: "the missing word",
     check: "Check",
+    modeType: "Type",
+    modeChoice: "Pick",
     right: "Correct",
     wrong: "Not quite",
-    diffLegend:
-      "Struck through — extra words; underlined — what the phrase had and your answer missed.",
+    youWrote: "You typed: {word}",
     explain: "Explain",
-    next: "Next phrase",
+    next: "Next",
     finish: "Finish the round",
     doneTitle: "Round complete",
     doneHint: "Heard correctly: {n} of {total}. You can start a new round.",
-    levelLabel: "Difficulty:",
+    levelLabel: "Speed and length:",
     level: { slow: "Slow", normal: "Normal", fast: "Fast" },
     levelHint:
       "Speed changes right away; phrase length applies to the next round.",
+    formatLabel: "Format:",
+    format: { gap: "Missing word", soundalike: "By ear" },
+    formatHintGap: "A sentence plays; you type the hidden word.",
+    formatHintSoundalike:
+      "A word plays; the options sound alike — harder.",
     audioFailed: "Couldn't load the audio. Please try again.",
-    failed: "Couldn't prepare the phrases. Please try again.",
+    failed: "Couldn't prepare the tasks. Please try again.",
     offline: "Listening needs a connection. Cards and reviews still work.",
+    needWords:
+      "Take some words on the cards first — both formats are built around your active words.",
+    gapEmpty:
+      "Couldn't build tasks from your words. Please try again or take more words.",
+    soundalikeEmpty:
+      "No sound-alike pairs were found for your words. Try the missing-word format.",
     tipNoWords:
-      "You have no words of your own yet, so phrases will simply match your level. Take some words on the cards and they'll start showing up here.",
+      "You have no words of your own yet. Take some on the cards — that's what the tasks are built from.",
     tipFewWords:
-      "Take a few more words and the phrases will get noticeably easier to recognise by ear.",
+      "Take a few more words and you'll get more varied tasks.",
   },
 
   // Card audio (phase 5.1).

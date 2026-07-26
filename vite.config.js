@@ -153,6 +153,44 @@ function devApiPlacement() {
   };
 }
 
+// Dev-плагин: локально обслуживает POST /api/listening тем же кодом, что и
+// serverless-функция на Vercel (подбор похоже звучащих вариантов, фаза 6.2).
+function devApiListening() {
+  return {
+    name: "dev-api-listening",
+    async configureServer(server) {
+      server.middlewares.use("/api/listening", async (req, res) => {
+        if (req.method !== "POST") {
+          res.statusCode = 405;
+          res.end("Method Not Allowed");
+          return;
+        }
+        try {
+          const chunks = [];
+          for await (const chunk of req) chunks.push(chunk);
+          const raw = Buffer.concat(chunks).toString("utf8");
+          const params = raw ? JSON.parse(raw) : {};
+          // Импортируем лениво, чтобы ошибка ключа не роняла запуск дев-сервера.
+          const { generateSoundAlikes } =
+            await server.ssrLoadModule("/lib/listening.js");
+          const items = await generateSoundAlikes({
+            learnLang: params.learnLang,
+            words: params.words,
+          });
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify({ items }));
+        } catch (err) {
+          res.statusCode = err.status || 500;
+          res.setHeader("Content-Type", "application/json");
+          res.end(
+            JSON.stringify({ error: err.message || "Ошибка аудирования" }),
+          );
+        }
+      });
+    },
+  };
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   // Vite сам НЕ кладёт .env/.env.local в process.env — а dev-middleware
@@ -171,6 +209,7 @@ export default defineConfig(({ mode }) => {
       devApiTts(),
       devApiReading(),
       devApiPlacement(),
+      devApiListening(),
     ],
     server: {
       // Уважаем порт из окружения (PORT), иначе стандартный 5173
