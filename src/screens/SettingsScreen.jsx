@@ -9,6 +9,7 @@ import InstallGuide from "../components/InstallGuide.jsx";
 import TopicPicker from "../components/TopicPicker.jsx";
 import FeedbackModal from "../components/FeedbackModal.jsx";
 import DeleteAccountDialog from "../components/DeleteAccountDialog.jsx";
+import ChangePasswordModal from "../components/ChangePasswordModal.jsx";
 import "./SettingsScreen.css";
 
 /**
@@ -35,11 +36,13 @@ export default function SettingsScreen({
   onRetrySync,
   onSendFeedback,
   onDeleteAccount,
+  onChangePassword,
 }) {
   const { t } = useI18n();
   const [showInstall, setShowInstall] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showChangePw, setShowChangePw] = useState(false);
 
   return (
     <section className="settings">
@@ -164,6 +167,16 @@ export default function SettingsScreen({
               onRetry={onRetrySync}
               t={t}
             />
+            {/* Смена пароля — через Supabase Auth (updateUser), в отдельном окне. */}
+            {onChangePassword && (
+              <button
+                type="button"
+                className="settings__chip settings__chip--wide"
+                onClick={() => setShowChangePw(true)}
+              >
+                🔑 {t("settings.changePassword")}
+              </button>
+            )}
             {/* Опасная зона: удаление аккаунта. Необратимо — подтверждение в
                 отдельном окне говорит об этом прямо. */}
             {onDeleteAccount && (
@@ -238,6 +251,13 @@ export default function SettingsScreen({
           email={auth?.user?.email}
           onClose={() => setShowDelete(false)}
           onConfirm={onDeleteAccount}
+        />
+      )}
+
+      {showChangePw && (
+        <ChangePasswordModal
+          onClose={() => setShowChangePw(false)}
+          onChange={onChangePassword}
         />
       )}
     </section>

@@ -124,3 +124,15 @@
 .auth__submit:disabled {
   opacity: 0.6;
 }
+
+/* Текстовая ссылка-кнопка: «Забыли пароль?», «Вернуться ко входу». */
+.auth__link {
+  align-self: center;
+  margin-top: 2px;
+  padding: 6px 8px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+}

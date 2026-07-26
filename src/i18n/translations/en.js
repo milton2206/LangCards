@@ -443,6 +443,7 @@ export default {
     howto: "How to use",
     install: "Install on phone",
     feedback: "Report a problem",
+    changePassword: "Change password",
     deleteAccount: "Delete account",
     // Multi-language mode (explicit choice, phase 4.2).
     multiLang: "Multi-language mode",
@@ -552,18 +553,53 @@ export default {
     submitSignup: "Sign up",
     submitSignin: "Sign in",
     enterCreds: "Enter your email and password.",
+    enterEmail: "Enter your email.",
+    forgot: "Forgot your password?",
     pwShort: "Password is too short (minimum 6 characters).",
     confirmSent:
       "Done! We sent an email to {email}. Follow the link to confirm your email, then sign in.",
+    // Password recovery: request the email and set a new password via the link.
+    reset: {
+      title: "Reset password",
+      lead: "Enter your email — we'll send a password reset link.",
+      submit: "Send reset link",
+      backToSignin: "Back to sign in",
+      sent:
+        "If {email} is registered, we've sent a reset link. Check your inbox (and the Spam folder).",
+      newTitle: "New password",
+      newLead: "Choose a new password to sign in with.",
+      newPassword: "New password",
+      confirm: "Repeat password",
+      save: "Save password",
+      saved: "Password updated. You're now signed in.",
+      continue: "Continue",
+      enterBoth: "Enter the new password and confirmation.",
+      mismatch: "Passwords don't match.",
+      expired: "The link has expired. Request a new reset link.",
+      invalid: "The link is invalid. Request a new reset link.",
+    },
     err: {
       invalidCreds: "Incorrect email or password.",
       notConfirmed: "Email not confirmed. Check your inbox and follow the link.",
       alreadyRegistered: "This email is already registered. Sign in instead.",
       invalidEmail: "Invalid email. Check the address and try again.",
+      samePassword: "The new password must be different from the old one.",
+      sessionExpired: "Your session expired. Sign in again to change your password.",
       rateLimit: "Too many attempts. Wait a bit and try again.",
       network: "No connection to the server. Check your internet and Supabase settings.",
       generic: "Something went wrong. Please try again.",
     },
+  },
+
+  // Change password from settings (for a signed-in user).
+  password: {
+    title: "Change password",
+    lead: "Enter a new password. Use it to sign in next time.",
+    new: "New password",
+    confirm: "Repeat password",
+    save: "Save",
+    saving: "Saving…",
+    saved: "Password changed.",
   },
 
   tutorial: {

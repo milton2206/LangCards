@@ -1,30 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import { authErrorKey } from "../lib/authErrors.js";
 import "./AuthScreen.css";
 
-// Частые ошибки Supabase приходят на английском — сопоставляем с ключом перевода.
-function errorKey(message) {
-  const m = (message || "").toLowerCase();
-  if (m.includes("invalid login credentials")) return "auth.err.invalidCreds";
-  if (m.includes("email not confirmed")) return "auth.err.notConfirmed";
-  if (m.includes("user already registered") || m.includes("already been registered"))
-    return "auth.err.alreadyRegistered";
-  if (m.includes("password should be at least")) return "auth.pwShort";
-  if (m.includes("email") && m.includes("invalid")) return "auth.err.invalidEmail";
-  if (m.includes("rate limit") || m.includes("too many")) return "auth.err.rateLimit";
-  if (m.includes("failed to fetch") || m.includes("network")) return "auth.err.network";
-  return "auth.err.generic";
-}
-
 /**
- * Экран входа/регистрации (email + пароль). Выбран пароль, а не magic-link:
- * работает без настройки доставки писем и предсказуемо для пользователя.
+ * Экран входа/регистрации (email + пароль) + запрос сброса пароля. Выбран пароль,
+ * а не magic-link: работает предсказуемо для пользователя.
  *
- * Данные слов пока в localStorage — аккаунт нужен как подготовка к синхронизации.
+ * Режимы: "signin" | "signup" | "reset" (ввод email для письма сброса). Сам ввод
+ * нового пароля — на отдельном экране восстановления (по ссылке из письма).
  */
-export default function AuthScreen({ onSignIn, onSignUp, onBack }) {
+export default function AuthScreen({
+  onSignIn,
+  onSignUp,
+  onResetPassword,
+  onBack,
+  resetLinkError,
+}) {
   const { t } = useI18n();
-  const [mode, setMode] = useState("signin"); // "signin" | "signup"
+  const [mode, setMode] = useState("signin"); // "signin" | "signup" | "reset"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -32,6 +26,23 @@ export default function AuthScreen({ onSignIn, onSignUp, onBack }) {
   const [notice, setNotice] = useState(null);
 
   const isSignup = mode === "signup";
+  const isReset = mode === "reset";
+
+  // Пришли по истёкшей/недействительной ссылке сброса — показываем понятное
+  // сообщение сразу на экране входа.
+  useEffect(() => {
+    if (resetLinkError) {
+      setMode("signin");
+      setError(
+        t(
+          resetLinkError === "expired"
+            ? "auth.reset.expired"
+            : "auth.reset.invalid",
+        ),
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetLinkError]);
 
   function switchMode(next) {
     setMode(next);
@@ -39,6 +50,7 @@ export default function AuthScreen({ onSignIn, onSignUp, onBack }) {
     setNotice(null);
   }
 
+  // Вход / регистрация.
   async function handleSubmit(e) {
     e.preventDefault();
     if (busy) return;
@@ -71,7 +83,35 @@ export default function AuthScreen({ onSignIn, onSignUp, onBack }) {
         // Успех: onAuthStateChange обновит App и уведёт с этого экрана.
       }
     } catch (err) {
-      setError(t(errorKey(err?.message)));
+      setError(t(authErrorKey(err?.message)));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Запрос письма со ссылкой сброса.
+  async function handleResetSubmit(e) {
+    e.preventDefault();
+    if (busy) return;
+    setError(null);
+    setNotice(null);
+
+    const mail = email.trim();
+    if (!mail) {
+      setError(t("auth.enterEmail"));
+      return;
+    }
+
+    setBusy(true);
+    try {
+      await onResetPassword(mail);
+      // Supabase намеренно отвечает успехом и для незарегистрированных адресов
+      // (чтобы нельзя было перебором узнать, кто есть в базе) — формулировка это
+      // учитывает. Возвращаемся ко входу с уведомлением.
+      setMode("signin");
+      setNotice(t("auth.reset.sent", { email: mail }));
+    } catch (err) {
+      setError(t(authErrorKey(err?.message)));
     } finally {
       setBusy(false);
     }
@@ -83,83 +123,134 @@ export default function AuthScreen({ onSignIn, onSignUp, onBack }) {
         <button
           type="button"
           className="auth__back"
-          onClick={onBack}
+          onClick={isReset ? () => switchMode("signin") : onBack}
           aria-label={t("common.back")}
         >
           ←
         </button>
         <h1 className="auth__title">
-          {isSignup ? t("auth.signup") : t("auth.signin")}
+          {isReset
+            ? t("auth.reset.title")
+            : isSignup
+              ? t("auth.signup")
+              : t("auth.signin")}
         </h1>
       </header>
 
-      <p className="auth__note">{t("auth.note")}</p>
+      <p className="auth__note">{isReset ? t("auth.reset.lead") : t("auth.note")}</p>
 
-      <div className="auth__tabs" role="tablist" aria-label={t("auth.tabsAria")}>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={!isSignup}
-          className={"auth__tab" + (!isSignup ? " is-active" : "")}
-          onClick={() => switchMode("signin")}
-        >
-          {t("auth.signin")}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={isSignup}
-          className={"auth__tab" + (isSignup ? " is-active" : "")}
-          onClick={() => switchMode("signup")}
-        >
-          {t("auth.signup")}
-        </button>
-      </div>
+      {!isReset && (
+        <div className="auth__tabs" role="tablist" aria-label={t("auth.tabsAria")}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!isSignup}
+            className={"auth__tab" + (!isSignup ? " is-active" : "")}
+            onClick={() => switchMode("signin")}
+          >
+            {t("auth.signin")}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={isSignup}
+            className={"auth__tab" + (isSignup ? " is-active" : "")}
+            onClick={() => switchMode("signup")}
+          >
+            {t("auth.signup")}
+          </button>
+        </div>
+      )}
 
-      <form className="auth__form" onSubmit={handleSubmit}>
-        <label className="auth__label">
-          {t("auth.email")}
-          <input
-            type="email"
-            className="auth__input"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-            autoCapitalize="none"
-            spellCheck="false"
-            placeholder="you@example.com"
-            required
-          />
-        </label>
+      {isReset ? (
+        <form className="auth__form" onSubmit={handleResetSubmit}>
+          <label className="auth__label">
+            {t("auth.email")}
+            <input
+              type="email"
+              className="auth__input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              autoCapitalize="none"
+              spellCheck="false"
+              placeholder="you@example.com"
+              required
+            />
+          </label>
 
-        <label className="auth__label">
-          {t("auth.password")}
-          <input
-            type="password"
-            className="auth__input"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete={isSignup ? "new-password" : "current-password"}
-            placeholder={
-              isSignup
-                ? t("auth.pwPlaceholderSignup")
-                : t("auth.pwPlaceholderSignin")
-            }
-            required
-          />
-        </label>
+          {error && <p className="auth__error">{error}</p>}
+          {notice && <p className="auth__notice">{notice}</p>}
 
-        {error && <p className="auth__error">{error}</p>}
-        {notice && <p className="auth__notice">{notice}</p>}
+          <button type="submit" className="auth__submit" disabled={busy}>
+            {busy ? t("auth.busy") : t("auth.reset.submit")}
+          </button>
 
-        <button type="submit" className="auth__submit" disabled={busy}>
-          {busy
-            ? t("auth.busy")
-            : isSignup
-              ? t("auth.submitSignup")
-              : t("auth.submitSignin")}
-        </button>
-      </form>
+          <button
+            type="button"
+            className="auth__link"
+            onClick={() => switchMode("signin")}
+          >
+            {t("auth.reset.backToSignin")}
+          </button>
+        </form>
+      ) : (
+        <form className="auth__form" onSubmit={handleSubmit}>
+          <label className="auth__label">
+            {t("auth.email")}
+            <input
+              type="email"
+              className="auth__input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              autoCapitalize="none"
+              spellCheck="false"
+              placeholder="you@example.com"
+              required
+            />
+          </label>
+
+          <label className="auth__label">
+            {t("auth.password")}
+            <input
+              type="password"
+              className="auth__input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={isSignup ? "new-password" : "current-password"}
+              placeholder={
+                isSignup
+                  ? t("auth.pwPlaceholderSignup")
+                  : t("auth.pwPlaceholderSignin")
+              }
+              required
+            />
+          </label>
+
+          {error && <p className="auth__error">{error}</p>}
+          {notice && <p className="auth__notice">{notice}</p>}
+
+          <button type="submit" className="auth__submit" disabled={busy}>
+            {busy
+              ? t("auth.busy")
+              : isSignup
+                ? t("auth.submitSignup")
+                : t("auth.submitSignin")}
+          </button>
+
+          {/* Ссылка «Забыли пароль?» — только на входе. */}
+          {!isSignup && (
+            <button
+              type="button"
+              className="auth__link"
+              onClick={() => switchMode("reset")}
+            >
+              {t("auth.forgot")}
+            </button>
+          )}
+        </form>
+      )}
     </section>
   );
 }

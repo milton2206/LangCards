@@ -70,6 +70,24 @@
   border-radius: var(--radius-sm);
 }
 
+.modal__input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--text);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.modal__input:focus,
+.modal__textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 /* Предупреждение о необратимости — красная рамка, чтобы прочли. */
 .modal__warn {
   font-size: 14px;

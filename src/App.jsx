@@ -19,6 +19,7 @@ import LanguagesScreen from "./screens/LanguagesScreen.jsx";
 import ReviewScreen from "./screens/ReviewScreen.jsx";
 import StatsScreen from "./screens/StatsScreen.jsx";
 import AuthScreen from "./screens/AuthScreen.jsx";
+import ResetPasswordScreen from "./screens/ResetPasswordScreen.jsx";
 import Tutorial from "./components/Tutorial.jsx";
 import WhatsNew from "./components/WhatsNew.jsx";
 import {
@@ -449,13 +450,20 @@ export default function App() {
 
   // Гейт навигации: без аккаунта доступны только start/auth; после входа с
   // этих экранов уводим на карточки (онбординг/перенос перекроют при need).
+  // Особый случай: пришли по недействительной ссылке сброса (recoveryError) —
+  // сессии нет, ведём сразу на экран входа (там показывается сообщение), а не
+  // на стартовый.
   useEffect(() => {
     if (authRequired && !auth.user) {
-      if (screen !== "start" && screen !== "auth") setScreen("start");
+      if (auth.recoveryError) {
+        if (screen !== "auth") setScreen("auth");
+      } else if (screen !== "start" && screen !== "auth") {
+        setScreen("start");
+      }
     } else if (screen === "start" || screen === "auth") {
       setScreen("cards");
     }
-  }, [authRequired, auth.user, screen]);
+  }, [authRequired, auth.user, screen, auth.recoveryError]);
 
   // Выход из аккаунта: чистим локальный кэш (чужой прогресс не должен остаться
   // на устройстве) и перезагружаемся — все хуки стартуют с чистого состояния.
@@ -831,7 +839,16 @@ export default function App() {
   );
 
   let content;
-  if (authRequired && auth.loading) {
+  if (auth.recovery) {
+    // Пришли по ссылке восстановления пароля: показываем ввод нового пароля
+    // поверх всего (сессия восстановления уже есть). После успеха — в приложение.
+    content = (
+      <ResetPasswordScreen
+        onSubmit={auth.updatePassword}
+        onDone={auth.clearRecovery}
+      />
+    );
+  } else if (authRequired && auth.loading) {
     content = splash;
   } else if (authRequired && !auth.user) {
     // Обязательная регистрация: незалогиненный видит только start → auth.
@@ -840,6 +857,8 @@ export default function App() {
         <AuthScreen
           onSignIn={auth.signIn}
           onSignUp={auth.signUp}
+          onResetPassword={auth.sendPasswordReset}
+          resetLinkError={auth.recoveryError}
           onBack={() => setScreen("start")}
         />
       ) : (
@@ -1061,6 +1080,7 @@ export default function App() {
             onRetrySync={vocab.retrySync}
             onSendFeedback={handleSendFeedback}
             onDeleteAccount={handleDeleteAccount}
+            onChangePassword={auth.updatePassword}
           />
         )}
 
