@@ -15,6 +15,7 @@
 
 import { requestReadingText } from "./readingClient.js";
 import { highlightWordInExample, coreWord } from "./highlightWord.js";
+import { authHeaders, makeApiError } from "./apiClient.js";
 
 const SETS_KEY = "listeningSets"; // { "de-ru": { format, items, index, … } }
 
@@ -357,7 +358,7 @@ async function fetchSoundAlikes({ learnLang, nativeLang, level, words, source, c
   try {
     res = await fetch("/api/listening", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({
         action: "soundalike",
         learnLang,
@@ -374,17 +375,7 @@ async function fetchSoundAlikes({ learnLang, nativeLang, level, words, source, c
     throw err;
   }
   if (!res.ok) {
-    let serverMsg = null;
-    try {
-      const data = await res.json();
-      if (data && data.error) serverMsg = data.error;
-    } catch {
-      // тело не JSON — покажем общий текст
-    }
-    const err = new Error(serverMsg || "server");
-    err.code = "server";
-    err.raw = serverMsg || null;
-    throw err;
+    throw await makeApiError(res);
   }
   const data = await res.json();
   return Array.isArray(data.items) ? data.items : [];

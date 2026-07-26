@@ -401,3 +401,199 @@ alter table public.user_languages
 --   типы vocab и cloze примерно поровну.
 --   select learn_lang, native_lang, placement_level from public.user_languages;
 -- ============================================================================
+
+-- ============================================================================
+-- Фаза 7.1 · Суточные лимиты на пользователя (защита счёта за Claude/Google TTS)
+-- ----------------------------------------------------------------------------
+-- Каждый вызов генерации/озвучки стоит денег и списывается автоматически. Без
+-- лимита любой зарегистрировавшийся мог бы генерировать бесконечно. Счётчик —
+-- на пользователя, за календарные сутки (UTC), с минимальным интервалом между
+-- запросами. Числа (сколько в сутки, какой интервал) живут В КОДЕ, в одном
+-- месте — lib/rateLimits.js; сюда они приходят параметрами функции, а не
+-- зашиты в БД: поменять лимит можно правкой одной константы без миграции.
+--
+-- Доступ: строки трогает ТОЛЬКО сервер через service_role (обходит RLS).
+-- Политик нет намеренно — anon/authenticated ключом счётчик не прочитать и не
+-- подкрутить. Идемпотентно.
+-- ============================================================================
+
+create table if not exists public.api_usage (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  day     date not null,
+  kind    text not null,          -- 'cards' | 'texts' | 'grammar' | 'tts' | …
+  count   integer not null default 0,
+  last_at timestamptz not null default now(),
+  primary key (user_id, day, kind)
+);
+
+alter table public.api_usage enable row level security;
+-- Политик нет намеренно: доступ только у service_role (сервер), RLS закрывает
+-- таблицу для anon/authenticated целиком.
+
+-- ---------- Атомарное списание единицы лимита ----------
+-- Один вызов = проверка (интервал + суточный потолок) И инкремент в одной
+-- транзакции под блокировкой строки (for update). Так параллельные запросы
+-- одного пользователя не проскочат мимо лимита из-за гонки.
+--
+-- Важно: id пользователя приходит параметром (p_user_id) — сервер берёт его из
+-- ПРОВЕРЕННОГО токена сессии, не из тела запроса, и вызывает функцию только
+-- через service_role. Внутри auth.uid() не используется (под service_role он
+-- null). Возвращает jsonb:
+--   { allowed:true,  used, limit }
+--   { allowed:false, reason:'daily',    used, limit }
+--   { allowed:false, reason:'cooldown', retry_after, used, limit }
+create or replace function public.consume_quota(
+  p_user_id      uuid,
+  p_kind         text,
+  p_limit        integer,
+  p_min_interval integer
+) returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_today date := (now() at time zone 'utc')::date;
+  v_count integer;
+  v_last  timestamptz;
+  v_since numeric;
+begin
+  if p_user_id is null then
+    return jsonb_build_object('allowed', false, 'reason', 'unauthorized');
+  end if;
+
+  -- Самоочистка: старые суточные строки этого пользователя не нужны — держим
+  -- таблицу маленькой, не заводя отдельный крон.
+  delete from public.api_usage
+   where user_id = p_user_id and day < v_today - 7;
+
+  -- Заводим строку на сегодня, если её ещё нет. last_at в далёком прошлом,
+  -- чтобы самый первый запрос не спотыкался о минимальный интервал.
+  insert into public.api_usage (user_id, day, kind, count, last_at)
+  values (p_user_id, v_today, p_kind, 0, to_timestamp(0))
+  on conflict (user_id, day, kind) do nothing;
+
+  -- Блокируем строку счётчика: проверка и инкремент ниже атомарны.
+  select count, last_at into v_count, v_last
+    from public.api_usage
+   where user_id = p_user_id and day = v_today and kind = p_kind
+   for update;
+
+  -- Минимальный интервал между запросами.
+  v_since := extract(epoch from (now() - v_last));
+  if p_min_interval > 0 and v_since < p_min_interval then
+    return jsonb_build_object(
+      'allowed', false, 'reason', 'cooldown',
+      'retry_after', ceil(p_min_interval - v_since)::int,
+      'used', v_count, 'limit', p_limit);
+  end if;
+
+  -- Суточный потолок.
+  if v_count >= p_limit then
+    return jsonb_build_object(
+      'allowed', false, 'reason', 'daily', 'used', v_count, 'limit', p_limit);
+  end if;
+
+  update public.api_usage
+     set count = count + 1, last_at = now()
+   where user_id = p_user_id and day = v_today and kind = p_kind;
+
+  return jsonb_build_object(
+    'allowed', true, 'used', v_count + 1, 'limit', p_limit);
+end;
+$$;
+
+-- Вызывать функцию может ТОЛЬКО сервер (service_role). Явно забираем право у
+-- анонимных и вошедших ключей, чтобы её нельзя было дёрнуть из браузера и
+-- накрутить чужой счётчик.
+revoke all on function public.consume_quota(uuid, text, integer, integer)
+  from public, anon, authenticated;
+grant execute on function public.consume_quota(uuid, text, integer, integer)
+  to service_role;
+
+-- ============================================================================
+-- Проверка фазы 7.1 (по желанию, в SQL Editor):
+--   select user_id, day, kind, count, last_at from public.api_usage
+--    order by day desc, kind;   -- растёт при генерации, обнуляется новым днём
+-- ============================================================================
+
+-- ============================================================================
+-- Фаза 7.1 · Аналитика без внешних сервисов (last_seen, signup_source)
+-- ----------------------------------------------------------------------------
+-- Никаких внешних трекеров, кукибаннеров и согласий: считаем возвраты и удержание
+-- по двум колонкам в profiles. RLS profiles уже настроен (политики *_own выше) —
+-- новых политик не нужно. Идемпотентно.
+--   last_seen     — момент последнего захода (обновляется не чаще раза в сутки);
+--   signup_source — откуда пришёл пользователь (?src/?ref/?utm_source при первом
+--                   заходе), NULL если метки не было.
+-- ============================================================================
+
+alter table public.profiles
+  add column if not exists last_seen timestamptz;
+
+alter table public.profiles
+  add column if not exists signup_source text;
+
+-- Отметка «был сегодня»: пишет last_seen=now() ТОЛЬКО если сегодня ещё не
+-- отмечался — так частые заходы не грузят базу. Вызывается клиентом (RPC) под
+-- сессией пользователя; id берётся из auth.uid() (не из аргументов), пишем строго
+-- свою строку. security definer — чтобы обновление прошло даже под строгим RLS,
+-- фильтр id = auth.uid() оставляет доступ ровно к своей строке.
+create or replace function public.touch_last_seen()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.profiles
+     set last_seen = now()
+   where id = auth.uid()
+     and (
+       last_seen is null
+       -- Сравнение по календарной дате UTC — однозначно, без tz-неоднозначности.
+       or (last_seen at time zone 'utc')::date < (now() at time zone 'utc')::date
+     );
+end;
+$$;
+
+-- Вызывать может только вошедший пользователь (для себя). Аноним — нет.
+revoke all on function public.touch_last_seen() from public, anon;
+grant execute on function public.touch_last_seen() to authenticated;
+
+-- ============================================================================
+-- Фаза 7.1 · Обратная связь (кнопка «Сообщить о проблеме»)
+-- ----------------------------------------------------------------------------
+-- Отзыв уходит строкой сюда — без почты и внешних сервисов. Версия приложения и
+-- браузер добавляются автоматически (без них отчёты бесполезны). RLS: каждый
+-- пишет ТОЛЬКО своё и читать НЕ может — политики select нет НАМЕРЕННО, отзывы
+-- читает только владелец проекта через service_role в дашборде. Идемпотентно.
+-- ============================================================================
+
+create table if not exists public.feedback (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users (id) on delete cascade,
+  text        text not null,
+  screen      text,             -- экран, с которого отправлен отзыв
+  app_version text,             -- версия приложения (автоматически)
+  user_agent  text,             -- браузер/устройство (автоматически)
+  created_at  timestamptz not null default now()
+);
+
+alter table public.feedback enable row level security;
+
+-- Только вставка своих строк. Ни select, ни update, ни delete политик нет —
+-- пользователь пишет отзыв, но не видит ни своих, ни чужих.
+drop policy if exists "feedback_insert_own" on public.feedback;
+create policy "feedback_insert_own"
+  on public.feedback for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+-- ============================================================================
+-- Проверка фазы 7.1 (аналитика/отзывы, в SQL Editor):
+--   select id, last_seen, signup_source from public.profiles order by created_at;
+--   select user_id, screen, app_version, created_at from public.feedback
+--    order by created_at desc;
+--   Готовые запросы по регистрациям/возвратам — в supabase/analytics.sql.
+-- ============================================================================

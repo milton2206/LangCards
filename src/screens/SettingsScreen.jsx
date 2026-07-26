@@ -7,6 +7,8 @@ import {
 import { useI18n } from "../i18n/I18nContext.jsx";
 import InstallGuide from "../components/InstallGuide.jsx";
 import TopicPicker from "../components/TopicPicker.jsx";
+import FeedbackModal from "../components/FeedbackModal.jsx";
+import DeleteAccountDialog from "../components/DeleteAccountDialog.jsx";
 import "./SettingsScreen.css";
 
 /**
@@ -31,9 +33,13 @@ export default function SettingsScreen({
   syncStatus,
   syncReason,
   onRetrySync,
+  onSendFeedback,
+  onDeleteAccount,
 }) {
   const { t } = useI18n();
   const [showInstall, setShowInstall] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
 
   return (
     <section className="settings">
@@ -158,6 +164,17 @@ export default function SettingsScreen({
               onRetry={onRetrySync}
               t={t}
             />
+            {/* Опасная зона: удаление аккаунта. Необратимо — подтверждение в
+                отдельном окне говорит об этом прямо. */}
+            {onDeleteAccount && (
+              <button
+                type="button"
+                className="settings__danger"
+                onClick={() => setShowDelete(true)}
+              >
+                {t("settings.deleteAccount")}
+              </button>
+            )}
           </>
         ) : (
           <>
@@ -195,7 +212,34 @@ export default function SettingsScreen({
         {t("settings.install")}
       </button>
 
+      {/* Сообщить о проблеме → запись в таблицу feedback (версия и браузер
+          добавляются автоматически). Доступно вошедшему пользователю. */}
+      {onSendFeedback && auth?.user && (
+        <button
+          type="button"
+          className="settings__secondary"
+          onClick={() => setShowFeedback(true)}
+        >
+          {t("settings.feedback")}
+        </button>
+      )}
+
       {showInstall && <InstallGuide onClose={() => setShowInstall(false)} />}
+
+      {showFeedback && (
+        <FeedbackModal
+          onClose={() => setShowFeedback(false)}
+          onSend={onSendFeedback}
+        />
+      )}
+
+      {showDelete && (
+        <DeleteAccountDialog
+          email={auth?.user?.email}
+          onClose={() => setShowDelete(false)}
+          onConfirm={onDeleteAccount}
+        />
+      )}
     </section>
   );
 }

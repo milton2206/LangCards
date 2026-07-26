@@ -1,4 +1,5 @@
 import { ensurePlacementBank, countBank } from "../lib/placement.js";
+import { authenticateRequest, consumeQuota } from "../lib/serverAuth.js";
 
 // Читает JSON-тело запроса (Vercel обычно уже парсит req.body, но подстрахуемся).
 async function readBody(req) {
@@ -31,16 +32,24 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { action, learnLang, force } = await readBody(req);
+    const { action, learnLang } = await readBody(req);
+    // "count" — дешёвое чтение, лимитом не облагаем; "ensure" может запустить
+    // генерацию (5 уровней) — тратим единицу квоты placement.
+    const { userId } = await authenticateRequest(req);
+    if (action !== "count") await consumeQuota(userId, "placement");
+    // force НАМЕРЕННО не берём из тела: пере-генерацию банка с нуля клиент
+    // запускать не может (это дорого). Наполнение идёт только когда банк пуст.
     const result =
       action === "count"
         ? await countBank(learnLang)
-        : await ensurePlacementBank({ learnLang, force: Boolean(force) });
+        : await ensurePlacementBank({ learnLang, force: false });
     res.status(200).json(result);
   } catch (err) {
     const status = err.status || 500;
     res.status(status).json({
       error: err.message || "Не удалось подготовить банк заданий.",
+      code: err.code,
+      retryAfter: err.retryAfter,
     });
   }
 }

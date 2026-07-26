@@ -1,4 +1,5 @@
 import { generateSoundAlikes } from "../lib/listening.js";
+import { guard } from "../lib/serverAuth.js";
 
 // Читает JSON-тело запроса (Vercel обычно уже парсит req.body, но подстрахуемся).
 async function readBody(req) {
@@ -27,6 +28,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    await guard(req, "listening");
     const { learnLang, nativeLang, level, words, source, count } =
       await readBody(req);
     const items = await generateSoundAlikes({
@@ -42,6 +44,8 @@ export default async function handler(req, res) {
     const status = err.status || 500;
     res.status(status).json({
       error: err.message || "Не удалось подобрать варианты на слух.",
+      code: err.code,
+      retryAfter: err.retryAfter,
     });
   }
 }

@@ -1,4 +1,5 @@
 import { generateReadingText, explainGrammar } from "../lib/reading.js";
+import { guard } from "../lib/serverAuth.js";
 
 // Читает JSON-тело запроса (Vercel обычно уже парсит req.body, но подстрахуемся).
 async function readBody(req) {
@@ -26,6 +27,9 @@ export default async function handler(req, res) {
 
   try {
     const params = await readBody(req);
+    // Грамматика и текст — разные виды лимита: разбор предложения дешевле и
+    // случается чаще, у него своя квота.
+    await guard(req, params.action === "grammar" ? "grammar" : "texts");
     const result =
       params.action === "grammar"
         ? await explainGrammar(params)
@@ -35,6 +39,8 @@ export default async function handler(req, res) {
     const status = err.status || 500;
     res.status(status).json({
       error: err.message || "Не удалось получить текст для чтения.",
+      code: err.code,
+      retryAfter: err.retryAfter,
     });
   }
 }

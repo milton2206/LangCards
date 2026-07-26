@@ -63,6 +63,13 @@ import {
 } from "./lib/listeningLevels.js";
 import { loadWordSource, saveWordSource } from "./lib/wordSource.js";
 import { prewarmTts } from "./lib/ttsClient.js";
+import { deleteAccountRequest } from "./lib/accountClient.js";
+import { sendFeedback } from "./lib/feedbackClient.js";
+import {
+  captureSignupSource,
+  touchLastSeen,
+  recordSignupSource,
+} from "./lib/presence.js";
 
 // Id тем-пресетов и запасная тема: когда выбранная своя тема удалена или
 // принадлежит другой паре, откатываемся к пресету, чтобы генерация не осталась
@@ -456,6 +463,58 @@ export default function App() {
     window.location.reload();
   }
   const authForUi = { ...auth, signOut: handleSignOut };
+
+  // ---------- Аналитика без внешних сервисов (фаза 7.1) ----------
+  // Источник перехода захватываем при старте (?src/?ref/?utm_source), пока он
+  // ещё в адресе; записываем в профиль позже, когда появится пользователь.
+  useEffect(() => {
+    captureSignupSource();
+  }, []);
+
+  // «Был сегодня» (не чаще раза в сутки) + разовая запись источника — как только
+  // есть вошедший пользователь. Обе операции — тихий best-effort.
+  useEffect(() => {
+    if (!auth.user) return;
+    touchLastSeen(auth.user.id);
+    recordSignupSource(auth.user.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.user?.id]);
+
+  // Последний «содержательный» экран — контекст для отзыва (кнопка отзыва живёт
+  // в настройках, но интересно, откуда пользователь на неё пришёл).
+  const lastFeatureScreenRef = useRef("cards");
+  useEffect(() => {
+    if (screen !== "settings" && screen !== "auth" && screen !== "start") {
+      lastFeatureScreenRef.current = screen;
+    }
+  }, [screen]);
+
+  // ---------- Отзыв и удаление аккаунта (фаза 7.1) ----------
+  // Отзыв: версию приложения и браузер добавляет feedbackClient; экран берём из
+  // последнего содержательного экрана. Возвращает { ok, reason? } для UI.
+  async function handleSendFeedback(text) {
+    if (!auth.user) return { ok: false, reason: "not-configured" };
+    return sendFeedback({
+      userId: auth.user.id,
+      text,
+      screen: lastFeatureScreenRef.current,
+    });
+  }
+
+  // Удаление аккаунта: сервер удаляет всё (см. api/account.js), затем чистим
+  // устройство и перезагружаемся — пользователь попадает на стартовый экран.
+  // Ошибку пробрасываем: её показывает окно подтверждения.
+  async function handleDeleteAccount() {
+    await deleteAccountRequest();
+    clearLocalProgress();
+    clearAccountCache();
+    try {
+      await auth.signOut();
+    } catch {
+      // сессия уже недействительна после удаления — это ожидаемо
+    }
+    window.location.reload();
+  }
 
   // Онбординг нужен, пока нет активной пары или темы/уровня (после входа).
   const needsSetup = !activeLanguage || !settings.topic || !settings.level;
@@ -979,6 +1038,8 @@ export default function App() {
             syncStatus={vocab.syncStatus}
             syncReason={vocab.syncReason}
             onRetrySync={vocab.retrySync}
+            onSendFeedback={handleSendFeedback}
+            onDeleteAccount={handleDeleteAccount}
           />
         )}
 

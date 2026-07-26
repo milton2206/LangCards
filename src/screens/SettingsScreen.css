@@ -210,3 +210,17 @@
   font-size: 14px;
   font-weight: 600;
 }
+
+/* Удаление аккаунта — приглушённая «опасная» кнопка внутри секции аккаунта.
+   Само подтверждение (и красный акцент) — в модальном окне. */
+.settings__danger {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 4px;
+  border: 1px solid rgba(240, 60, 60, 0.4);
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: #e0605a;
+  font-size: 14px;
+  font-weight: 600;
+}

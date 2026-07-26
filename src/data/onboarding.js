@@ -2,34 +2,28 @@
 // (заголовки, подписи опций) живут в словарях i18n — здесь только ключи, id и
 // эмодзи. Подписи резолвятся через t() по ключам optionLabelKey/stepTitleKey.
 
-// Флаги языков — общие для онбординга, настроек и переключателя пар.
-export const LANG_EMOJI = {
-  de: "🇩🇪",
-  en: "🇬🇧",
-  el: "🇬🇷",
-  es: "🇪🇸",
-  ru: "🇷🇺",
-  uk: "🇺🇦",
-};
+import {
+  LEARN_LANGUAGES,
+  NATIVE_LANGUAGES,
+  enabledLearnLanguages,
+} from "./languages.js";
+
+// Флаги языков — общие для онбординга, настроек и переключателя пар. Собираются
+// из единого каталога языков (src/data/languages.js), чтобы флаг был в одном месте.
+export const LANG_EMOJI = Object.fromEntries(
+  [...LEARN_LANGUAGES, ...NATIVE_LANGUAGES].map((l) => [l.id, l.emoji]),
+);
 
 export const ONBOARDING_STEPS = [
   {
     key: "learnLang",
-    options: [
-      { id: "de", emoji: LANG_EMOJI.de },
-      { id: "en", emoji: LANG_EMOJI.en },
-      { id: "el", emoji: LANG_EMOJI.el },
-      { id: "es", emoji: LANG_EMOJI.es },
-      { id: "ru", emoji: LANG_EMOJI.ru },
-    ],
+    // Только включённые для изучения языки (enabled). Выключенный язык (напр.
+    // испанский) исчезает из выбора здесь и во всех PairPicker разом.
+    options: enabledLearnLanguages().map((l) => ({ id: l.id, emoji: l.emoji })),
   },
   {
     key: "nativeLang",
-    options: [
-      { id: "ru", emoji: LANG_EMOJI.ru },
-      { id: "uk", emoji: LANG_EMOJI.uk },
-      { id: "en", emoji: LANG_EMOJI.en },
-    ],
+    options: NATIVE_LANGUAGES.map((l) => ({ id: l.id, emoji: l.emoji })),
   },
   {
     key: "topic",

@@ -7,6 +7,7 @@ import {
   requestGrammar,
 } from "../lib/readingClient.js";
 import { fetchTtsUrl, playUrl, stopCurrentAudio } from "../lib/ttsClient.js";
+import { apiErrorText } from "../lib/apiClient.js";
 import { ENOUGH_WORDS_FOR_READING } from "../hooks/useWordLists.js";
 import { useWordLookup } from "../hooks/useWordLookup.js";
 import WordLookupSheet from "../components/WordLookupSheet.jsx";
@@ -132,11 +133,7 @@ export default function ReadingScreen({
       setTexts(list);
       setIndex(0);
     } catch (err) {
-      setError(
-        err.code === "offline"
-          ? t("errors.offline")
-          : err.raw || t("reading.failed"),
-      );
+      setError(apiErrorText(err, t, "reading.failed"));
     } finally {
       setLoading(false);
     }
@@ -165,10 +162,7 @@ export default function ReadingScreen({
       setGrammar({
         sentence: sentence.text,
         status: "error",
-        errorText:
-          err.code === "offline"
-            ? t("errors.offline")
-            : err.raw || t("reading.grammarFailed"),
+        errorText: apiErrorText(err, t, "reading.grammarFailed"),
       });
     }
   }

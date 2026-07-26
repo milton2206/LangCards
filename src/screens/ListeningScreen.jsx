@@ -9,6 +9,7 @@ import {
   BLANK,
 } from "../lib/listeningClient.js";
 import { requestGrammar } from "../lib/readingClient.js";
+import { apiErrorText } from "../lib/apiClient.js";
 import {
   fetchTtsUrl,
   playUrl,
@@ -241,11 +242,7 @@ export default function ListeningScreen({
       );
       playAudio(next.items[0].kind === "soundalike" ? next.items[0].word : next.items[0].text);
     } catch (err) {
-      setError(
-        err.code === "offline"
-          ? t("errors.offline")
-          : err.raw || t("listening.failed"),
-      );
+      setError(apiErrorText(err, t, "listening.failed"));
     } finally {
       setLoading(false);
     }
@@ -297,10 +294,7 @@ export default function ListeningScreen({
     } catch (err) {
       setGrammar({
         status: "error",
-        errorText:
-          err.code === "offline"
-            ? t("errors.offline")
-            : err.raw || t("reading.grammarFailed"),
+        errorText: apiErrorText(err, t, "reading.grammarFailed"),
       });
     }
   }

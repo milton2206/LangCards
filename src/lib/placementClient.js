@@ -10,6 +10,7 @@
 
 import { supabase } from "./supabase.js";
 import { PLACEMENT_LEVELS } from "./placementAlgorithm.js";
+import { authHeaders } from "./apiClient.js";
 
 const CACHE_KEY = "placementBank"; // { de: { items: [...], savedAt } }
 // Банк почти не меняется, но и вечно держать первый (возможно неполный) снимок
@@ -117,7 +118,7 @@ export async function fetchPlacementBank(learnLang) {
     try {
       res = await fetch("/api/placement", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
         body: JSON.stringify({ action: "ensure", learnLang }),
       });
     } catch {

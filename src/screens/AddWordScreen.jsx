@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { requestManualCard } from "../lib/manualCard.js";
+import { apiErrorText } from "../lib/apiClient.js";
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import "./AddWordScreen.css";
 
-// Локализованный текст ошибки по коду из requestManualCard.
+// Локализованный текст ошибки по коду из requestManualCard. Слово-специфичный
+// код notRecognized — здесь; лимит/сессия/офлайн — общий apiErrorText.
 function errorMessage(error, t) {
   if (!error) return null;
   if (error.code === "notRecognized") return t("addWord.notRecognized");
-  if (error.code === "offline") return t("errors.offline");
-  return error.raw || t("addWord.failed");
+  return apiErrorText(error, t, "addWord.failed");
 }
 
 /**

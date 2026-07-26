@@ -1,4 +1,5 @@
 import { getOrCreateSpeech } from "../lib/tts.js";
+import { authenticateRequest, consumeQuota } from "../lib/serverAuth.js";
 
 // Читает JSON-тело запроса (Vercel обычно уже парсит req.body, но подстрахуемся).
 async function readBody(req) {
@@ -26,13 +27,24 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Вход обязателен всегда; но единицу лимита tts тратим ТОЛЬКО при кэш-промахе
+    // (реальный синтез в Google). Поэтому проверку лимита передаём внутрь через
+    // onSynthesize — попадание в общий кэш квоту не ест.
+    const { userId } = await authenticateRequest(req);
     const { text, learnLang, rate } = await readBody(req);
-    const result = await getOrCreateSpeech({ text, learnLang, rate });
+    const result = await getOrCreateSpeech({
+      text,
+      learnLang,
+      rate,
+      onSynthesize: () => consumeQuota(userId, "tts"),
+    });
     res.status(200).json(result);
   } catch (err) {
     const status = err.status || 500;
     res.status(status).json({
       error: err.message || "Не удалось получить озвучку.",
+      code: err.code,
+      retryAfter: err.retryAfter,
     });
   }
 }

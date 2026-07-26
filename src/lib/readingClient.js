@@ -5,6 +5,8 @@
 //   • объяснения грамматики — по хешу (предложение + родной язык), повторный
 //     тап того же предложения мгновенный и по API не бьёт.
 
+import { authHeaders, makeApiError } from "./apiClient.js";
+
 const TEXTS_KEY = "readingTexts"; // { "de-ru|mixed": [ {…текст}, … ] }
 const GRAMMAR_KEY = "readingGrammar"; // { "<hash>": { points: [] } }
 
@@ -87,7 +89,7 @@ export async function requestReadingText({
   try {
     res = await fetch("/api/reading", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({
         action: "text",
         learnLang,
@@ -114,17 +116,7 @@ export async function requestReadingText({
   }
 
   if (!res.ok) {
-    let serverMsg = null;
-    try {
-      const data = await res.json();
-      if (data && data.error) serverMsg = data.error;
-    } catch {
-      // тело не JSON — покажем общий текст
-    }
-    const err = new Error(serverMsg || "server");
-    err.code = "server";
-    err.raw = serverMsg || null;
-    throw err;
+    throw await makeApiError(res);
   }
 
   const data = await res.json();
@@ -166,7 +158,7 @@ export async function requestGrammar({
   try {
     res = await fetch("/api/reading", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({
         action: "grammar",
         sentence: clean,
@@ -182,17 +174,7 @@ export async function requestGrammar({
   }
 
   if (!res.ok) {
-    let serverMsg = null;
-    try {
-      const data = await res.json();
-      if (data && data.error) serverMsg = data.error;
-    } catch {
-      // тело не JSON
-    }
-    const err = new Error(serverMsg || "server");
-    err.code = "server";
-    err.raw = serverMsg || null;
-    throw err;
+    throw await makeApiError(res);
   }
 
   const data = await res.json();

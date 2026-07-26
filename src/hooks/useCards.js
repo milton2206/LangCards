@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { prewarmTts } from "../lib/ttsClient.js";
+import { authHeaders, parseApiError } from "../lib/apiClient.js";
 
 // Порция карточек хранится по языковым парам: { "de-ru": [...], "el-ru": [...] }.
 // При переключении языка показывается порция только текущей пары.
@@ -72,23 +73,14 @@ export function useCards(pairKey) {
       try {
         const res = await fetch("/api/cards", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...(await authHeaders()) },
           body: JSON.stringify(params),
         });
 
         if (!res.ok) {
-          let serverMsg = null;
-          try {
-            const data = await res.json();
-            if (data && data.error) serverMsg = data.error;
-          } catch {
-            // тело не JSON — покажем общий текст по статусу
-          }
-          setError(
-            serverMsg
-              ? { raw: serverMsg }
-              : { code: "server", params: { status: res.status } },
-          );
+          // Лимит/сессия/ошибка сервера → структура { code?, params?, raw? };
+          // CardScreen сам локализует по code (или покажет raw).
+          setError(await parseApiError(res));
           return;
         }
 

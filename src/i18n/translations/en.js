@@ -7,6 +7,7 @@ export default {
     back: "Back",
     done: "Done",
     close: "Close",
+    cancel: "Cancel",
     gotIt: "Got it",
     retry: "Retry",
     activeLimit:
@@ -363,6 +364,10 @@ export default {
     noCards: "Server returned no cards. Please try again.",
     server: "Server error ({status})",
     generateFailed: "Couldn't generate cards.",
+    rateLimit:
+      "You've hit today's limit. It resets tomorrow (at 00:00 UTC). Thanks for helping keep the app free.",
+    rateCooldown: "Too fast. Wait {seconds}s and try again.",
+    sessionExpired: "Your session expired. Please sign in again.",
   },
 
   review: {
@@ -437,6 +442,8 @@ export default {
     signInUp: "Sign in / Sign up",
     howto: "How to use",
     install: "Install on phone",
+    feedback: "Report a problem",
+    deleteAccount: "Delete account",
     // Multi-language mode (explicit choice, phase 4.2).
     multiLang: "Multi-language mode",
     multiLangHint:
@@ -447,6 +454,31 @@ export default {
     priorityTitle: "Priority pair",
     priorityHint:
       "The priority language gets the bigger share of the total daily new-word quota.",
+  },
+
+  // Feedback ("Report a problem" button, phase 7.1).
+  feedback: {
+    title: "Report a problem",
+    lead:
+      "Describe what went wrong or what's missing. We'll add the app version and browser automatically — it makes things easier to sort out.",
+    placeholder: "What happened?",
+    send: "Send",
+    sending: "Sending…",
+    thanks: "Thanks! Your feedback was received.",
+    failed: "Couldn't send. Please try again later.",
+    notConfigured: "Sending unavailable: account not connected.",
+  },
+
+  // Account deletion (phase 7.1). Irreversible — we say so plainly.
+  account: {
+    deleteTitle: "Delete account",
+    deleteWarning:
+      "This action is irreversible. Your account and data cannot be restored.",
+    deleteWhat:
+      "Permanently deleted: account {email}, all your words and progress, languages, topics, and submitted feedback. The shared audio cache is not affected.",
+    deleteConfirm: "Delete permanently",
+    deleting: "Deleting…",
+    deleteFailed: "Couldn't delete the account. Please try again later.",
   },
 
   sync: {
