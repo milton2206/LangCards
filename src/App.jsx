@@ -486,23 +486,26 @@ export default function App() {
   const [whatsNew, setWhatsNew] = useState(null);
   const whatsNewCheckedRef = useRef(false);
 
-  // «Был сегодня» (не чаще раза в сутки) + разовая запись источника. Эффект
-  // срабатывает, как только становится известен пользователь — это ОБА случая:
-  // и свежий логин (null → user), и открытие приложения с уже живой сессией
-  // (getSession в useAuth восстановил её: undefined → user). Тихий best-effort.
+  // Отметка захода + разовая запись источника. Эффект срабатывает, как только
+  // становится известен пользователь — это ОБА случая: свежий логин (null → user)
+  // и открытие с уже живой сессией (getSession в useAuth восстановил её:
+  // undefined → user). Тихий best-effort.
   //
-  // ВАЖНЫЙ порядок: сперва читаем last_seen для «Что нового» (resolveWhatsNew),
-  // и только ПОТОМ touchLastSeen его перезапишет. Иначе прочли бы уже «сейчас» и
-  // вернувшемуся не показали бы ничего. touchLastSeen (обновление) не меняем.
+  // КРИТИЧНЫЙ ПОРЯДОК (иначе гонка): сперва СЧИТАТЬ старый last_seen и посчитать
+  // «Что нового» (resolveWhatsNew), показать записи — и ТОЛЬКО ПОТОМ обновить
+  // last_seen на текущее время (touchLastSeen). Если обновить раньше расчёта,
+  // «Что нового» всегда увидит last_seen = «сейчас» и решит, что нового нет.
   useEffect(() => {
     if (!auth.user) return;
     const userId = auth.user.id;
     (async () => {
+      // 1) Читаем СТАРЫЙ last_seen и решаем, что показать (один раз за сессию).
       if (!whatsNewCheckedRef.current) {
         whatsNewCheckedRef.current = true;
         const res = await resolveWhatsNew(userId);
         if (res) setWhatsNew(res);
       }
+      // 2) И только теперь двигаем last_seen на now() (после расчёта выше).
       await touchLastSeen(userId);
       recordSignupSource(userId);
     })();

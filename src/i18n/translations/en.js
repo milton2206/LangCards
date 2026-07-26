@@ -501,6 +501,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      audioPlayer: {
+        title: "Pause and seek audio",
+        desc: "In listening and reading, long audio can be paused, scrubbed along the bar, and played from any point.",
+      },
       deleteAccount: {
         title: "Account deletion",
         desc: "You can now delete your account and all your data right from Settings.",

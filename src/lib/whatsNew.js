@@ -31,18 +31,20 @@ export async function resolveWhatsNew(userId) {
     if (error) return null;
 
     const lastSeen = data?.last_seen ?? null;
-    // Первый вход: базовой даты нет — показываем приветствие, а не свалку всех
+    // Первый вход: базовой отметки нет — показываем приветствие, а не свалку всех
     // изменений. (Существующие пользователи с ещё не заполненным last_seen тоже
     // сюда попадают один раз — это осознанно: сравнивать не с чем.)
     if (!lastSeen) return { mode: "greeting" };
 
-    // Дата прошлого захода (день, UTC) — с ней сравниваем даты записей.
-    const lastDate = new Date(lastSeen).toISOString().slice(0, 10);
-    // Сортировка по дате, новые сверху; при равной дате СТАБИЛЬНА (возвращаем 0) —
-    // сохраняется курируемый порядок массива CHANGELOG (Array.sort стабилен).
-    const entries = CHANGELOG.filter((e) => e.date > lastDate).sort((a, b) =>
-      a.date < b.date ? 1 : a.date > b.date ? -1 : 0,
-    );
+    // Сравнение по ТОЧНОЙ МЕТКЕ ВРЕМЕНИ, а не по дню: показываем записи, чья
+    // дата-время строго новее last_seen пользователя. Так не теряется релиз
+    // того же дня (что был раньше, при сравнении по дню) и нет зависимости от
+    // часового пояса — момент времени абсолютен. Даты «только день» трактуются
+    // как полночь UTC (new Date разбирает оба формата). Сортировка — новые сверху.
+    const lastMs = new Date(lastSeen).getTime();
+    const entries = CHANGELOG.filter(
+      (e) => new Date(e.date).getTime() > lastMs,
+    ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     if (entries.length === 0) return null; // нечего показать — ничего не показываем
     return { mode: "list", entries };
   } catch {
