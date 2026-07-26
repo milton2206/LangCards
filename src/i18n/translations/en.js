@@ -481,6 +481,53 @@ export default {
     deleteFailed: "Couldn't delete the account. Please try again later.",
   },
 
+  // "What's new" screen shown on visit (once per visit).
+  whatsnew: {
+    title: "What's new",
+    greetingTitle: "Welcome!",
+    greeting:
+      "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
+    start: "Get started",
+    entries: {
+      deleteAccount: {
+        title: "Account deletion",
+        desc: "You can now delete your account and all your data right from Settings.",
+      },
+      feedback: {
+        title: "Report a problem",
+        desc: "A feedback button in Settings — tell us what to improve.",
+      },
+      wordSource: {
+        title: "Word source",
+        desc: "In reading and listening, choose: only your words, mixed, or new only.",
+      },
+      customTopics: {
+        title: "Custom topics",
+        desc: "Add your own topics for card generation, not just the presets.",
+      },
+      listening: {
+        title: "Listening practice",
+        desc: "Train by ear: fill in the missing word or pick the similar-sounding one.",
+      },
+      placement: {
+        title: "Placement test",
+        desc: "Find your level (A1–C1) in a couple of minutes — per language.",
+      },
+      reading: {
+        title: "Reading mode",
+        desc: "Texts built from your words, with grammar explained on sentence tap.",
+      },
+      tts: {
+        title: "Pronunciation audio",
+        desc: "Hear words and examples spoken — on cards and in reading.",
+      },
+      multiLang: {
+        title: "Multiple languages",
+        desc: "Learn several language pairs in parallel, with a weekly schedule.",
+      },
+    },
+  },
+
   sync: {
     syncing: "Syncing…",
     synced: "Progress synced",

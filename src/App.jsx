@@ -20,6 +20,7 @@ import ReviewScreen from "./screens/ReviewScreen.jsx";
 import StatsScreen from "./screens/StatsScreen.jsx";
 import AuthScreen from "./screens/AuthScreen.jsx";
 import Tutorial from "./components/Tutorial.jsx";
+import WhatsNew from "./components/WhatsNew.jsx";
 import {
   EMPTY_SETTINGS,
   SETTINGS_KEYS,
@@ -70,6 +71,7 @@ import {
   touchLastSeen,
   recordSignupSource,
 } from "./lib/presence.js";
+import { resolveWhatsNew } from "./lib/whatsNew.js";
 
 // Id тем-пресетов и запасная тема: когда выбранная своя тема удалена или
 // принадлежит другой паре, откатываемся к пресету, чтобы генерация не осталась
@@ -471,14 +473,31 @@ export default function App() {
     captureSignupSource();
   }, []);
 
+  // «Что нового» при заходе: считается ОДИН раз за сессию (ref-гейт), показывается
+  // один раз и переходам по экранам не мешает. null — показывать нечего.
+  const [whatsNew, setWhatsNew] = useState(null);
+  const whatsNewCheckedRef = useRef(false);
+
   // «Был сегодня» (не чаще раза в сутки) + разовая запись источника. Эффект
   // срабатывает, как только становится известен пользователь — это ОБА случая:
   // и свежий логин (null → user), и открытие приложения с уже живой сессией
   // (getSession в useAuth восстановил её: undefined → user). Тихий best-effort.
+  //
+  // ВАЖНЫЙ порядок: сперва читаем last_seen для «Что нового» (resolveWhatsNew),
+  // и только ПОТОМ touchLastSeen его перезапишет. Иначе прочли бы уже «сейчас» и
+  // вернувшемуся не показали бы ничего. touchLastSeen (обновление) не меняем.
   useEffect(() => {
     if (!auth.user) return;
-    touchLastSeen(auth.user.id);
-    recordSignupSource(auth.user.id);
+    const userId = auth.user.id;
+    (async () => {
+      if (!whatsNewCheckedRef.current) {
+        whatsNewCheckedRef.current = true;
+        const res = await resolveWhatsNew(userId);
+        if (res) setWhatsNew(res);
+      }
+      await touchLastSeen(userId);
+      recordSignupSource(userId);
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.user?.id]);
 
@@ -1076,6 +1095,16 @@ export default function App() {
     );
   }
 
+  // «Что нового» показываем только в основном приложении — не поверх сплэша,
+  // экрана входа, переноса, теста уровня или онбординга (needsSetup покрывает и
+  // случай ещё не выбранной пары). Так окно не наслаивается на эти состояния.
+  const inMainApp =
+    (!authRequired || Boolean(auth.user)) &&
+    !auth.loading &&
+    !migrationAsk &&
+    !placement &&
+    !needsSetup;
+
   return (
     <I18nProvider lang={nativeLang}>
       <Analytics />
@@ -1084,6 +1113,15 @@ export default function App() {
         {/* Туториал — после входа (гостям на экране регистрации он не нужен) */}
         {showTutorial && (!authRequired || auth.user) && (
           <Tutorial onClose={closeTutorial} />
+        )}
+        {/* «Что нового» — в основном приложении и не поверх туториала (чтобы два
+            окна не стакались у новичка). Один раз за заход; закрытие → null. */}
+        {whatsNew && inMainApp && !showTutorial && (
+          <WhatsNew
+            mode={whatsNew.mode}
+            entries={whatsNew.entries}
+            onClose={() => setWhatsNew(null)}
+          />
         )}
       </AppShell>
     </I18nProvider>
