@@ -7,12 +7,20 @@
 
 import { supabase } from "./supabase.js";
 
-const SEEN_KEY = "lastSeenDate"; // "2026-07-26" — дата последней отметки С УСТРОЙСТВА
+// База ключа гейта «уже отмечались сегодня». Фактический ключ — ПО ПОЛЬЗОВАТЕЛЮ
+// (см. seenKey): один браузер может держать несколько аккаунтов, и отметка
+// одного не должна блокировать отметку другого.
+const SEEN_KEY = "lastSeenDate";
 const SRC_PENDING_KEY = "signupSource"; // захваченный источник до записи в профиль
 const SRC_DONE_KEY = "signupSourceSaved"; // чтобы не дёргать профиль каждую сессию
 
 function todayUTC() {
   return new Date().toISOString().slice(0, 10);
+}
+
+// Гейт «был сегодня» — на конкретного пользователя, а не на устройство.
+function seenKey(userId) {
+  return `${SEEN_KEY}:${userId}`;
 }
 
 /**
@@ -33,18 +41,28 @@ export function captureSignupSource() {
 }
 
 /**
- * Отмечает last_seen не чаще раза в сутки. Двойная защита от нагрузки на базу:
- * гейт localStorage (сегодня уже отмечались — вообще не ходим на сервер) + сам
- * RPC touch_last_seen пишет только если сегодня ещё не отмечен.
+ * Отмечает last_seen при КАЖДОМ заходе (и при свежем логине, и при открытии с
+ * уже живой сессией — вызывается из эффекта по готовности пользователя), но не
+ * чаще раза в сутки. Двойная защита от нагрузки на базу: гейт localStorage
+ * (сегодня уже отмечались — вообще не ходим на сервер) + сам RPC touch_last_seen
+ * пишет только если сегодня ещё не отмечен.
  */
 export async function touchLastSeen(userId) {
   if (!supabase || !userId) return;
+  const key = seenKey(userId);
   try {
-    if (localStorage.getItem(SEEN_KEY) === todayUTC()) return;
-    await supabase.rpc("touch_last_seen");
-    localStorage.setItem(SEEN_KEY, todayUTC());
+    if (localStorage.getItem(key) === todayUTC()) return;
+    // ВАЖНО: supabase.rpc НЕ бросает при ошибке — возвращает { error }. Гейт
+    // ставим ТОЛЬКО при реальном успехе: иначе неудачная отметка (например,
+    // до применения миграции, когда функции ещё нет) навсегда заблокировала бы
+    // сегодняшний день, и last_seen так и не обновился бы после миграции.
+    const { error } = await supabase.rpc("touch_last_seen");
+    if (error) return;
+    localStorage.setItem(key, todayUTC());
+    // Подчищаем устаревший общий ключ прошлой версии (был по устройству).
+    localStorage.removeItem(SEEN_KEY);
   } catch {
-    // сеть/RPC недоступны — отметка не обязательна
+    // сеть/RPC недоступны — отметка не обязательна, повторим при следующем заходе
   }
 }
 
