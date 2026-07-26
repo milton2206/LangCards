@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { splitWords, coreWord } from "../lib/highlightWord.js";
 import {
   loadTexts,
@@ -6,13 +6,13 @@ import {
   requestReadingText,
   requestGrammar,
 } from "../lib/readingClient.js";
-import { fetchTtsUrl, playUrl, stopCurrentAudio } from "../lib/ttsClient.js";
+import { stopCurrentAudio } from "../lib/ttsClient.js";
 import { apiErrorText } from "../lib/apiClient.js";
 import { ENOUGH_WORDS_FOR_READING } from "../hooks/useWordLists.js";
 import { useWordLookup } from "../hooks/useWordLookup.js";
 import WordLookupSheet from "../components/WordLookupSheet.jsx";
 import WordSourcePicker from "../components/WordSourcePicker.jsx";
-import PlayButton from "../components/PlayButton.jsx";
+import AudioPlayer from "../components/AudioPlayer.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./ReadingScreen.css";
 
@@ -50,9 +50,6 @@ export default function ReadingScreen({
 
   // Разбор грамматики: { sentence, status, points?, errorText? }
   const [grammar, setGrammar] = useState(null);
-  // Последовательное чтение всего текста.
-  const [playingAll, setPlayingAll] = useState(false);
-  const playAllRef = useRef(false);
 
   // Мягкое предложение взять ещё слов (состояние «мало слов») можно закрыть —
   // это предложение, а не условие: закрыли и читаем дальше.
@@ -72,12 +69,9 @@ export default function ReadingScreen({
     };
   }, []);
 
-  // Уходим с экрана — глушим звук и останавливаем чтение вслух.
+  // Уходим с экрана — глушим звук (плеер общий на всё приложение).
   useEffect(() => {
-    return () => {
-      playAllRef.current = false;
-      stopCurrentAudio();
-    };
+    return () => stopCurrentAudio();
   }, []);
 
   // Смена источника (или пары) — показываем историю текстов ИМЕННО этого
@@ -167,37 +161,14 @@ export default function ReadingScreen({
     }
   }
 
-  // Чтение всего текста: последовательно по предложениям через тот же TTS-кэш
-  // (не упираемся в лимит длины одного запроса и переиспользуем кэш фраз).
-  async function handlePlayAll() {
-    if (playingAll) {
-      playAllRef.current = false;
-      stopCurrentAudio();
-      setPlayingAll(false);
-      return;
-    }
-    if (!current || offline) return;
-    playAllRef.current = true;
-    setPlayingAll(true);
-    try {
-      for (const sentence of current.sentences) {
-        if (!playAllRef.current) break;
-        const url = await fetchTtsUrl({ text: sentence.text, learnLang });
-        if (!url || !playAllRef.current) continue;
-        await new Promise((resolve) => {
-          const audio = playUrl(url);
-          audio.onended = resolve;
-          audio.onerror = resolve;
-          audio.play().catch(resolve);
-        });
-      }
-    } catch {
-      // звук — не критичная часть: молча выходим, текст остаётся читаемым
-    } finally {
-      playAllRef.current = false;
-      setPlayingAll(false);
-    }
-  }
+  // Треки для плеера «весь текст»: предложения по порядку. Весь текст — это
+  // несколько mp3 (по предложению), плеер склеивает их в одну шкалу времени и
+  // умеет паузу/перемотку. Источник звука прежний (общий TTS-кэш).
+  const textTracks = useMemo(
+    () =>
+      current ? current.sentences.map((s) => ({ text: s.text, learnLang })) : [],
+    [current, learnLang],
+  );
 
   return (
     <section className="reading">
@@ -211,20 +182,14 @@ export default function ReadingScreen({
           ←
         </button>
         <h1 className="reading__title">{t("reading.title")}</h1>
-        {current && (
-          <button
-            type="button"
-            className={
-              "reading__playall" + (playingAll ? " is-playing" : "")
-            }
-            onClick={handlePlayAll}
-            disabled={offline}
-            aria-label={t("reading.playAll")}
-          >
-            {playingAll ? "⏹" : "▶"}
-          </button>
-        )}
       </header>
+
+      {/* Плеер всего текста: пауза/продолжить, перемотка, время, повтор. */}
+      {current && !loading && (
+        <div className="reading__player">
+          <AudioPlayer tracks={textTracks} ariaLabel={t("reading.playAll")} />
+        </div>
+      )}
 
       {/* Офлайн и нечего перечитать — режим недоступен, остальное приложение
           (карточки, повторение) работает как обычно. */}
@@ -294,26 +259,29 @@ export default function ReadingScreen({
                     ) : (
                       <span key={i}>{seg.text}</span>
                     ),
-                  )}{" "}
-                  <span className="reading__tools">
-                    <PlayButton
-                      text={sentence.text}
-                      learnLang={learnLang}
-                      kind="example"
-                    />
-                    <button
-                      type="button"
-                      className={
-                        "reading__grammar-btn" + (open ? " is-open" : "")
-                      }
-                      onClick={() => handleGrammar(sentence)}
-                      disabled={offline}
-                      aria-label={t("reading.grammarAria")}
-                    >
-                      ¶
-                    </button>
-                  </span>
+                  )}
                 </p>
+
+                {/* Озвучка отдельного предложения — тот же плеер (компактный до
+                    запуска). Рядом — разбор грамматики. */}
+                <div className="reading__tools">
+                  <AudioPlayer
+                    tracks={[{ text: sentence.text, learnLang }]}
+                    compact
+                    ariaLabel={t("tts.playExample")}
+                  />
+                  <button
+                    type="button"
+                    className={
+                      "reading__grammar-btn" + (open ? " is-open" : "")
+                    }
+                    onClick={() => handleGrammar(sentence)}
+                    disabled={offline}
+                    aria-label={t("reading.grammarAria")}
+                  >
+                    ¶
+                  </button>
+                </div>
 
                 {open && (
                   <div className="reading__grammar">

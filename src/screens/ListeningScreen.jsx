@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   loadSet,
   saveSet,
@@ -10,12 +10,8 @@ import {
 } from "../lib/listeningClient.js";
 import { requestGrammar } from "../lib/readingClient.js";
 import { apiErrorText } from "../lib/apiClient.js";
-import {
-  fetchTtsUrl,
-  playUrl,
-  stopCurrentAudio,
-  prewarmPhrases,
-} from "../lib/ttsClient.js";
+import { stopCurrentAudio, prewarmPhrases } from "../lib/ttsClient.js";
+import AudioPlayer from "../components/AudioPlayer.jsx";
 import {
   LISTENING_LEVELS,
   getListeningLevel,
@@ -76,7 +72,6 @@ export default function ListeningScreen({
   const [result, setResult] = useState(null);
   // Разбор грамматики предложения (только для gap) — как в режиме чтения.
   const [grammar, setGrammar] = useState(null);
-  const [audioState, setAudioState] = useState("idle"); // idle|loading|playing|error
 
   const [offline, setOffline] = useState(
     typeof navigator !== "undefined" && !navigator.onLine,
@@ -166,33 +161,21 @@ export default function ListeningScreen({
   }
 
   // ---------- Звук ----------
-  async function playAudio(text, rate = listeningLevel.rate) {
-    if (!text || offline) return;
-    setAudioState("loading");
-    const url = await fetchTtsUrl({ text, learnLang, rate });
-    if (!url) {
-      // Не получилось — побудем неактивной кнопкой и вернёмся: можно повторить.
-      setAudioState("error");
-      setTimeout(() => setAudioState("idle"), 2500);
-      return;
-    }
-    try {
-      const audio = playUrl(url);
-      audio.onended = () => setAudioState("idle");
-      audio.onerror = () => setAudioState("idle");
-      await audio.play();
-      setAudioState("playing");
-    } catch {
-      setAudioState("idle");
-    }
-  }
+  // Трек текущего задания для плеера. autoPlay включён, поэтому смена задания
+  // (handleNext/handleGenerate) и скорости (handleLevel меняет rate) озвучиваются
+  // сразу — как раньше, но теперь с паузой/перемоткой/повтором. Источник прежний.
+  const audioTracks = useMemo(
+    () =>
+      current && audioText
+        ? [{ text: audioText, learnLang, rate: listeningLevel.rate }]
+        : [],
+    [current, audioText, learnLang, listeningLevel.rate],
+  );
 
-  // Смена скорости слышна сразу: переигрываем текущее аудио на новой скорости
-  // (клик по чипу — жест пользователя, автоплей разрешён). Длина фразы уровня
-  // применится к следующему подходу.
+  // Смена скорости слышна сразу: rate трека меняется → плеер переиграет на новой
+  // скорости (autoPlay). Длина фразы уровня применится к следующему подходу.
   function handleLevel(id) {
     onChangeLevel(id);
-    if (current) playAudio(audioText, getListeningLevel(id).rate);
   }
 
   // ---------- Подход ----------
@@ -234,13 +217,13 @@ export default function ListeningScreen({
         return;
       }
       updateSet(next);
-      // Пока звучит первое задание, остальные уже готовятся в общем кэше.
+      // Первое задание озвучит плеер сам (autoPlay). Остальные заранее греем в
+      // общем кэше, чтобы переход к ним был мгновенным.
       prewarmPhrases(
         next.items.map((it) => (it.kind === "soundalike" ? it.word : it.text)),
         learnLang,
         listeningLevel.rate,
       );
-      playAudio(next.items[0].kind === "soundalike" ? next.items[0].word : next.items[0].text);
     } catch (err) {
       setError(apiErrorText(err, t, "listening.failed"));
     } finally {
@@ -266,12 +249,8 @@ export default function ListeningScreen({
     setGrammar(null);
     setTyped("");
     updateSet({ ...activeSet, index: nextIndex });
-    const nextItem = items[nextIndex];
-    if (nextItem) {
-      playAudio(nextItem.kind === "soundalike" ? nextItem.word : nextItem.text);
-    } else {
-      stopCurrentAudio();
-    }
+    // Следующее задание озвучит плеер сам (autoPlay при смене трека). Если
+    // заданий больше нет, практика скрывается и плеер размонтируется — звук стоп.
   }
 
   // Разбор грамматики предложения (только gap) — тот же кэшированный запрос, что
@@ -439,25 +418,16 @@ export default function ListeningScreen({
             <p className="listening__tip">💡 {t("listening.tipFewWords")}</p>
           )}
 
-          {/* Запись можно переслушивать сколько угодно — и до ответа, и после */}
-          <button
-            type="button"
-            className={`listening__play is-${audioState}`}
-            onClick={() => playAudio(audioText)}
-            disabled={audioState === "loading"}
-            aria-label={t("listening.replay")}
-          >
-            <span className="listening__play-glyph" aria-hidden="true">
-              {audioState === "loading" ? "…" : "🔊"}
-            </span>
-            <span className="listening__play-text">
-              {result ? t("listening.replay") : t("listening.listen")}
-            </span>
-          </button>
-
-          {audioState === "error" && (
-            <p className="listening__notice">{t("listening.audioFailed")}</p>
-          )}
+          {/* Запись переслушивается сколько угодно — до ответа и после: плеер с
+              паузой/перемоткой/повтором. Автостарт при новом задании и смене
+              скорости. */}
+          <div className="listening__player">
+            <AudioPlayer
+              tracks={audioTracks}
+              autoPlay
+              ariaLabel={t("listening.listen")}
+            />
+          </div>
 
           {/* Вопрос формата + для gap — предложение с пропуском */}
           <p className="listening__prompt">

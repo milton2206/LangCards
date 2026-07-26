@@ -16,22 +16,49 @@ const DEFAULT_RATE = 1;
 
 const urlCache = new Map(); // "lang|rate|text" → url
 
-// Один активный звук на всё приложение: кнопка на карточке и последовательное
-// чтение текста (фаза 6.1) делят его, чтобы не звучать одновременно.
-let currentAudio = null;
+// ---------- Единый «активный» звук на всё приложение ----------
+// Играть должно только что-то одно: простая кнопка озвучки слова (playUrl) и
+// плеер длинного аудио (AudioPlayer) делят одну «шину». При старте любого
+// источника предыдущий глушится. Держим функцию остановки текущего владельца.
+let activeStop = null;
 
+/** Забрать звук себе: остановить предыдущего владельца, стать текущим. */
+export function claimAudio(stop) {
+  if (activeStop && activeStop !== stop) {
+    try {
+      activeStop();
+    } catch {
+      // остановка предыдущего звука не должна ничего ронять
+    }
+  }
+  activeStop = stop;
+}
+
+/** Освободить шину, если владелец — мы (при паузе/размонтировании плеера). */
+export function releaseAudio(stop) {
+  if (activeStop === stop) activeStop = null;
+}
+
+/** Глушит текущий звук (слово ИЛИ плеер) — вызывается при уходе с экрана. */
 export function stopCurrentAudio() {
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio = null;
+  if (activeStop) {
+    try {
+      activeStop();
+    } catch {
+      // тихо
+    }
+    activeStop = null;
   }
 }
 
-/** Создаёт и возвращает <audio> для url, остановив предыдущий звук. */
+/**
+ * Создаёт и возвращает <audio> для url, остановив предыдущий звук (простая
+ * озвучка слова/примера — карточки, лупа слова в чтении). Плеер длинного аудио
+ * этим НЕ пользуется, но делит ту же шину через claimAudio.
+ */
 export function playUrl(url) {
-  stopCurrentAudio();
   const audio = new Audio(url);
-  currentAudio = audio;
+  claimAudio(() => audio.pause());
   return audio;
 }
 

@@ -31,28 +31,9 @@
   font-weight: 700;
 }
 
-/* Прослушать весь текст (последовательно по предложениям) */
-.reading__playall {
-  flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
-  min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text);
-  font-size: 15px;
-  line-height: 1;
-}
-
-.reading__playall.is-playing {
-  border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.14);
-  color: var(--accent);
-}
-
-.reading__playall:disabled {
-  opacity: 0.45;
+/* Плеер всего текста — отдельной полосой под заголовком */
+.reading__player {
+  margin-bottom: 4px;
 }
 
 /* ---------- Служебные состояния ---------- */
@@ -177,12 +158,19 @@
   border-bottom-color: rgba(53, 200, 139, 0.4);
 }
 
-/* Инструменты предложения — в потоке текста, не занимают отдельную строку */
+/* Инструменты предложения — отдельной строкой под текстом: плеер (компактная
+   кнопка, разворачивается в полосу при старте) + разбор грамматики. */
 .reading__tools {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  vertical-align: middle;
+  gap: 8px;
+}
+
+/* В строке инструментов плеер занимает свободное место, а не всю ширину. */
+.reading__tools .aplayer {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
 }
 
 .reading__grammar-btn {

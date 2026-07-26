@@ -316,6 +316,17 @@ export default {
     unavailable: "Audio unavailable",
   },
 
+  // Long-audio player (listening, whole text, single sentence).
+  audio: {
+    player: "Audio player",
+    play: "Play",
+    pause: "Pause",
+    restart: "Restart",
+    seek: "Seek",
+    unavailable: "Audio unavailable",
+    failedShort: "No audio",
+  },
+
   // Weekly language schedule (phase 4.5).
   schedule: {
     setupTitle: "How many days a week do you study?",
