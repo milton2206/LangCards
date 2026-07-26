@@ -175,7 +175,11 @@ function devApiListening() {
             await server.ssrLoadModule("/lib/listening.js");
           const items = await generateSoundAlikes({
             learnLang: params.learnLang,
+            nativeLang: params.nativeLang,
+            level: params.level,
             words: params.words,
+            source: params.source,
+            count: params.count,
           });
           res.setHeader("Content-Type", "application/json");
           res.end(JSON.stringify({ items }));

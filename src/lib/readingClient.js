@@ -81,6 +81,7 @@ export async function requestReadingText({
   sentences,
   sentenceLength,
   source,
+  gapChoices,
 }) {
   let res;
   try {
@@ -101,6 +102,9 @@ export async function requestReadingText({
         sentenceLength,
         // Источник слов (mine/mixed/new) — уходит в тот же промпт генерации.
         source,
+        // Аудирование «пропущенное слово» + «Новые»: просим у модели скрываемое
+        // новое слово и варианты к нему.
+        gapChoices,
       }),
     });
   } catch {

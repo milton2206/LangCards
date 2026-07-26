@@ -12,13 +12,13 @@ async function readBody(req) {
 }
 
 /**
- * Серверная функция аудирования (фаза 6.2). Пока одно действие — подбор похоже
- * звучащих дистракторов для формата «на слух»:
- *   { action: "soundalike", learnLang, words[] } → { items: [{ word, distractors }] }
+ * Серверная функция аудирования (фаза 6.2). Действие — подбор слов на слух по
+ * источнику + похоже звучащих дистракторов для формата «на слух»:
+ *   { action: "soundalike", learnLang, nativeLang, level, words[], source, count }
+ *     → { items: [{ word, distractors[], translation }] }
  *
- * Первый формат («пропущенное слово») сюда не ходит: его предложения даёт
- * эндпоинт режима чтения (/api/reading), а пропуск делает клиент. Ключ Claude
- * API остаётся в переменных окружения сервера.
+ * Формат «пропущенное слово» сюда не ходит: его предложения даёт эндпоинт
+ * режима чтения (/api/reading). Ключ Claude API — в переменных окружения сервера.
  */
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -27,8 +27,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { learnLang, words } = await readBody(req);
-    const items = await generateSoundAlikes({ learnLang, words });
+    const { learnLang, nativeLang, level, words, source, count } =
+      await readBody(req);
+    const items = await generateSoundAlikes({
+      learnLang,
+      nativeLang,
+      level,
+      words,
+      source,
+      count,
+    });
     res.status(200).json({ items });
   } catch (err) {
     const status = err.status || 500;

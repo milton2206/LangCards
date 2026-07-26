@@ -58,12 +58,9 @@ export default function ListeningScreen({
   const { t } = useI18n();
   const listeningLevel = getListeningLevel(levelId);
 
-  // Источник слов для формата «пропущенное слово» (gap строит фразы через
-  // генерацию чтения). «Новые» для gap не подходит — пропуск берётся из
-  // активных слов, а «Новые» их избегает, поэтому для gap трактуем «Новые» как
-  // «Смешанно» (в пикере это честно подписано). Формат «на слух» источник не
-  // использует вовсе — он всегда про активные слова пользователя.
-  const gapSource = wordSource === "new" ? "mixed" : wordSource;
+  // Источник слов работает в ОБОИХ форматах (mine/mixed/new) — см. requestGapSet
+  // и requestSoundAlikeSet. Экран лишь передаёт выбор и хранит его в штампе
+  // набора, чтобы кэш не подменял источники между собой.
 
   // Текущий подход пары: переживает уход с экрана и перезагрузку.
   const [set, setSet] = useState(() => loadSet(pairKey));
@@ -120,17 +117,13 @@ export default function ListeningScreen({
     setGrammar(null);
     setTyped("");
     setError(null);
-  }, [formatId, gapSource]);
+  }, [formatId, wordSource]);
 
-  // Набор показываем, только если он того же формата, что выбран сейчас. Для gap
-  // источник тоже должен совпадать: тексты «Мои»/«Смешанно» — разные, кэш не
-  // должен подсунуть один вместо другого. Формат «на слух» источник игнорирует.
+  // Набор показываем, только если совпадают И формат, И источник: наборы разных
+  // источников (мои/смешанно/новые) — разные, кэш не должен подсунуть один
+  // вместо другого. Это касается обоих форматов.
   const activeSet =
-    set &&
-    set.format === formatId &&
-    (formatId === "soundalike" || set.source === gapSource)
-      ? set
-      : null;
+    set && set.format === formatId && set.source === wordSource ? set : null;
   const items = activeSet?.items || [];
   const index = activeSet?.index || 0;
   const current = index < items.length ? items[index] : null;
@@ -153,9 +146,14 @@ export default function ListeningScreen({
       : current.choices || []
     : [];
   const canChoose = options.length > 1;
-  // soundalike — только выбор; gap — выбор или ввод (по переключателю).
+  // soundalike — всегда выбор; gap с источником «Новые» (choiceOnly) — тоже
+  // только выбор (незнакомое слово не впишешь); прочий gap — ввод или выбор.
   const answerMode =
-    current?.kind === "soundalike" ? "choice" : canChoose ? mode : "type";
+    current?.kind === "soundalike" || current?.choiceOnly
+      ? "choice"
+      : canChoose
+        ? mode
+        : "type";
 
   const takenCount = (takenWords || []).length;
   const noWords = takenCount === 0;
@@ -220,9 +218,9 @@ export default function ListeningScreen({
         takenWords: takenWords || [],
         wordInfo: wordInfo || {},
         sentenceLength: listeningLevel.length,
-        // gap строит фразы через генерацию чтения с источником; «на слух»
-        // источник не использует. Стамп source на наборе — для сверки с кэшем.
-        source: gapSource,
+        // Источник работает в обоих форматах; стамп source на наборе — для
+        // сверки с кэшем, чтобы наборы разных источников не путались.
+        source: wordSource,
       });
       if (!next.items.length) {
         // Нечего показать: для gap не нашли активных слов в предложениях, для
@@ -490,8 +488,9 @@ export default function ListeningScreen({
             </p>
           )}
 
-          {/* gap: переключатель «выбрать / вписать» (soundalike — только выбор) */}
-          {current.kind === "gap" && canChoose && !result && (
+          {/* gap: переключатель «выбрать / вписать». Нет при choiceOnly
+              (источник «Новые» — незнакомое слово только выбором) и в soundalike. */}
+          {current.kind === "gap" && !current.choiceOnly && canChoose && !result && (
             <div className="listening__modes" role="group">
               <button
                 type="button"
@@ -661,16 +660,12 @@ export default function ListeningScreen({
       {!offline && (
         <div className="listening__controls">
           {formatPicker}
-          {/* Источник слов — только для «пропущенного слова»: формат «на слух»
-              всегда про активные слова пользователя, источник ему не нужен. */}
-          {formatId === "gap" && (
-            <WordSourcePicker
-              value={wordSource}
-              onChange={onChangeWordSource}
-              takenCount={takenCount}
-              context="listening"
-            />
-          )}
+          {/* Источник слов — в ОБОИХ форматах (mine/mixed/new работают везде). */}
+          <WordSourcePicker
+            value={wordSource}
+            onChange={onChangeWordSource}
+            takenCount={takenCount}
+          />
           {levelPicker}
           <button
             type="button"

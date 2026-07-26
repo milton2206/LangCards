@@ -382,7 +382,6 @@ export default function ReadingScreen({
           value={wordSource}
           onChange={onChangeWordSource}
           takenCount={takenCount}
-          context="reading"
         />
 
         <button

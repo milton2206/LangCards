@@ -299,12 +299,10 @@ export default {
     mixed: "Mixed",
     new: "New",
     hint: {
-      mine: "Only from words you've taken — reinforcing the familiar.",
+      mine: "Mostly your words; if there aren't enough for a phrase, a little new is added.",
       mixed: "Familiar words mixed with new ones — best for learning.",
       new: "Unfamiliar words at your level — growing your vocabulary.",
     },
-    newOnListening:
-      "Listening tasks are built around your words, so “New” behaves like “Mixed”.",
     fewMine:
       "You have few taken words yet — there won't be much variety and words will start to repeat.",
     switchMixed: "Switch to “Mixed”",

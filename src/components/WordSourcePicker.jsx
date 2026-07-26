@@ -10,22 +10,13 @@ import "./WordSourcePicker.css";
  * takenCount нужен для мягкой подсказки: если выбрано «Мои слова», а взятых слов
  * мало (порог из 6.1 — ENOUGH_WORDS_FOR_READING), предупреждаем, что разнообразие
  * будет ограничено и слова начнут повторяться, и предлагаем «Смешанно».
- * Не блокируем — это подсказка, а не запрет.
- *
- * context: "reading" | "listening". В аудировании задания строятся вокруг
- * активных слов пользователя, поэтому источник «Новые» там работает как
- * «Смешанно» — об этом честно предупреждаем строкой ниже.
+ * Не блокируем — это подсказка, а не запрет. Один и тот же пикер в чтении и в
+ * обоих форматах аудирования — источник везде работает полноценно.
  */
-export default function WordSourcePicker({
-  value,
-  onChange,
-  takenCount = 0,
-  context = "reading",
-}) {
+export default function WordSourcePicker({ value, onChange, takenCount = 0 }) {
   const { t } = useI18n();
   const fewForMine =
     value === "mine" && takenCount < ENOUGH_WORDS_FOR_READING;
-  const newOnListening = context === "listening" && value === "new";
 
   return (
     <div className="wordsource">
@@ -45,11 +36,7 @@ export default function WordSourcePicker({
           </button>
         ))}
       </div>
-      <p className="wordsource__hint">
-        {newOnListening
-          ? t("wordSource.newOnListening")
-          : t(`wordSource.hint.${value}`)}
-      </p>
+      <p className="wordsource__hint">{t(`wordSource.hint.${value}`)}</p>
 
       {fewForMine && (
         <div className="wordsource__warn" role="status">
