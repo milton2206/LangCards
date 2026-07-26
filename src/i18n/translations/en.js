@@ -565,7 +565,7 @@ export default {
       submit: "Send reset link",
       backToSignin: "Back to sign in",
       sent:
-        "If {email} is registered, we've sent a reset link. Check your inbox (and the Spam folder).",
+        "If this email is registered, we've sent it a password reset link. Check your inbox.",
       newTitle: "New password",
       newLead: "Choose a new password to sign in with.",
       newPassword: "New password",

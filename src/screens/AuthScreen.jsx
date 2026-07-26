@@ -106,10 +106,10 @@ export default function AuthScreen({
     try {
       await onResetPassword(mail);
       // Supabase намеренно отвечает успехом и для незарегистрированных адресов
-      // (чтобы нельзя было перебором узнать, кто есть в базе) — формулировка это
-      // учитывает. Возвращаемся ко входу с уведомлением.
+      // (чтобы нельзя было перебором узнать, кто есть в базе). Сообщение —
+      // НЕЙТРАЛЬНОЕ, без email и без подтверждения/отрицания наличия аккаунта.
       setMode("signin");
-      setNotice(t("auth.reset.sent", { email: mail }));
+      setNotice(t("auth.reset.sent"));
     } catch (err) {
       setError(t(authErrorKey(err?.message)));
     } finally {
