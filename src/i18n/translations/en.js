@@ -357,6 +357,15 @@ export default {
       newWords: "New words",
       listening: "Dialogue with questions",
     },
+    // Concrete task for the block (not just a title).
+    task: {
+      review: "Review · {n}",
+      reading: "Reading · 1 text · answer questions",
+      newWords: "New words · {n}",
+      listening: "Dialogue · listen and answer",
+    },
+    checkAria: "Mark block “{block}” done",
+    uncheckAria: "Unmark block “{block}”",
     newBlockTitle: "Session · new words",
     newBlockHint: "Take about {n} new words, then return to the plan.",
     blockDone: "Done, back to session",
@@ -570,6 +579,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      sessionCompletion: {
+        title: "Session blocks, for real",
+        desc: "A block is marked done only when you actually finish the exercise, not just from opening it. Each block has a checkbox you can also set or clear by hand if you did it outside the session.",
+      },
       sessionEngine: {
         title: "Today's session",
         desc: "The app now assembles your day — review, reading, new words and a dialogue. A load slider makes it lighter or heavier, and “I want something else” opens manual choice.",

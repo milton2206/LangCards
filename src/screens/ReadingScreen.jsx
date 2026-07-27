@@ -48,6 +48,8 @@ export default function ReadingScreen({
   // Движок заданий (необязательно): объём блока «чтение» — сколько предложений
   // в тексте. Без него — обычная длина под уровень.
   plannedSentences = null,
+  // Реальное завершение блока чтения: прочитал И ответил на вопросы.
+  onQuestionsComplete = null,
 }) {
   const { t } = useI18n();
 
@@ -419,6 +421,7 @@ export default function ReadingScreen({
               questions={questions}
               learnLang={learnLang}
               nativeLang={nativeLang}
+              onFinished={onQuestionsComplete}
             />
           )}
         </section>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { checkComprehension } from "../lib/comprehensionClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./ComprehensionQuestions.css";
@@ -19,6 +19,10 @@ export default function ComprehensionQuestions({
   learnLang,
   nativeLang,
   footer = null,
+  // Движок заданий (необязательно): вызывается ОДИН раз, когда пользователь
+  // реально прошёл все вопросы (дошёл до итога) — по этому событию блок занятия
+  // отмечается выполненным. Простой заход на экран его не вызывает.
+  onFinished = null,
 }) {
   const { t } = useI18n();
 
@@ -38,6 +42,7 @@ export default function ComprehensionQuestions({
     setIndex(0);
     setChosen(null);
     setCorrectCount(0);
+    finishedFiredRef.current = false; // новый набор — событие завершения снова доступно
   }, [sig]);
 
   const list = Array.isArray(questions) ? questions : [];
@@ -45,6 +50,16 @@ export default function ComprehensionQuestions({
   const current = index < total ? list[index] : null;
   const finished = total > 0 && index >= total;
   const result = chosen === null || !current ? null : checkComprehension(current.answer, chosen);
+
+  // Реальное завершение: пользователь дошёл до итога, ответив на все вопросы.
+  // Сообщаем движку заданий ОДИН раз (не при каждой перерисовке итога).
+  const finishedFiredRef = useRef(false);
+  useEffect(() => {
+    if (finished && !finishedFiredRef.current) {
+      finishedFiredRef.current = true;
+      onFinished?.();
+    }
+  }, [finished, onFinished]);
 
   function answer(value) {
     if (!current || chosen !== null) return;

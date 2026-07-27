@@ -45,6 +45,10 @@ import {
 import { computeDailyQuotas } from "./lib/dailyBalance.js";
 import { buildSession } from "./lib/sessionEngine.js";
 import {
+  loadSessionProgress,
+  saveSessionProgress,
+} from "./lib/sessionProgress.js";
+import {
   buildWeeklySchedule,
   todayScheduledPair,
 } from "./lib/weeklySchedule.js";
@@ -471,20 +475,13 @@ export default function App() {
         activeLanguage.nativeLang !== userLangs.priorityLanguage.nativeLang),
   );
 
-  // Дневная норма новых слов активной пары и её остаток (лимит не обходим).
-  // Фолбэк — константа (не generateCount): движок сам меняет размер порции
-  // генерации под блок «новые слова», а норма от неё зависеть не должна, иначе
-  // получилась бы обратная связь (норма ← порция ← норма).
+  // Дневная норма новых слов активной пары. Фолбэк — константа (не generateCount):
+  // движок сам меняет размер порции генерации под блок «новые слова», а норма от
+  // неё зависеть не должна, иначе была бы обратная связь (норма ← порция ← норма).
   const sessionDailyNewLimit = Math.max(
     1,
     Number(activeLanguage?.dailyNewLimit) || 10,
   );
-  const sessionRemaining = activeBalance
-    ? Math.max(0, (activeBalance.quota || 0) - (activeBalance.taken || 0))
-    : Math.max(
-        0,
-        sessionDailyNewLimit - (vocab.takenTodayByPair?.[pairKey] || 0),
-      );
 
   // Доступность форматов: без сети текст/диалог не сгенерировать — молча
   // пропускаем; диалог требует активных слов.
@@ -492,12 +489,44 @@ export default function App() {
   const listeningAvailable =
     online && !restDay && vocab.takenWords.length > 0;
 
+  // Прогресс занятия на СЕГОДНЯ (см. sessionProgress.js): снимок числа созревших
+  // на начало дня + ручные отметки + события завершения чтения/аудио. Живёт на
+  // день и на пару, сбрасывается на новый день сам. sessionBlock — тип блока,
+  // открытого ИЗ занятия (null — вручную): по нему возврат знает, вести к плану
+  // или в ручной хаб.
+  const [sessionProgress, setSessionProgress] = useState(() =>
+    loadSessionProgress(pairKey, vocab.todayKey),
+  );
+  const [sessionBlock, setSessionBlock] = useState(null);
+  const [sessionSentences, setSessionSentences] = useState(null);
+  const [sessionQuestions, setSessionQuestions] = useState(null);
+
+  // Смена дня или пары: перечитываем прогресс (пустой на новый день) и, если
+  // снимок числа созревших ещё не сделан, снимаем его — чтобы подпись
+  // «Повторение · N» не «плыла» по мере повторения.
+  useEffect(() => {
+    const p = loadSessionProgress(pairKey, vocab.todayKey);
+    if (p.reviewTarget == null) {
+      p.reviewTarget = dueWords.length;
+      saveSessionProgress(pairKey, vocab.todayKey, p);
+    }
+    setSessionProgress(p);
+    setSessionBlock(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pairKey, vocab.todayKey]);
+
+  function persistProgress(next) {
+    setSessionProgress(next);
+    saveSessionProgress(pairKey, vocab.todayKey, next);
+  }
+
+  const reviewTarget = sessionProgress.reviewTarget || 0;
+
   const sessionPlan = useMemo(
     () =>
       buildSession({
-        dueCount: dueWords.length,
+        reviewCount: reviewTarget,
         dailyNewLimit: sessionDailyNewLimit,
-        remaining: sessionRemaining,
         sessionLoad,
         isSecondaryDay,
         restDay,
@@ -505,9 +534,8 @@ export default function App() {
         listeningAvailable,
       }),
     [
-      dueWords.length,
+      reviewTarget,
       sessionDailyNewLimit,
-      sessionRemaining,
       sessionLoad,
       isSecondaryDay,
       restDay,
@@ -516,18 +544,38 @@ export default function App() {
     ],
   );
 
-  // Прогресс занятия: типы пройденных блоков + блок, открытый ИЗ занятия. По
-  // sessionBlock возврат из экрана знает: отметить блок и вернуться к плану или
-  // уйти в ручной хаб. Сбрасывается при смене дня или активной пары.
-  const [sessionDone, setSessionDone] = useState([]);
-  const [sessionBlock, setSessionBlock] = useState(null);
-  const [sessionSentences, setSessionSentences] = useState(null);
-  const [sessionQuestions, setSessionQuestions] = useState(null);
+  const sessionNewTarget =
+    sessionPlan.blocks.find((b) => b.type === "newWords")?.count || 0;
 
-  useEffect(() => {
-    setSessionDone([]);
-    setSessionBlock(null);
-  }, [pairKey, vocab.todayKey]);
+  // Автоматическая выполненность блока — из РЕАЛЬНЫХ данных/событий, а не из
+  // факта захода на экран: повторение — не осталось созревших; новые слова —
+  // взято сегодня не меньше цели (в т.ч. если взял заранее вне движка); чтение/
+  // аудио — есть событие «ответил на вопросы».
+  const takenTodayForPair = vocab.takenTodayByPair?.[pairKey] || 0;
+  function autoDoneFor(type) {
+    if (type === "review") return dueWords.length === 0;
+    if (type === "newWords")
+      return sessionNewTarget > 0 && takenTodayForPair >= sessionNewTarget;
+    if (type === "reading") return Boolean(sessionProgress.events?.reading);
+    if (type === "listening") return Boolean(sessionProgress.events?.listening);
+    return false;
+  }
+  // Итоговый статус: ручная отметка ПЕРЕКРЫВАЕТ авто (тот же чекбокс).
+  function isBlockDone(type) {
+    const manual = sessionProgress.marks?.[type];
+    return manual === undefined ? autoDoneFor(type) : manual;
+  }
+  const sessionDoneMap = Object.fromEntries(
+    sessionPlan.blocks.map((b) => [b.type, isBlockDone(b.type)]),
+  );
+
+  // Ручная галочка: ставит/снимает статус блока (тот же чекбокс, что и авто).
+  function toggleSessionBlock(type) {
+    persistProgress({
+      ...sessionProgress,
+      marks: { ...sessionProgress.marks, [type]: !isBlockDone(type) },
+    });
+  }
 
   // Запуск блока: движок только выстраивает порядок и объём и открывает
   // СУЩЕСТВУЮЩИЙ экран — своих экранов не заводит.
@@ -542,21 +590,33 @@ export default function App() {
       setListeningMode("comprehension"); // блок аудирования — диалог с вопросами
       setScreen("listening");
     } else if (block.type === "newWords") {
-      // Объём блока — размер порции генерации (уже зажат остатком нормы в
-      // buildParams). Взятие слов идёт обычным потоком карточек.
+      // Объём блока — размер порции генерации (сама генерация зажата суточным
+      // лимитом в buildParams). Взятие слов идёт обычным потоком карточек.
       if (block.count > 0) setGenerateCount(block.count);
       setScreen("cards");
     }
   }
 
-  // Выход из блока к плану: отмечаем пройденным (если открыт из занятия) и
-  // возвращаемся на экран занятия. Из ручного хаба — просто к плану, без отметки.
-  function exitSession() {
-    if (sessionBlock) {
-      setSessionDone((prev) =>
-        prev.includes(sessionBlock) ? prev : [...prev, sessionBlock],
-      );
+  // РЕАЛЬНОЕ завершение упражнения (вызывают сами экраны): чтение/аудио пишут
+  // событие «ответил на вопросы» (в т.ч. пройденное вне движка отметит блок);
+  // затем, если упражнение открывалось ИЗ занятия, возвращаемся к плану. Простой
+  // заход и выход отметку НЕ ставит — это и есть исправление бага.
+  function completeExercise(type) {
+    if (type === "reading" || type === "listening") {
+      persistProgress({
+        ...sessionProgress,
+        events: { ...sessionProgress.events, [type]: true },
+      });
     }
+    if (sessionBlock === type) {
+      setSessionBlock(null);
+      setScreen("session");
+    }
+  }
+
+  // Возврат из блока к плану БЕЗ отметки (просто «назад»): отметка — только по
+  // реальному завершению (completeExercise) или вручную (toggleSessionBlock).
+  function exitSession() {
     setSessionBlock(null);
     setScreen("session");
   }
@@ -567,15 +627,12 @@ export default function App() {
     setScreen("cards");
   }
 
-  // Возврат из блочного экрана: открыт из занятия → к плану (+отметка), открыт
-  // вручную (из хаба) → назад в хаб.
+  // Возврат из блочного экрана: открыт из занятия → к плану (без отметки), открыт
+  // вручную (из хаба) → назад в хаб. Отметку ставит только реальное завершение.
   function handleSessionBack() {
     if (sessionBlock) exitSession();
     else setScreen("cards");
   }
-
-  const sessionNewTarget =
-    sessionPlan.blocks.find((b) => b.type === "newWords")?.count || generateCount;
 
   // Короткий туториал показывается ОДИН раз при первом запуске (по флагу).
   const [showTutorial, setShowTutorial] = useState(
@@ -1113,7 +1170,8 @@ export default function App() {
         {screen === "session" && (
           <SessionScreen
             plan={sessionPlan}
-            doneTypes={sessionDone}
+            doneMap={sessionDoneMap}
+            onToggle={toggleSessionBlock}
             sessionLoad={sessionLoad}
             onChangeLoad={handleChangeSessionLoad}
             onStartBlock={startSessionBlock}
@@ -1148,6 +1206,7 @@ export default function App() {
             nativeLang={nativeLang}
             onReview={vocab.reviewWord}
             onBack={handleSessionBack}
+            onFinished={() => completeExercise("review")}
           />
         )}
 
@@ -1191,6 +1250,7 @@ export default function App() {
             plannedSentences={
               sessionBlock === "reading" ? sessionSentences : null
             }
+            onQuestionsComplete={() => completeExercise("reading")}
           />
         )}
 
@@ -1218,6 +1278,7 @@ export default function App() {
             plannedQuestions={
               sessionBlock === "listening" ? sessionQuestions : null
             }
+            onQuestionsComplete={() => completeExercise("listening")}
           />
         )}
 

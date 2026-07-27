@@ -66,6 +66,8 @@ export default function ListeningScreen({
   // Движок заданий (необязательно): объём блока «диалог» — сколько вопросов на
   // понимание. Без него — серверный дефолт.
   plannedQuestions = null,
+  // Реальное завершение блока аудирования: прослушал И ответил на вопросы.
+  onQuestionsComplete = null,
 }) {
   const { t } = useI18n();
   const listeningLevel = getListeningLevel(levelId);
@@ -553,6 +555,7 @@ export default function ListeningScreen({
                 learnLang={learnLang}
                 nativeLang={nativeLang}
                 footer={transcript}
+                onFinished={onQuestionsComplete}
               />
             </div>
           )}

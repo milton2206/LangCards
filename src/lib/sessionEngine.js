@@ -38,55 +38,59 @@ const MAINTENANCE_NEW_FACTOR = 0.5;
  * много повторений → занятие и так насыщенное, новых поменьше; большая норма и
  * мало повторений → можно плотнее.
  */
-export function autoLevel(dailyNewLimit, dueCount) {
+export function autoLevel(dailyNewLimit, reviewCount) {
   const limit = Math.max(1, Number(dailyNewLimit) || 0);
-  const due = Math.max(0, Number(dueCount) || 0);
+  const due = Math.max(0, Number(reviewCount) || 0);
   if (due >= 2 * limit) return "light";
   if (due >= limit) return "normal";
   return limit >= 15 ? "heavy" : "normal";
 }
 
 /** Эффективный уровень: явный выбор пользователя, либо авто-расчёт при 'auto'. */
-export function effectiveLevel(sessionLoad, dailyNewLimit, dueCount) {
+export function effectiveLevel(sessionLoad, dailyNewLimit, reviewCount) {
   if (SESSION_LOADS.includes(sessionLoad)) return sessionLoad;
-  return autoLevel(dailyNewLimit, dueCount); // 'auto' и любое неизвестное
+  return autoLevel(dailyNewLimit, reviewCount); // 'auto' и любое неизвестное
 }
 
 /**
- * Собирает занятие на сегодня.
+ * Собирает занятие на сегодня — СТРУКТУРУ и ОБЪЁМ блоков (задачи), а не их статус.
  * Возвращает { level, restDay?, secondary?, blocks: [{ type, count?/sentences?/questions? }] }.
  * Типы блоков: 'review' | 'reading' | 'newWords' | 'listening'.
+ *
+ * ВАЖНО: reviewCount — это СНИМОК числа созревших на сегодня (стабилен в течение
+ * дня), а не живое число оставшихся; и count новых слов — это ЦЕЛЬ дня (норма ×
+ * нагрузка), а не остаток. Отметка «выполнено» считается снаружи (движок сверяет
+ * цель с реальным прогрессом), поэтому блок не исчезает, когда упражнение пройдено.
  */
 export function buildSession({
-  dueCount = 0,
+  reviewCount = 0,
   dailyNewLimit = 10,
-  remaining = null, // остаток дневной нормы новых слов (null — не ограничиваем)
   sessionLoad = "auto",
   isSecondaryDay = false, // мультирежим by_day: сегодня НЕ приоритетный язык
   restDay = false,
   readingAvailable = false,
   listeningAvailable = false,
 }) {
-  const level = effectiveLevel(sessionLoad, dailyNewLimit, dueCount);
+  const level = effectiveLevel(sessionLoad, dailyNewLimit, reviewCount);
   const vol = VOLUME[level] || VOLUME.normal;
-  const due = Math.max(0, Number(dueCount) || 0);
+  const review = Math.max(0, Number(reviewCount) || 0);
   const blocks = [];
 
-  // 1) Повторения — всегда первыми и в полном объёме.
-  if (due > 0) blocks.push({ type: "review", count: due });
+  // 1) Повторения — всегда первыми и в полном объёме (снимок дня).
+  if (review > 0) blocks.push({ type: "review", count: review });
 
   // Выходной по расписанию: только повторения (плюс предложение позаниматься в UI).
   if (restDay) {
     return { level, restDay: true, blocks };
   }
 
-  // Объём новых слов: норма × множитель нагрузки (в день второстепенного — ещё
-  // вдвое меньше), но не больше остатка дневной нормы — лимит не обходим.
+  // Цель по новым словам на сегодня: норма × множитель нагрузки (в день
+  // второстепенного — ещё вдвое меньше). Это ЦЕЛЬ, а не остаток: если слова уже
+  // взяты вне движка, блок просто окажется выполненным (проверка снаружи). Сама
+  // генерация карточек по-прежнему зажата суточным лимитом (см. buildParams).
   const limit = Math.max(0, Number(dailyNewLimit) || 0);
   const factor = vol.newFactor * (isSecondaryDay ? MAINTENANCE_NEW_FACTOR : 1);
-  let newCount = Math.round(limit * factor);
-  if (remaining != null) newCount = Math.min(newCount, Math.max(0, remaining));
-  newCount = Math.max(0, newCount);
+  const newCount = Math.max(0, Math.round(limit * factor));
 
   // День второстепенного языка — поддержание: повторение + немного новых слов.
   if (isSecondaryDay) {

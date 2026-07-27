@@ -8,14 +8,27 @@ import "./SessionScreen.css";
 // проходит блоки по очереди, а кнопка «Хочу другое» открывает ручной выбор.
 // Сам движок ничего не генерирует — он лишь порядок и объём; блоки открывают
 // существующие экраны (повторение, чтение, карточки, аудирование).
+//
+// У каждого блока — ЧЕКБОКС статуса: встаёт сам, когда упражнение реально
+// пройдено (движок сверяет с данными/событиями), и его же можно поставить/снять
+// вручную. Прогресс и «Всё пройдено» считаются от отмеченных блоков.
+// Тап по ТЕЛУ блока ведёт в само упражнение; тап по чекбоксу — только отметка.
 // ============================================================================
 
-// Иконка и i18n-ключ названия по типу блока. Порядок задаёт движок.
-const BLOCK_META = {
-  review: { icon: "🔁", key: "review" },
-  reading: { icon: "📖", key: "reading" },
-  newWords: { icon: "🆕", key: "newWords" },
-  listening: { icon: "🎧", key: "listening" },
+// Иконка по типу блока. Порядок и объём задаёт движок.
+const BLOCK_ICON = {
+  review: "🔁",
+  reading: "📖",
+  newWords: "🆕",
+  listening: "🎧",
+};
+
+// i18n-ключ короткого имени блока (для кнопки «Продолжить: …»).
+const BLOCK_NAME_KEY = {
+  review: "review",
+  reading: "reading",
+  newWords: "newWords",
+  listening: "listening",
 };
 
 // Порядок ползунка нагрузки: авто + три ручных уровня.
@@ -23,7 +36,8 @@ const LOAD_OPTIONS = ["auto", "light", "normal", "heavy"];
 
 export default function SessionScreen({
   plan,
-  doneTypes = [],
+  doneMap = {},
+  onToggle,
   sessionLoad,
   onChangeLoad,
   onStartBlock,
@@ -39,18 +53,21 @@ export default function SessionScreen({
   const { t } = useI18n();
 
   const blocks = plan?.blocks || [];
-  const done = new Set(doneTypes);
-  const doneCount = blocks.filter((b) => done.has(b.type)).length;
-  // Активный блок — первый ещё не пройденный.
-  const activeIndex = blocks.findIndex((b) => !done.has(b.type));
+  const doneCount = blocks.filter((b) => doneMap[b.type]).length;
+  // Активный блок — первый ещё не отмеченный.
+  const activeIndex = blocks.findIndex((b) => !doneMap[b.type]);
   const activeBlock = activeIndex >= 0 ? blocks[activeIndex] : null;
   const allDone = blocks.length > 0 && activeIndex === -1;
 
-  // Объём блока для подписи: повторение и новые слова — число, чтение и диалог
-  // без счётчика (это один текст / один диалог).
-  function blockVolume(block) {
-    if (block.type === "review") return String(block.count);
-    if (block.type === "newWords") return String(block.count);
+  // Конкретная задача блока (а не только заголовок): «Повторение · 14»,
+  // «Чтение · 1 текст · ответить на вопросы», «Новые слова · 10»,
+  // «Диалог · прослушать и ответить».
+  function blockTask(block) {
+    if (block.type === "review") return t("session.task.review", { n: block.count });
+    if (block.type === "newWords")
+      return t("session.task.newWords", { n: block.count });
+    if (block.type === "reading") return t("session.task.reading");
+    if (block.type === "listening") return t("session.task.listening");
     return "";
   }
 
@@ -142,19 +159,16 @@ export default function SessionScreen({
             <div className="session__progress-bar" aria-hidden="true">
               <span
                 className="session__progress-fill"
-                style={{
-                  width: `${(doneCount / blocks.length) * 100}%`,
-                }}
+                style={{ width: `${(doneCount / blocks.length) * 100}%` }}
               />
             </div>
           </div>
 
           <ol className="session__blocks">
             {blocks.map((block, i) => {
-              const meta = BLOCK_META[block.type];
-              const isDone = done.has(block.type);
+              const isDone = Boolean(doneMap[block.type]);
               const isActive = i === activeIndex;
-              const vol = blockVolume(block);
+              const name = t(`session.block.${BLOCK_NAME_KEY[block.type]}`);
               return (
                 <li
                   key={block.type}
@@ -164,22 +178,33 @@ export default function SessionScreen({
                     (isActive ? " is-active" : "")
                   }
                 >
+                  {/* Чекбокс: авто/ручная отметка — один и тот же. Тап по нему
+                      НЕ открывает упражнение, только меняет статус. */}
+                  <button
+                    type="button"
+                    className={"session__check" + (isDone ? " is-checked" : "")}
+                    role="checkbox"
+                    aria-checked={isDone}
+                    aria-label={
+                      isDone ? t("session.uncheckAria", { block: name }) : t("session.checkAria", { block: name })
+                    }
+                    onClick={() => onToggle(block.type)}
+                  >
+                    <span aria-hidden="true">{isDone ? "✓" : ""}</span>
+                  </button>
+
+                  {/* Тело блока: тап ведёт в само упражнение (объём передаётся). */}
                   <button
                     type="button"
                     className="session__block-btn"
                     onClick={() => onStartBlock(block)}
                   >
                     <span className="session__block-icon" aria-hidden="true">
-                      {isDone ? "✅" : meta?.icon}
+                      {BLOCK_ICON[block.type]}
                     </span>
-                    <span className="session__block-main">
-                      <span className="session__block-name">
-                        {t(`session.block.${meta?.key}`)}
-                      </span>
-                      {vol && <span className="session__block-vol">{vol}</span>}
-                    </span>
+                    <span className="session__block-task">{blockTask(block)}</span>
                     <span className="session__block-go" aria-hidden="true">
-                      {isDone ? "" : "›"}
+                      ›
                     </span>
                   </button>
                 </li>
@@ -197,7 +222,7 @@ export default function SessionScreen({
               {doneCount === 0
                 ? t("session.start")
                 : t("session.continue", {
-                    block: t(`session.block.${BLOCK_META[activeBlock.type]?.key}`),
+                    block: t(`session.block.${BLOCK_NAME_KEY[activeBlock.type]}`),
                   })}
             </button>
           ) : (

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { highlightWordInExample } from "../lib/highlightWord.js";
 import { formatInterval } from "../i18n/format.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
@@ -48,6 +48,10 @@ export default function ReviewScreen({
   nativeLang,
   onReview,
   onBack,
+  // Движок заданий (необязательно): вызывается ОДИН раз, когда пройдены ВСЕ
+  // созревшие слова (очередь опустела) — по этому событию блок «повторение»
+  // отмечается выполненным. Простой заход и выход его не вызывает.
+  onFinished = null,
 }) {
   const { t, lang } = useI18n();
   const [revealed, setRevealed] = useState(false);
@@ -77,6 +81,15 @@ export default function ReviewScreen({
   useEffect(() => {
     setRevealed(false);
   }, [currentWord]);
+
+  // Все созревшие пройдены (очередь опустела) — сообщаем движку ОДИН раз.
+  const finishedFiredRef = useRef(false);
+  useEffect(() => {
+    if (!currentWord && !finishedFiredRef.current) {
+      finishedFiredRef.current = true;
+      onFinished?.();
+    }
+  }, [currentWord, onFinished]);
 
   // «Не помню» — вернуть слово в текущую сессию через несколько карточек, не
   // применяя интервал. Остальные оценки — обычный SRS (слово покидает сессию).

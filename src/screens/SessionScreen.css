@@ -82,8 +82,38 @@
   gap: 8px;
 }
 
+/* Строка блока: чекбокс статуса + тело (открывает упражнение) */
+.session__block {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+/* Чекбокс: авто/ручная отметка — один и тот же. */
+.session__check {
+  flex: 0 0 auto;
+  width: 44px;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: transparent;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.session__check.is-checked {
+  border-color: rgba(53, 200, 139, 0.6);
+  background-color: rgba(53, 200, 139, 0.14);
+  color: #35c88b;
+}
+
 .session__block-btn {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -111,34 +141,17 @@
   line-height: 1;
 }
 
-.session__block-main {
+.session__block-task {
   flex: 1;
   min-width: 0;
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.session__block-name {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: break-word;
 }
 
-.session__block.is-done .session__block-name {
+.session__block.is-done .session__block-task {
   text-decoration: line-through;
-}
-
-.session__block-vol {
-  flex: 0 0 auto;
-  min-width: 24px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background-color: rgba(108, 140, 255, 0.16);
-  color: var(--accent);
-  font-size: 13px;
-  font-weight: 700;
-  text-align: center;
 }
 
 .session__block-go {
