@@ -187,9 +187,6 @@ export default {
     tipFewWords:
       "Take a few more words and the next text will feel noticeably more familiar.",
     toCards: "Go to cards",
-    saved: "Text {n} of {total}",
-    older: "Earlier text",
-    newer: "Later text",
   },
 
   // Custom generation topics (presets live in code, custom ones per pair).
@@ -540,6 +537,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      readingVariety: {
+        title: "More varied reading texts",
+        desc: "“New text” now replaces the previous one — one text on screen. And texts on the same topic no longer repeat one storyline: a different situation and characters each time.",
+      },
       listeningComprehension: {
         title: "Listening for comprehension",
         desc: "A short dialogue plays around your words, then true/false questions about it. Get one wrong and we explain why, with a reference to the dialogue. The older word formats live under “Words”.",

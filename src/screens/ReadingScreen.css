@@ -369,31 +369,3 @@
 .reading__generate:disabled {
   opacity: 0.5;
 }
-
-.reading__history {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-.reading__history-btn {
-  width: 40px;
-  height: 40px;
-  min-height: 40px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
-  font-size: 16px;
-  line-height: 1;
-}
-
-.reading__history-btn:disabled {
-  opacity: 0.4;
-}
-
-.reading__history-label {
-  color: var(--text-muted);
-  font-size: 13px;
-}

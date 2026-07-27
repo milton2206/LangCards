@@ -48,10 +48,13 @@ export default function ReadingScreen({
 }) {
   const { t } = useI18n();
 
-  // История текстов пары И источника: [0] — самый свежий. Ключ кэша включает
-  // источник (mine/mixed/new), чтобы тексты разных источников не смешивались.
+  // Недавние тексты пары И источника: [0] — самый свежий, он и на экране (один
+  // текст за раз, «Новый текст» его ЗАМЕНЯЕТ). Историю храним не для листалки, а
+  // чтобы (1) при перезаходе показать последний без запроса к API и (2) отдать
+  // модели заголовки недавних сюжетов — тогда она не повторяет один и тот же
+  // сценарий. Ключ кэша включает источник (mine/mixed/new), чтобы тексты разных
+  // источников не смешивались.
   const [texts, setTexts] = useState(() => loadTexts(pairKey, wordSource));
-  const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -88,19 +91,18 @@ export default function ReadingScreen({
     return () => stopCurrentAudio();
   }, []);
 
-  // Смена источника (или пары) — показываем историю текстов ИМЕННО этого
+  // Смена источника (или пары) — показываем последний текст ИМЕННО этого
   // источника: «только мои» и «только новые» тексты не смешиваются.
   useEffect(() => {
     setTexts(loadTexts(pairKey, wordSource));
-    setIndex(0);
     setGrammar(null);
   }, [pairKey, wordSource]);
 
-  // Смена текста (новый или из истории) — прячем вопросы прошлого текста.
+  // Сменился показанный текст (сгенерировали новый) — прячем вопросы прошлого.
   useEffect(() => {
     setQuestions(null);
     setQError(null);
-  }, [index, texts]);
+  }, [texts]);
 
   const lookup = useWordLookup({ learnLang, nativeLang, onAdd: onAddWord });
 
@@ -116,7 +118,8 @@ export default function ReadingScreen({
     return set;
   }, [takenWords, knownWords]);
 
-  const current = texts[index] || null;
+  // На экране всегда самый свежий текст (один за раз).
+  const current = texts[0] || null;
 
   // Три состояния по числу взятых слов пары. Режим доступен ВСЕГДА — при нуле
   // слов текст просто целиком новый (это обычный адаптированный текст под
@@ -131,6 +134,13 @@ export default function ReadingScreen({
     setError(null);
     setGrammar(null);
     try {
+      // Заголовки недавних текстов ЭТОЙ темы — чтобы модель не повторяла сюжет.
+      // Фильтруем по теме: тексты хранятся с полем topic (см. ниже), сравниваем
+      // с текущей темой; у старых записей topic мог не сохраниться — их пропустим.
+      const recentTitles = texts
+        .filter((tx) => tx && tx.title && tx.topic === topic)
+        .map((tx) => tx.title);
+
       const text = await requestReadingText({
         learnLang,
         nativeLang,
@@ -141,11 +151,13 @@ export default function ReadingScreen({
         // сервере трактуется как «Смешанно» (уровень-онли).
         knownWords: takenWords || [],
         source: wordSource,
+        recentTitles,
       });
-      // Сохраняем и показываем в истории ИМЕННО этого источника.
-      const list = saveText(pairKey, wordSource, text);
+      // Помечаем текст темой (для фильтра «недавних сюжетов» выше) и кладём в
+      // кэш ЭТОГО источника: новый текст становится текущим (заменяет прежний на
+      // экране), прежние остаются в кэше только для разнообразия и перезахода.
+      const list = saveText(pairKey, wordSource, { ...text, topic });
       setTexts(list);
-      setIndex(0);
     } catch (err) {
       setError(apiErrorText(err, t, "reading.failed"));
     } finally {
@@ -429,7 +441,9 @@ export default function ReadingScreen({
         </div>
       )}
 
-      {/* Управление: источник слов, новый текст, история сохранённых текстов */}
+      {/* Управление: источник слов, новый текст. Листалки нет — «Новый текст»
+          ЗАМЕНЯЕТ текущий (один текст на экране); недавние живут в кэше только
+          ради разнообразия сюжетов и показа последнего при перезаходе. */}
       <div className="reading__controls">
         <WordSourcePicker
           value={wordSource}
@@ -445,38 +459,6 @@ export default function ReadingScreen({
         >
           {t("reading.generate")}
         </button>
-
-        {texts.length > 1 && (
-          <div className="reading__history">
-            <button
-              type="button"
-              className="reading__history-btn"
-              onClick={() => {
-                setGrammar(null);
-                setIndex((i) => Math.min(texts.length - 1, i + 1));
-              }}
-              disabled={index >= texts.length - 1}
-              aria-label={t("reading.older")}
-            >
-              ←
-            </button>
-            <span className="reading__history-label">
-              {t("reading.saved", { n: index + 1, total: texts.length })}
-            </span>
-            <button
-              type="button"
-              className="reading__history-btn"
-              onClick={() => {
-                setGrammar(null);
-                setIndex((i) => Math.max(0, i - 1));
-              }}
-              disabled={index === 0}
-              aria-label={t("reading.newer")}
-            >
-              →
-            </button>
-          </div>
-        )}
       </div>
 
       <WordLookupSheet

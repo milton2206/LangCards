@@ -10,7 +10,9 @@ import { authHeaders, makeApiError } from "./apiClient.js";
 const TEXTS_KEY = "readingTexts"; // { "de-ru|mixed": [ {…текст}, … ] }
 const GRAMMAR_KEY = "readingGrammar"; // { "<hash>": { points: [] } }
 
-// Сколько текстов держим на пару — история «перечитать», без разрастания хранилища.
+// Сколько недавних текстов держим на пару+источник. Не для листалки (её нет —
+// «Новый текст» заменяет текущий), а чтобы отдать модели заголовки недавних
+// сюжетов для разнообразия и показать последний текст при перезаходе.
 const MAX_TEXTS_PER_PAIR = 5;
 // Сколько объяснений храним всего (по всем предложениям).
 const MAX_GRAMMAR_ENTRIES = 200;
@@ -84,6 +86,7 @@ export async function requestReadingText({
   sentenceLength,
   source,
   gapChoices,
+  recentTitles,
 }) {
   let res;
   try {
@@ -107,6 +110,8 @@ export async function requestReadingText({
         // Аудирование «пропущенное слово» + «Новые»: просим у модели скрываемое
         // новое слово и варианты к нему.
         gapChoices,
+        // Заголовки недавних текстов этой темы — чтобы модель не повторяла сюжет.
+        recentTitles,
       }),
     });
   } catch {
