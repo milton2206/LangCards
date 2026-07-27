@@ -537,6 +537,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      listeningVariety: {
+        title: "More varied dialogues",
+        desc: "Listening dialogues no longer repeat one storyline: even at the same topic and level, each one has a different situation, place and participants.",
+      },
       readingVariety: {
         title: "More varied reading texts",
         desc: "“New text” now replaces the previous one — one text on screen. And texts on the same topic no longer repeat one storyline: a different situation and characters each time.",

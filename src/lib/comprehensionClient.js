@@ -10,7 +10,7 @@
 
 import { authHeaders, makeApiError } from "./apiClient.js";
 
-const DIALOGUES_KEY = "listeningDialogues"; // { "de-ru|mixed": { …диалог+вопросы } }
+const DIALOGUES_KEY = "listeningDialogues"; // { "de-ru|mixed": [ {…диалог+вопросы}, … ] }
 const QUESTIONS_KEY = "readingQuestions"; // { "<hash>": { questions: [] } }
 
 // Сколько наборов вопросов к текстам держим (по всем текстам) — без разрастания.
@@ -63,6 +63,7 @@ export async function requestDialogueSet({
   level,
   takenWords = [],
   source = "mixed",
+  recentTitles = [],
 }) {
   let res;
   try {
@@ -78,6 +79,8 @@ export async function requestDialogueSet({
         // Активные слова уходят в промпт; сервер по source решает, как их вплетать.
         knownWords: takenWords,
         source,
+        // Заголовки недавних диалогов этой темы — чтобы модель не повторяла сюжет.
+        recentTitles,
       }),
     });
   } catch {
@@ -99,6 +102,8 @@ export async function requestDialogueSet({
   return {
     format: "dialogue",
     source,
+    // Тема — для фильтра «недавних сюжетов» (разнообразие в рамках темы).
+    topic,
     title: data.title || "",
     titleTranslation: data.titleTranslation || "",
     dialogue,
@@ -114,23 +119,58 @@ function dialogueKey(pairKey, source = "mixed") {
   return `${pairKey}|${source}`;
 }
 
-/** Текущий диалог пары И источника, если он есть и целостен. */
+// Недавние диалоги пары И источника: [0] — самый свежий, он и на экране (один
+// диалог за раз, «Новый диалог» его ЗАМЕНЯЕТ). Историю храним не для листалки, а
+// чтобы (1) при перезаходе показать последний без запроса к API, (2) отдать
+// модели заголовки недавних сюжетов ЭТОЙ темы для разнообразия. Как в чтении.
+// Разные диалоги — разные записи в этой истории; вопросы лежат в том же наборе,
+// что и диалог, поэтому кэш никогда не подменит вопросы чужим диалогом.
+const MAX_DIALOGUES_PER_PAIR = 5;
+
+function isValidDialogue(set) {
+  return Boolean(
+    set &&
+      Array.isArray(set.dialogue) &&
+      set.dialogue.length > 0 &&
+      Array.isArray(set.questions) &&
+      set.questions.length > 0,
+  );
+}
+
+// Список наборов пары+источника. Терпим старый формат (одиночный объект) —
+// приводим к массиву, чтобы прежний кэш не сломался.
+function dialogueList(store, pairKey, source) {
+  const raw = store[dialogueKey(pairKey, source)];
+  if (Array.isArray(raw)) return raw;
+  return raw ? [raw] : [];
+}
+
+/** Самый свежий диалог пары И источника, если он есть и целостен. */
 export function loadDialogue(pairKey, source) {
   const store = loadJSON(DIALOGUES_KEY, {});
-  const set = store[dialogueKey(pairKey, source)];
-  return set &&
-    Array.isArray(set.dialogue) &&
-    set.dialogue.length > 0 &&
-    Array.isArray(set.questions) &&
-    set.questions.length > 0
-    ? set
-    : null;
+  const set = dialogueList(store, pairKey, source)[0];
+  return isValidDialogue(set) ? set : null;
 }
 
 export function saveDialogue(pairKey, source, set) {
   const store = loadJSON(DIALOGUES_KEY, {});
-  store[dialogueKey(pairKey, source)] = set;
+  const key = dialogueKey(pairKey, source);
+  const list = dialogueList(store, pairKey, source);
+  // Новый диалог — первым (он и на экране); храним ограниченную историю.
+  store[key] = [set, ...list].slice(0, MAX_DIALOGUES_PER_PAIR);
   saveJSON(DIALOGUES_KEY, store);
+}
+
+/**
+ * Заголовки недавних диалогов ЭТОЙ темы (пара+источник) — для промпта генерации,
+ * чтобы модель делала другой сюжет. Фильтр по теме: у старых наборов темы нет,
+ * их пропускаем.
+ */
+export function recentDialogueTitles(pairKey, source, topic) {
+  const store = loadJSON(DIALOGUES_KEY, {});
+  return dialogueList(store, pairKey, source)
+    .filter((s) => s && s.title && s.topic === topic)
+    .map((s) => s.title);
 }
 
 // ---------- Вопросы к тексту (чтение) ----------

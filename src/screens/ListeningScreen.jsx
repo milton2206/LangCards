@@ -12,6 +12,7 @@ import {
   loadDialogue,
   saveDialogue,
   requestDialogueSet,
+  recentDialogueTitles,
 } from "../lib/comprehensionClient.js";
 import { requestGrammar } from "../lib/readingClient.js";
 import { apiErrorText } from "../lib/apiClient.js";
@@ -241,6 +242,8 @@ export default function ListeningScreen({
     setError(null);
     stopCurrentAudio();
     try {
+      // Заголовки недавних диалогов ЭТОЙ темы — чтобы модель дала другой сюжет.
+      const recentTitles = recentDialogueTitles(pairKey, wordSource, topic);
       const next = await requestDialogueSet({
         learnLang,
         nativeLang,
@@ -248,7 +251,10 @@ export default function ListeningScreen({
         level,
         takenWords: takenWords || [],
         source: wordSource,
+        recentTitles,
       });
+      // Новый диалог становится текущим (заменяет прежний на экране); прежние
+      // остаются в кэше только для разнообразия и показа последнего при перезаходе.
       saveDialogue(pairKey, wordSource, next);
       setDialogueSet(next);
       // Заранее греем озвучку реплик в общем кэше — переслушивание мгновенное.
