@@ -396,7 +396,19 @@ export default function LanguagesScreen({
             onUpdateSchedule({ scheduleMode: m }),
           )}
           {scheduleMode === "by_day" && (
-            <WeekSchedule schedule={weeklySchedule} />
+            <WeekSchedule
+              schedule={weeklySchedule}
+              editable
+              languages={languages}
+              onChangeDay={(day, pairKey) =>
+                onUpdateSchedule({
+                  weeklySchedule: {
+                    ...weeklySchedule,
+                    [String(day)]: pairKey,
+                  },
+                })
+              }
+            />
           )}
         </div>
 

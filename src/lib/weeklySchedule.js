@@ -129,3 +129,47 @@ export function todayScheduledPair(schedule, date = new Date()) {
   if (!schedule) return null;
   return schedule[String(isoWeekday(date))] || null;
 }
+
+// ---------- Ручное редактирование расписания ----------
+// Расписание заполняется автоматически (buildWeeklySchedule) как стартовая
+// раскладка, но каждый день можно поменять вручную. Чтобы ручные правки не
+// затирались авто-пересчётом на каждом заходе, пересчёт делаем ТОЛЬКО при
+// реальном изменении набора языков / приоритета / числа учебных дней — это
+// отслеживает сигнатура ниже; а при пересчёте сохраняем ручные правки (reconcile).
+
+/**
+ * Сигнатура набора языков для расписания: отсортированные активные пары +
+ * приоритетная пара + число учебных дней. Меняется ТОЛЬКО при реальном
+ * изменении набора (добавили/удалили язык, сменили приоритет, изменили дни),
+ * а не при простом перечитывании того же набора при заходе/перезагрузке.
+ */
+export function scheduleSignature(languages, studyDays) {
+  const keys = (languages || []).map(keyOf).sort();
+  const priority = (languages || []).find((l) => l.isPriority) || (languages || [])[0];
+  const priKey = priority ? keyOf(priority) : "";
+  return `${keys.join(",")}|p:${priKey}|d:${studyDays}`;
+}
+
+/**
+ * Пересчёт раскладки с СОХРАНЕНИЕМ ручных правок. Берём новую авто-раскладку
+ * (newAuto), но там, где пользователь вручную ОТЛИЧИЛСЯ от прежней авто
+ * (baselineAuto) и его выбор всё ещё валиден (язык активен или это выходной) —
+ * оставляем правку. Так добавление языка обновляет раскладку, но не затирает
+ * бездумно то, что человек уже поменял. Чистая функция — тестируется без UI.
+ */
+export function reconcileSchedule(current, baselineAuto, newAuto, activeKeys) {
+  const active = activeKeys instanceof Set ? activeKeys : new Set(activeKeys || []);
+  const merged = {};
+  for (let d = 1; d <= 7; d += 1) {
+    const k = String(d);
+    const cur = current?.[k] ?? null;
+    const base = baselineAuto?.[k] ?? null;
+    const manual = cur !== base; // пользователь менял этот день относительно авто
+    if (manual && (cur === null || active.has(cur))) {
+      merged[k] = cur; // ручная правка (валидная) — сохраняем
+    } else {
+      merged[k] = newAuto?.[k] ?? null; // иначе — из новой авто-раскладки
+    }
+  }
+  return merged;
+}

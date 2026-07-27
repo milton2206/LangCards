@@ -51,6 +51,8 @@ import {
 import {
   buildWeeklySchedule,
   todayScheduledPair,
+  scheduleSignature,
+  reconcileSchedule,
 } from "./lib/weeklySchedule.js";
 import {
   loadActivePair,
@@ -346,21 +348,59 @@ export default function App() {
   // Слова, которым сегодня пора на повтор (отдельно от потока новых карточек).
   const dueWords = getDueWords(vocab.takenWords, vocab.srsByWord, vocab.todayKey);
 
-  // ---------- Пересчёт недельной раскладки (фаза 4.5) ----------
-  // Раскладка пересчитывается при добавлении/удалении языка, смене приоритета
-  // и числа учебных дней; сохраняется в profiles (best-effort, локально —
-  // сразу). Сравнение по JSON защищает от лишних записей и циклов.
+  // ---------- Недельная раскладка (фаза 4.5) + ручное редактирование ----------
+  // Раскладка заполняется АВТОМАТИЧЕСКИ как стартовая, но дни можно менять
+  // вручную (см. WeekSchedule editable в LanguagesScreen). Поэтому авто-пересчёт
+  // НЕ делаем на каждом заходе (иначе ручные правки затирались бы): пересчёт —
+  // только при РЕАЛЬНОМ изменении набора языков / приоритета / числа дней
+  // (сигнатура), и при пересчёте ручные правки сохраняются (reconcileSchedule).
+  const scheduleSigRef = useRef(null);
+  const autoBaselineRef = useRef(null);
   useEffect(() => {
     if (!scheduleActive || userLangs.loading || userLangs.languages.length === 0) {
       return;
     }
-    const next = buildWeeklySchedule(
+    const sig = scheduleSignature(
       userLangs.languages,
       userLangs.studyDaysPerWeek,
     );
-    if (JSON.stringify(next) !== JSON.stringify(userLangs.weeklySchedule)) {
-      userLangs.updateSchedulePrefs({ weeklySchedule: next });
+    const auto = buildWeeklySchedule(
+      userLangs.languages,
+      userLangs.studyDaysPerWeek,
+    );
+    const current = userLangs.weeklySchedule || {};
+
+    // Первый заход при этом наборе языков: если расписания ещё нет — кладём
+    // стартовую авто-раскладку; если уже есть (возможно, с ручными правками) —
+    // НЕ трогаем. Запоминаем сигнатуру и авто-базу для будущего сравнения.
+    if (scheduleSigRef.current === null) {
+      if (Object.keys(current).length === 0) {
+        userLangs.updateSchedulePrefs({ weeklySchedule: auto });
+      }
+      scheduleSigRef.current = sig;
+      autoBaselineRef.current = auto;
+      return;
     }
+
+    // Набор языков/дней не изменился (просто перезаход/перерендер) — ничего не
+    // пересчитываем, ручные правки остаются как есть.
+    if (sig === scheduleSigRef.current) return;
+
+    // Реальное изменение набора: пересчитываем, СОХРАНЯЯ валидные ручные правки.
+    const activeKeys = new Set(
+      userLangs.languages.map((l) => `${l.learnLang}-${l.nativeLang}`),
+    );
+    const merged = reconcileSchedule(
+      current,
+      autoBaselineRef.current || {},
+      auto,
+      activeKeys,
+    );
+    if (JSON.stringify(merged) !== JSON.stringify(current)) {
+      userLangs.updateSchedulePrefs({ weeklySchedule: merged });
+    }
+    scheduleSigRef.current = sig;
+    autoBaselineRef.current = auto;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     scheduleActive,

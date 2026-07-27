@@ -55,3 +55,63 @@
 .week__dot.is-off .week__dot-lang {
   color: var(--text-muted);
 }
+
+/* ---------- Редактируемый режим: тап по дню меняет язык ---------- */
+.week__dot--edit {
+  cursor: pointer;
+  color: var(--text);
+  min-height: 48px;
+}
+
+/* Выбранный для редактирования день — акцентная рамка (важнее приглушения off) */
+.week__dot--edit.is-editing {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.16);
+  opacity: 1;
+}
+
+/* Меню выбора языка на день */
+.week__picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.week__picker-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.week__picker-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.week__opt {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--bg-elevated);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.week__opt.is-active {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--accent);
+}
+
+.week__hint {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}

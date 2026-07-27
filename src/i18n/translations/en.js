@@ -426,6 +426,11 @@ export default {
     studyAnyway: "Study anyway:",
     days: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
     aria: "Weekly language schedule",
+    // Manual schedule editing (tap a day → pick language / rest).
+    editHint: "Tap a day to change its language or make it a rest day.",
+    editDay: "Change language on {day}",
+    pickForDay: "{day} — pick a language:",
+    restOption: "Rest day",
   },
 
   // Daily load balancing (phase 4.3): new-word quota per language.
@@ -579,6 +584,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      editableSchedule: {
+        title: "Edit your schedule by hand",
+        desc: "In the weekly language schedule you can now tap any day and pick a different language or make it a rest day. Auto-fill stays as the starting layout.",
+      },
       sessionCompletion: {
         title: "Session blocks, for real",
         desc: "A block is marked done only when you actually finish the exercise, not just from opening it. Each block has a checkbox you can also set or clear by hand if you did it outside the session.",
