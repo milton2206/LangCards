@@ -540,6 +540,14 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      listeningComprehension: {
+        title: "Listening for comprehension",
+        desc: "A short dialogue plays around your words, then true/false questions about it. Get one wrong and we explain why, with a reference to the dialogue. The older word formats live under “Words”.",
+      },
+      readingComprehension: {
+        title: "Reading comprehension tests",
+        desc: "After a text in reading mode, questions about its content — check that you really understood what you read.",
+      },
       audioPlayer: {
         title: "Pause and seek audio",
         desc: "In listening and reading, long audio can be paused, scrubbed along the bar, and played from any point.",

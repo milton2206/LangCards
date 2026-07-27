@@ -24,6 +24,8 @@
 // ============================================================================
 
 export const CHANGELOG = [
+  { id: "listeningComprehension", date: "2026-07-27T00:15:52Z" }, // 6.2: диалог + вопросы
+  { id: "readingComprehension", date: "2026-07-27T00:15:52Z" }, // 6.2: тесты понимания текста
   { id: "audioPlayer", date: "2026-07-26T22:53:00Z" }, // плеер: пауза и перемотка
   { id: "deleteAccount", date: "2026-07-26" }, // 7.1
   { id: "feedback", date: "2026-07-26" }, // 7.1
