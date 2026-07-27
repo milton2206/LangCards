@@ -112,11 +112,102 @@
   text-align: left;
 }
 
+/* ---------- Основной выбор режима: понимание / слова ---------- */
+.listening__mode {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.listening__mode-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.listening__mode-tab {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.listening__mode-tab.is-active {
+  border-color: var(--accent);
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--accent);
+}
+
 /* ---------- Подход ---------- */
 .listening__practice {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+/* Заголовок ситуации диалога (краткий контекст перед прослушиванием) */
+.listening__dialogue-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.listening__dialogue-title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.listening__dialogue-subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Расшифровка диалога — показывается только в итоге (после ответов) */
+.listening__transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  text-align: left;
+}
+
+.listening__transcript-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.listening__line {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.listening__line-text {
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+}
+
+.listening__speaker {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.listening__line-tr {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 /* Прослушать / переслушать — плеер длинного аудио (пауза/перемотка/повтор). */

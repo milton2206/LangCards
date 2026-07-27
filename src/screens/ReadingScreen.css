@@ -283,6 +283,35 @@
   line-height: 1;
 }
 
+/* ---------- Проверка понимания текста (отзыв Игоря) ---------- */
+.reading__comprehension {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.reading__check {
+  min-height: 48px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background-color: rgba(108, 140, 255, 0.14);
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.reading__check:disabled {
+  opacity: 0.5;
+}
+
+.reading__check-hint {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 /* ---------- Управление ---------- */
 .reading__controls {
   display: flex;

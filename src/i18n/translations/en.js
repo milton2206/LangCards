@@ -175,6 +175,12 @@ export default {
     grammarLoading: "Looking at the sentence…",
     grammarFailed: "Couldn't explain this sentence. Please try again.",
     failed: "Couldn't write the text. Please try again.",
+    // Comprehension check (Igor's feedback).
+    checkBtn: "Check comprehension",
+    checkHint:
+      "A few questions about the text — true/false, with an explanation when you miss.",
+    generatingQuestions: "Writing the questions…",
+    questionsFailed: "Couldn't write the questions. Please try again.",
     offline: "Reading mode needs a connection. Cards and reviews still work.",
     tipNoWords:
       "Tap any unfamiliar word — you'll see its translation and can take it into study. That's how your vocabulary grows.",
@@ -245,6 +251,22 @@ export default {
   listening: {
     entry: "Listening",
     title: "Listening",
+    // Main choice: comprehension (dialogue) / words (older formats).
+    modeLabel: "What we check:",
+    mode: { comprehension: "Comprehension", words: "Words" },
+    modeHintComprehension:
+      "A short dialogue plays, then comprehension questions. Like a language exam.",
+    modeHintWords:
+      "A single word by ear: type the missing one or pick the sound-alike.",
+    // Comprehension (dialogue + questions).
+    emptyHintDialogue:
+      "A short dialogue plays, built around words you're already learning. Listen (you can pause and replay), then answer questions about what was said. If you're wrong, we explain why — with a reference to the dialogue.",
+    startDialogue: "Play the dialogue",
+    newDialogue: "New dialogue",
+    generatingDialogue: "Writing the dialogue…",
+    listenPrompt: "Listen to the dialogue, then answer the questions.",
+    transcript: "Dialogue transcript",
+    dialogueFailed: "Couldn't build the dialogue. Please try again.",
     start: "Start a round ({n})",
     restart: "New round ({n})",
     generating: "Preparing your tasks…",
@@ -273,6 +295,7 @@ export default {
     level: { slow: "Slow", normal: "Normal", fast: "Fast" },
     levelHint:
       "Speed changes right away; phrase length applies to the next round.",
+    levelHintSpeed: "Speaking speed in the dialogue. Heard on the next play.",
     formatLabel: "Format:",
     format: { gap: "Missing word", soundalike: "By ear" },
     formatHintGap: "A sentence plays; you type the hidden word.",
@@ -291,6 +314,22 @@ export default {
       "You have no words of your own yet. Take some on the cards — that's what the tasks are built from.",
     tipFewWords:
       "Take a few more words and you'll get more varied tasks.",
+  },
+
+  // Comprehension questions (phase 6.2): one mechanism for listening and reading.
+  comprehension: {
+    prompt: "True or false?",
+    true: "True",
+    false: "False",
+    right: "Correct",
+    wrong: "Not quite",
+    why: "Why",
+    next: "Next",
+    finish: "Finish",
+    progress: "Question {n} of {total}",
+    doneTitle: "Done",
+    score: "Correct answers: {n} of {total}.",
+    retake: "Take it again",
   },
 
   // Word source for reading and listening (one setting for both modes).

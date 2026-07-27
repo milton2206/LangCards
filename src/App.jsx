@@ -60,6 +60,8 @@ import { loadGenerateMode } from "./lib/generateMode.js";
 import {
   loadListeningLevel,
   saveListeningLevel,
+  loadListeningMode,
+  saveListeningMode,
   loadListeningFormat,
   saveListeningFormat,
 } from "./lib/listeningLevels.js";
@@ -309,8 +311,16 @@ export default function App() {
     saveListeningLevel(listeningLevel);
   }, [listeningLevel]);
 
-  // Формат аудирования: «пропущенное слово» или «на слух». Умолчание зависит от
-  // уровня (на высоких — сразу «на слух»), дальше главенствует выбор пользователя.
+  // Режим аудирования: понимание (диалог + вопросы) — ОСНОВНОЙ — или слова
+  // (старые форматы). Сохраняется между сессиями.
+  const [listeningMode, setListeningMode] = useState(loadListeningMode);
+  useEffect(() => {
+    saveListeningMode(listeningMode);
+  }, [listeningMode]);
+
+  // Формат «слов» внутри режима слов: «пропущенное слово» или «на слух».
+  // Умолчание зависит от уровня (на высоких — сразу «на слух»), дальше
+  // главенствует выбор пользователя.
   const [listeningFormat, setListeningFormat] = useState(() =>
     loadListeningFormat(settings.level),
   );
@@ -1022,6 +1032,8 @@ export default function App() {
             wordInfo={vocab.wordInfo}
             levelId={listeningLevel}
             onChangeLevel={setListeningLevel}
+            mode={listeningMode}
+            onChangeMode={setListeningMode}
             formatId={listeningFormat}
             onChangeFormat={setListeningFormat}
             wordSource={wordSource}

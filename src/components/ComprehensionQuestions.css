@@ -1,0 +1,166 @@
+/* Общий блок вопросов на понимание (аудирование + чтение), фаза 6.2. */
+.comp {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comp__head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.comp__progress {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.comp__prompt {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.comp__statement {
+  font-size: 18px;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+}
+
+.comp__statement-tr {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---------- Ответ «верно / неверно» ---------- */
+.comp__answers {
+  display: flex;
+  gap: 8px;
+}
+
+.comp__answer {
+  flex: 1;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.comp__answer:disabled {
+  opacity: 0.75;
+}
+
+.comp__answer.is-correct {
+  border-color: rgba(53, 200, 139, 0.6);
+  background-color: rgba(53, 200, 139, 0.12);
+  color: #35c88b;
+  opacity: 1;
+}
+
+.comp__answer.is-wrong {
+  border-color: rgba(255, 107, 107, 0.6);
+  background-color: rgba(255, 107, 107, 0.12);
+  color: #ff6b6b;
+  opacity: 1;
+}
+
+/* ---------- Проверка и объяснение ошибки ---------- */
+.comp__result {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.comp__result.is-correct {
+  border-color: rgba(53, 200, 139, 0.35);
+  background-color: rgba(53, 200, 139, 0.07);
+}
+
+.comp__result.is-wrong {
+  border-color: rgba(255, 107, 107, 0.35);
+  background-color: rgba(255, 107, 107, 0.07);
+}
+
+.comp__verdict {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Объяснение: почему ответ такой, со ссылкой на диалог/текст */
+.comp__why {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(108, 140, 255, 0.25);
+  background-color: rgba(108, 140, 255, 0.08);
+}
+
+.comp__why-label {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.comp__why-text {
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+
+.comp__next {
+  min-height: 44px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ---------- Итог подхода ---------- */
+.comp__done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.comp__done-emoji {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.comp__done-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.comp__done-score {
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.comp__retake {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}

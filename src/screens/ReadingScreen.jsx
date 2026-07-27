@@ -6,6 +6,12 @@ import {
   requestReadingText,
   requestGrammar,
 } from "../lib/readingClient.js";
+import {
+  requestTextQuestions,
+  loadTextQuestions,
+  saveTextQuestions,
+  questionsKeyFor,
+} from "../lib/comprehensionClient.js";
 import { stopCurrentAudio } from "../lib/ttsClient.js";
 import { apiErrorText } from "../lib/apiClient.js";
 import { ENOUGH_WORDS_FOR_READING } from "../hooks/useWordLists.js";
@@ -13,6 +19,7 @@ import { useWordLookup } from "../hooks/useWordLookup.js";
 import WordLookupSheet from "../components/WordLookupSheet.jsx";
 import WordSourcePicker from "../components/WordSourcePicker.jsx";
 import AudioPlayer from "../components/AudioPlayer.jsx";
+import ComprehensionQuestions from "../components/ComprehensionQuestions.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./ReadingScreen.css";
 
@@ -51,6 +58,13 @@ export default function ReadingScreen({
   // Разбор грамматики: { sentence, status, points?, errorText? }
   const [grammar, setGrammar] = useState(null);
 
+  // Вопросы на понимание текста (отзыв Игоря): тот же механизм, что в
+  // аудировании, только источник — текст. Кэшируются по хешу текста: перепройти
+  // тот же текст можно без запроса к API.
+  const [questions, setQuestions] = useState(null); // массив вопросов | null
+  const [qLoading, setQLoading] = useState(false);
+  const [qError, setQError] = useState(null);
+
   // Мягкое предложение взять ещё слов (состояние «мало слов») можно закрыть —
   // это предложение, а не условие: закрыли и читаем дальше.
   const [fewHintClosed, setFewHintClosed] = useState(false);
@@ -81,6 +95,12 @@ export default function ReadingScreen({
     setIndex(0);
     setGrammar(null);
   }, [pairKey, wordSource]);
+
+  // Смена текста (новый или из истории) — прячем вопросы прошлого текста.
+  useEffect(() => {
+    setQuestions(null);
+    setQError(null);
+  }, [index, texts]);
 
   const lookup = useWordLookup({ learnLang, nativeLang, onAdd: onAddWord });
 
@@ -169,6 +189,46 @@ export default function ReadingScreen({
       current ? current.sentences.map((s) => ({ text: s.text, learnLang })) : [],
     [current, learnLang],
   );
+
+  // Ключ кэша вопросов текущего текста и то, есть ли уже сохранённые вопросы
+  // (тогда «проверить понимание» работает и офлайн, без запроса к API).
+  const questionsKey = useMemo(
+    () => (current ? questionsKeyFor(learnLang, current.sentences) : null),
+    [current, learnLang],
+  );
+  const cachedQuestions = useMemo(
+    () => (questionsKey ? loadTextQuestions(questionsKey) : null),
+    [questionsKey],
+  );
+
+  async function handleCheckComprehension() {
+    if (!current || qLoading) return;
+    // Из кэша — без запроса к API (перепройти тот же текст даром).
+    if (questionsKey) {
+      const cached = loadTextQuestions(questionsKey);
+      if (cached) {
+        setQuestions(cached);
+        return;
+      }
+    }
+    if (offline) return; // без кэша и без сети показать нечего
+    setQLoading(true);
+    setQError(null);
+    try {
+      const qs = await requestTextQuestions({
+        learnLang,
+        nativeLang,
+        level,
+        sentences: current.sentences,
+      });
+      if (questionsKey) saveTextQuestions(questionsKey, qs);
+      setQuestions(qs);
+    } catch (err) {
+      setQError(apiErrorText(err, t, "reading.questionsFailed"));
+    } finally {
+      setQLoading(false);
+    }
+  }
 
   return (
     <section className="reading">
@@ -314,6 +374,37 @@ export default function ReadingScreen({
             );
           })}
         </article>
+      )}
+
+      {/* Проверка понимания содержания (отзыв Игоря): те же вопросы «верно/
+          неверно» + объяснение ошибки, что и в аудировании. Вопросы к тексту
+          кэшируются — перепройти тот же текст можно без нового запроса к API. */}
+      {current && !loading && (
+        <section className="reading__comprehension">
+          {!questions && (
+            <>
+              <button
+                type="button"
+                className="reading__check"
+                onClick={handleCheckComprehension}
+                disabled={qLoading || (offline && !cachedQuestions)}
+              >
+                {qLoading
+                  ? t("reading.generatingQuestions")
+                  : t("reading.checkBtn")}
+              </button>
+              <p className="reading__check-hint">{t("reading.checkHint")}</p>
+              {qError && <p className="reading__error">{qError}</p>}
+            </>
+          )}
+          {questions && (
+            <ComprehensionQuestions
+              questions={questions}
+              learnLang={learnLang}
+              nativeLang={nativeLang}
+            />
+          )}
+        </section>
       )}
 
       {/* Мало слов: мягкое предложение (не условие) — взять ещё и вернуться.

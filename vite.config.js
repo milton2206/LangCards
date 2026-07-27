@@ -118,16 +118,20 @@ function devApiReading() {
           for await (const chunk of req) chunks.push(chunk);
           const raw = Buffer.concat(chunks).toString("utf8");
           const params = raw ? JSON.parse(raw) : {};
-          // Вид лимита зависит от действия: grammar дешевле и чаще — своя квота.
+          // Вид лимита зависит от действия: grammar дешевле и чаще — своя квота;
+          // вопросы на понимание — генерация в домене чтения, квота как у текста.
           const kind = params.action === "grammar" ? "grammar" : "texts";
           if (!(await guardDev(server, req, res, kind))) return;
           // Импортируем лениво, чтобы ошибка ключа не роняла запуск дев-сервера.
           const { generateReadingText, explainGrammar } =
             await server.ssrLoadModule("/lib/reading.js");
-          const result =
-            params.action === "grammar"
-              ? await explainGrammar(params)
-              : await generateReadingText(params);
+          let result;
+          if (params.action === "grammar") result = await explainGrammar(params);
+          else if (params.action === "questions") {
+            const { generateTextComprehension } =
+              await server.ssrLoadModule("/lib/comprehension.js");
+            result = await generateTextComprehension(params);
+          } else result = await generateReadingText(params);
           res.setHeader("Content-Type", "application/json");
           res.end(JSON.stringify(result));
         } catch (err) {
@@ -200,6 +204,15 @@ function devApiListening() {
           const raw = Buffer.concat(chunks).toString("utf8");
           const params = raw ? JSON.parse(raw) : {};
           // Импортируем лениво, чтобы ошибка ключа не роняла запуск дев-сервера.
+          if (params.action === "dialogue") {
+            // ОСНОВНОЙ формат: мини-диалог вокруг активных слов + вопросы.
+            const { generateDialogueComprehension } =
+              await server.ssrLoadModule("/lib/comprehension.js");
+            const result = await generateDialogueComprehension(params);
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify(result));
+            return;
+          }
           const { generateSoundAlikes } =
             await server.ssrLoadModule("/lib/listening.js");
           const items = await generateSoundAlikes({

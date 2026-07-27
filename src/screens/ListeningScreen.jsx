@@ -8,14 +8,21 @@ import {
   PHRASES_PER_SET,
   BLANK,
 } from "../lib/listeningClient.js";
+import {
+  loadDialogue,
+  saveDialogue,
+  requestDialogueSet,
+} from "../lib/comprehensionClient.js";
 import { requestGrammar } from "../lib/readingClient.js";
 import { apiErrorText } from "../lib/apiClient.js";
 import { stopCurrentAudio, prewarmPhrases } from "../lib/ttsClient.js";
 import AudioPlayer from "../components/AudioPlayer.jsx";
+import ComprehensionQuestions from "../components/ComprehensionQuestions.jsx";
 import {
   LISTENING_LEVELS,
   getListeningLevel,
   LISTENING_FORMATS,
+  LISTENING_MODES,
 } from "../lib/listeningLevels.js";
 import { ENOUGH_WORDS_FOR_READING } from "../hooks/useWordLists.js";
 import WordSourcePicker from "../components/WordSourcePicker.jsx";
@@ -23,17 +30,19 @@ import { useI18n } from "../i18n/I18nContext.jsx";
 import "./ListeningScreen.css";
 
 /**
- * Аудирование (фаза 6.2) — два честных формата:
- *   gap        — звучит всё предложение, одно слово скрыто (___); пользователь
- *                вписывает или выбирает пропущенное слово;
- *   soundalike — звучит слово, варианты похожи по звучанию (нельзя угадать по
- *                первому звуку); формат для продвинутых.
- * Старый формат «выбери услышанную фразу целиком» убран: он проверял чтение.
+ * Аудирование (фаза 6.2). ОСНОВНОЙ режим — проверка ПОНИМАНИЯ (Hörverstehen):
+ * звучит короткий диалог вокруг активных слов пользователя, потом вопросы
+ * «верно/неверно» с объяснением ошибки. Это проверяет понимание речи, а не
+ * узнавание отдельного слова, за что старый формат и раскритиковали.
  *
- * Ничего нового под капотом: предложения даёт генерация 6.1 вокруг активных
- * слов пары, похожие по звучанию подбирает модель (/api/listening), звук — общий
- * TTS-кэш (5.1), разбор грамматики — то же кэшированное объяснение, что в чтении.
- * Без сети формат недоступен (слушать нечего) — карточки и повторение работают.
+ * Второй режим — «слова»: старые форматы «пропущенное слово» / «на слух»
+ * оставлены как дополнительный выбор (кому-то заходят).
+ *
+ * Ничего нового под капотом: диалог и текст даёт генерация 6.1 (вокруг активных
+ * слов пары), проигрывание — готовый AudioPlayer (пауза/перемотка/переслушать),
+ * вопросы — общий механизм (ComprehensionQuestions), звук — общий TTS-кэш (5.1).
+ * Диалог и его вопросы кэшируются вместе — переслушать и перепройти без нового
+ * запроса к API. Без сети режим недоступен — карточки и повторение работают.
  */
 export default function ListeningScreen({
   pairKey,
@@ -45,6 +54,8 @@ export default function ListeningScreen({
   wordInfo,
   levelId,
   onChangeLevel,
+  mode,
+  onChangeMode,
   formatId,
   onChangeFormat,
   wordSource,
@@ -55,22 +66,20 @@ export default function ListeningScreen({
   const { t } = useI18n();
   const listeningLevel = getListeningLevel(levelId);
 
-  // Источник слов работает в ОБОИХ форматах (mine/mixed/new) — см. requestGapSet
-  // и requestSoundAlikeSet. Экран лишь передаёт выбор и хранит его в штампе
-  // набора, чтобы кэш не подменял источники между собой.
-
-  // Текущий подход пары: переживает уход с экрана и перезагрузку.
+  // ---------- Состояние ----------
+  // Понимание: диалог + вопросы (кэшируются вместе по паре И источнику).
+  const [dialogueSet, setDialogueSet] = useState(() =>
+    loadDialogue(pairKey, wordSource),
+  );
+  // Слова: текущий подход старых форматов (по паре).
   const [set, setSet] = useState(() => loadSet(pairKey));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Ответ для формата gap: "type" — вписать, "choice" — выбрать. По умолчанию
-  // вписывать (основной способ). Формат soundalike — всегда выбор.
-  const [mode, setMode] = useState("type");
+  // Ответ для формата gap: "type" — вписать, "choice" — выбрать.
+  const [modeAnswer, setModeAnswer] = useState("type");
   const [typed, setTyped] = useState("");
-  // Результат проверки: { correct, ops?, chosen, viaType }
   const [result, setResult] = useState(null);
-  // Разбор грамматики предложения (только для gap) — как в режиме чтения.
   const [grammar, setGrammar] = useState(null);
 
   const [offline, setOffline] = useState(
@@ -92,32 +101,82 @@ export default function ListeningScreen({
     return () => stopCurrentAudio();
   }, []);
 
-  // Набор хранится по паре: смена активного языка подхватывает свой подход.
+  // Смена активной пары: подхватываем свой диалог и свой подход слов.
   const pairRef = useRef(pairKey);
   useEffect(() => {
     if (pairRef.current === pairKey) return;
     pairRef.current = pairKey;
     stopCurrentAudio();
+    setDialogueSet(loadDialogue(pairKey, wordSource));
     setSet(loadSet(pairKey));
     setResult(null);
     setGrammar(null);
     setTyped("");
     setError(null);
-  }, [pairKey]);
+  }, [pairKey, wordSource]);
 
-  // Смена формата или источника: старый набор не подходит (нужен новый),
-  // сбрасываем ввод и глушим звук.
+  // Смена источника: диалог кэшируется по источнику — подгружаем свой; старый
+  // набор слов сбрасываем (нужен новый под источник).
+  useEffect(() => {
+    setDialogueSet(loadDialogue(pairKey, wordSource));
+    stopCurrentAudio();
+    setResult(null);
+    setGrammar(null);
+    setTyped("");
+    setError(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wordSource]);
+
+  // Смена режима или формата: глушим звук и чистим временное состояние.
   useEffect(() => {
     stopCurrentAudio();
     setResult(null);
     setGrammar(null);
     setTyped("");
     setError(null);
-  }, [formatId, wordSource]);
+  }, [mode, formatId]);
 
-  // Набор показываем, только если совпадают И формат, И источник: наборы разных
-  // источников (мои/смешанно/новые) — разные, кэш не должен подсунуть один
-  // вместо другого. Это касается обоих форматов.
+  // ---------- Понимание (диалог) ----------
+  // Показываем диалог, только если он совпадает с текущим источником: наборы
+  // разных источников (мои/смешанно/новые) — разные, кэш их не путает.
+  const activeDialogue =
+    dialogueSet && dialogueSet.source === wordSource ? dialogueSet : null;
+
+  // Реплики диалога → треки плеера. Плеер склеит их в одну шкалу времени и даст
+  // паузу/перемотку/переслушать. Скорость (rate) берётся из выбранного уровня.
+  const dialogueTracks = useMemo(
+    () =>
+      activeDialogue
+        ? activeDialogue.dialogue.map((line) => ({
+            text: line.text,
+            learnLang,
+            rate: listeningLevel.rate,
+          }))
+        : [],
+    [activeDialogue, learnLang, listeningLevel.rate],
+  );
+
+  // Расшифровка диалога — показывается ТОЛЬКО в итоге (после ответов), чтобы её
+  // нельзя было прочитать вместо того, чтобы слушать.
+  const transcript = activeDialogue ? (
+    <div className="listening__transcript">
+      <h3 className="listening__transcript-title">{t("listening.transcript")}</h3>
+      {activeDialogue.dialogue.map((line, i) => (
+        <div className="listening__line" key={i}>
+          <p className="listening__line-text" lang={learnLang}>
+            <b className="listening__speaker">{line.speaker}:</b> {line.text}
+          </p>
+          {line.translation && (
+            <p className="listening__line-tr" lang={nativeLang}>
+              {line.translation}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  ) : null;
+
+  // ---------- Старые форматы (слова) ----------
   const activeSet =
     set && set.format === formatId && set.source === wordSource ? set : null;
   const items = activeSet?.items || [];
@@ -125,7 +184,6 @@ export default function ListeningScreen({
   const current = index < items.length ? items[index] : null;
   const finished = Boolean(activeSet && index >= items.length);
 
-  // Что звучит и что является правильным ответом — зависит от формата.
   const audioText = current
     ? current.kind === "soundalike"
       ? current.word
@@ -142,13 +200,11 @@ export default function ListeningScreen({
       : current.choices || []
     : [];
   const canChoose = options.length > 1;
-  // soundalike — всегда выбор; gap с источником «Новые» (choiceOnly) — тоже
-  // только выбор (незнакомое слово не впишешь); прочий gap — ввод или выбор.
   const answerMode =
     current?.kind === "soundalike" || current?.choiceOnly
       ? "choice"
       : canChoose
-        ? mode
+        ? modeAnswer
         : "type";
 
   const takenCount = (takenWords || []).length;
@@ -160,10 +216,7 @@ export default function ListeningScreen({
     saveSet(pairKey, next);
   }
 
-  // ---------- Звук ----------
-  // Трек текущего задания для плеера. autoPlay включён, поэтому смена задания
-  // (handleNext/handleGenerate) и скорости (handleLevel меняет rate) озвучиваются
-  // сразу — как раньше, но теперь с паузой/перемоткой/повтором. Источник прежний.
+  // Трек текущего задания старых форматов (autoPlay при смене задания/скорости).
   const audioTracks = useMemo(
     () =>
       current && audioText
@@ -172,16 +225,48 @@ export default function ListeningScreen({
     [current, audioText, learnLang, listeningLevel.rate],
   );
 
-  // Смена скорости слышна сразу: rate трека меняется → плеер переиграет на новой
-  // скорости (autoPlay). Длина фразы уровня применится к следующему подходу.
   function handleLevel(id) {
     onChangeLevel(id);
   }
 
-  // ---------- Подход ----------
+  // ---------- Подход: понимание (диалог) ----------
+  async function handleGenerateDialogue() {
+    if (loading || offline) return;
+    // Диалог строится вокруг активных слов пользователя.
+    if (noWords) {
+      setError(t("listening.needWords"));
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    stopCurrentAudio();
+    try {
+      const next = await requestDialogueSet({
+        learnLang,
+        nativeLang,
+        topic,
+        level,
+        takenWords: takenWords || [],
+        source: wordSource,
+      });
+      saveDialogue(pairKey, wordSource, next);
+      setDialogueSet(next);
+      // Заранее греем озвучку реплик в общем кэше — переслушивание мгновенное.
+      prewarmPhrases(
+        next.dialogue.map((l) => l.text),
+        learnLang,
+        listeningLevel.rate,
+      );
+    } catch (err) {
+      setError(apiErrorText(err, t, "listening.dialogueFailed"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ---------- Подход: старые форматы (слова) ----------
   async function handleGenerate() {
     if (loading || offline) return;
-    // Оба формата строятся вокруг активных слов пользователя.
     if (noWords) {
       setError(t("listening.needWords"));
       return;
@@ -202,13 +287,9 @@ export default function ListeningScreen({
         takenWords: takenWords || [],
         wordInfo: wordInfo || {},
         sentenceLength: listeningLevel.length,
-        // Источник работает в обоих форматах; стамп source на наборе — для
-        // сверки с кэшем, чтобы наборы разных источников не путались.
         source: wordSource,
       });
       if (!next.items.length) {
-        // Нечего показать: для gap не нашли активных слов в предложениях, для
-        // soundalike не нашлось похоже звучащих пар — подсказываем, что делать.
         setError(
           formatId === "soundalike"
             ? t("listening.soundalikeEmpty")
@@ -217,8 +298,6 @@ export default function ListeningScreen({
         return;
       }
       updateSet(next);
-      // Первое задание озвучит плеер сам (autoPlay). Остальные заранее греем в
-      // общем кэше, чтобы переход к ним был мгновенным.
       prewarmPhrases(
         next.items.map((it) => (it.kind === "soundalike" ? it.word : it.text)),
         learnLang,
@@ -249,12 +328,8 @@ export default function ListeningScreen({
     setGrammar(null);
     setTyped("");
     updateSet({ ...activeSet, index: nextIndex });
-    // Следующее задание озвучит плеер сам (autoPlay при смене трека). Если
-    // заданий больше нет, практика скрывается и плеер размонтируется — звук стоп.
   }
 
-  // Разбор грамматики предложения (только gap) — тот же кэшированный запрос, что
-  // в чтении (6.1): повторный разбор той же фразы по API уже не бьёт.
   async function handleGrammar() {
     if (!current || current.kind !== "gap") return;
     if (grammar) {
@@ -278,7 +353,6 @@ export default function ListeningScreen({
     }
   }
 
-  // Раскрытие предложения gap: подставляем ответ на место ___ и выделяем его.
   function renderFilled(display, answer) {
     const parts = display.split(BLANK);
     return (
@@ -290,7 +364,36 @@ export default function ListeningScreen({
     );
   }
 
-  // ---------- Пикеры сложности и формата ----------
+  // ---------- Пикеры ----------
+  const loadingText =
+    mode === "comprehension"
+      ? t("listening.generatingDialogue")
+      : t("listening.generating");
+
+  const modeTabs = (
+    <div className="listening__mode">
+      <span className="listening__level-label">{t("listening.modeLabel")}</span>
+      <div className="listening__mode-tabs" role="group">
+        {LISTENING_MODES.map((m) => (
+          <button
+            key={m}
+            type="button"
+            className={"listening__mode-tab" + (mode === m ? " is-active" : "")}
+            aria-pressed={mode === m}
+            onClick={() => onChangeMode(m)}
+          >
+            {t(`listening.mode.${m}`)}
+          </button>
+        ))}
+      </div>
+      <p className="listening__level-hint">
+        {mode === "comprehension"
+          ? t("listening.modeHintComprehension")
+          : t("listening.modeHintWords")}
+      </p>
+    </div>
+  );
+
   const formatPicker = (
     <div className="listening__format">
       <span className="listening__level-label">{t("listening.formatLabel")}</span>
@@ -335,7 +438,11 @@ export default function ListeningScreen({
           </button>
         ))}
       </div>
-      <p className="listening__level-hint">{t("listening.levelHint")}</p>
+      <p className="listening__level-hint">
+        {mode === "comprehension"
+          ? t("listening.levelHintSpeed")
+          : t("listening.levelHint")}
+      </p>
     </div>
   );
 
@@ -351,23 +458,22 @@ export default function ListeningScreen({
           ←
         </button>
         <h1 className="listening__title">{t("listening.title")}</h1>
-        {current && (
+        {mode === "words" && current && (
           <span className="listening__progress">
             {t("listening.progress", { n: index + 1, total: items.length })}
           </span>
         )}
       </header>
 
-      {/* Недельное расписание (фаза 4.5): задания строятся вокруг слов языка,
-          который расписание назначило на сегодня, — говорим об этом прямо. */}
+      {/* Основной выбор: понимание (диалог) / слова (старые форматы). */}
+      {modeTabs}
+
       {scheduleActive && (
         <p className="listening__schedule">
           {t("schedule.today", { lang: t(`lang.${learnLang}`) })}
         </p>
       )}
 
-      {/* Без сети слушать нечего — формат недоступен целиком. Остальное
-          приложение (карточки, повторение) работает как обычно. */}
       {offline && <p className="listening__notice">{t("listening.offline")}</p>}
 
       {error && <p className="listening__error">{error}</p>}
@@ -375,272 +481,360 @@ export default function ListeningScreen({
       {loading && (
         <div className="listening__center">
           <span className="listening__spinner" aria-hidden="true" />
-          <p className="listening__notice">{t("listening.generating")}</p>
+          <p className="listening__notice">{loadingText}</p>
         </div>
       )}
 
-      {/* Первый заход: объясняем формат, ничего не требуем. */}
-      {!loading && !activeSet && !finished && !offline && (
-        <div className="listening__center">
-          <div className="listening__emoji" aria-hidden="true">
-            🎧
-          </div>
-          <p className="listening__notice">
-            {formatId === "soundalike"
-              ? t("listening.emptyHintSoundalike")
-              : t("listening.emptyHintGap")}
-          </p>
-          {noWords && (
-            <p className="listening__tip">💡 {t("listening.tipNoWords")}</p>
-          )}
-        </div>
-      )}
-
-      {/* Подход пройден: сколько узнал и что дальше. */}
-      {!loading && finished && !offline && (
-        <div className="listening__center">
-          <div className="listening__emoji" aria-hidden="true">
-            🎉
-          </div>
-          <h2 className="listening__done-title">{t("listening.doneTitle")}</h2>
-          <p className="listening__notice">
-            {t("listening.doneHint", {
-              n: activeSet.correctCount || 0,
-              total: items.length,
-            })}
-          </p>
-        </div>
-      )}
-
-      {!loading && current && !offline && (
-        <div className="listening__practice">
-          {fewWords && !result && (
-            <p className="listening__tip">💡 {t("listening.tipFewWords")}</p>
-          )}
-
-          {/* Запись переслушивается сколько угодно — до ответа и после: плеер с
-              паузой/перемоткой/повтором. Автостарт при новом задании и смене
-              скорости. */}
-          <div className="listening__player">
-            <AudioPlayer
-              tracks={audioTracks}
-              autoPlay
-              ariaLabel={t("listening.listen")}
-            />
-          </div>
-
-          {/* Вопрос формата + для gap — предложение с пропуском */}
-          <p className="listening__prompt">
-            {current.kind === "soundalike"
-              ? t("listening.soundalikePrompt")
-              : t("listening.gapPrompt")}
-          </p>
-          {current.kind === "gap" && (
-            <p className="listening__sentence" lang={learnLang}>
-              {result
-                ? renderFilled(current.display, current.answer)
-                : current.display.split(BLANK).map((part, i, arr) => (
-                    <span key={i}>
-                      {part}
-                      {i < arr.length - 1 && (
-                        <span className="listening__blank" aria-hidden="true">
-                          ▁▁▁
-                        </span>
-                      )}
-                    </span>
-                  ))}
-            </p>
-          )}
-
-          {/* gap: переключатель «выбрать / вписать». Нет при choiceOnly
-              (источник «Новые» — незнакомое слово только выбором) и в soundalike. */}
-          {current.kind === "gap" && !current.choiceOnly && canChoose && !result && (
-            <div className="listening__modes" role="group">
-              <button
-                type="button"
-                className={
-                  "listening__mode-chip" + (mode === "type" ? " is-active" : "")
-                }
-                aria-pressed={mode === "type"}
-                onClick={() => setMode("type")}
-              >
-                {t("listening.modeType")}
-              </button>
-              <button
-                type="button"
-                className={
-                  "listening__mode-chip" + (mode === "choice" ? " is-active" : "")
-                }
-                aria-pressed={mode === "choice"}
-                onClick={() => setMode("choice")}
-              >
-                {t("listening.modeChoice")}
-              </button>
-            </div>
-          )}
-
-          {answerMode === "choice" && (
-            <div className="listening__options">
-              {options.map((option, i) => {
-                let mark = "";
-                if (result) {
-                  if (optionMatches(option, correctText)) mark = " is-correct";
-                  else if (option === result.chosen) mark = " is-wrong";
-                }
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    className={"listening__option" + mark}
-                    lang={learnLang}
-                    disabled={Boolean(result)}
-                    onClick={() => submitAnswer(option, false)}
-                  >
-                    {option}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {answerMode === "type" && (
-            <div className="listening__input-block">
-              <input
-                type="text"
-                className="listening__input"
-                lang={learnLang}
-                value={typed}
-                readOnly={Boolean(result)}
-                placeholder={t("listening.inputPlaceholder")}
-                onChange={(e) => setTyped(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && typed.trim() && !result) {
-                    e.preventDefault();
-                    submitAnswer(typed, true);
-                  }
-                }}
-              />
-              {!result && (
-                <button
-                  type="button"
-                  className="listening__check"
-                  disabled={!typed.trim()}
-                  onClick={() => submitAnswer(typed, true)}
-                >
-                  {t("listening.check")}
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* ---------- Проверка и разбор ---------- */}
-          {result && (
-            <div
-              className={
-                "listening__result" +
-                (result.correct ? " is-correct" : " is-wrong")
-              }
-              role="status"
-            >
-              <p className="listening__verdict">
-                {result.correct
-                  ? `✅ ${t("listening.right")}`
-                  : `❌ ${t("listening.wrong")}`}
-              </p>
-
-              {/* Раскрытие: gap — предложение с подставленным словом + перевод;
-                  soundalike — само слово и его перевод. */}
-              {current.kind === "gap" ? (
-                <p className="listening__phrase" lang={learnLang}>
-                  {renderFilled(current.display, current.answer)}
-                </p>
-              ) : (
-                <p className="listening__phrase" lang={learnLang}>
-                  <b className="listening__answer">{current.word}</b>
-                </p>
-              )}
-              {current.translation && (
-                <p className="listening__translation" lang={nativeLang}>
-                  {current.translation}
-                </p>
-              )}
-
-              {/* Что именно вписал пользователь, если ошибся (только ввод). */}
-              {result.viaType && !result.correct && (
-                <p className="listening__youwrote">
-                  {t("listening.youWrote", { word: result.chosen.trim() || "—" })}
-                </p>
-              )}
-
-              <div className="listening__result-actions">
-                {current.kind === "gap" && (
-                  <button
-                    type="button"
-                    className={
-                      "listening__grammar-btn" + (grammar ? " is-open" : "")
-                    }
-                    onClick={handleGrammar}
-                    disabled={offline}
-                  >
-                    ¶ {t("listening.explain")}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="listening__next"
-                  onClick={handleNext}
-                >
-                  {index + 1 < items.length
-                    ? t("listening.next")
-                    : t("listening.finish")}
-                </button>
+      {/* ============ Режим ПОНИМАНИЯ: диалог + вопросы ============ */}
+      {mode === "comprehension" && !offline && !loading && (
+        <>
+          {!activeDialogue && (
+            <div className="listening__center">
+              <div className="listening__emoji" aria-hidden="true">
+                🎧
               </div>
+              <p className="listening__notice">
+                {t("listening.emptyHintDialogue")}
+              </p>
+              {noWords && (
+                <p className="listening__tip">💡 {t("listening.tipNoWords")}</p>
+              )}
+            </div>
+          )}
 
-              {grammar && (
-                <div className="listening__grammar">
-                  {grammar.status === "loading" && (
-                    <p className="listening__notice">
-                      {t("reading.grammarLoading")}
+          {activeDialogue && (
+            <div className="listening__practice">
+              {fewWords && (
+                <p className="listening__tip">💡 {t("listening.tipFewWords")}</p>
+              )}
+
+              {activeDialogue.title && (
+                <header className="listening__dialogue-head">
+                  <h2 className="listening__dialogue-title" lang={learnLang}>
+                    {activeDialogue.title}
+                  </h2>
+                  {activeDialogue.titleTranslation && (
+                    <p
+                      className="listening__dialogue-subtitle"
+                      lang={nativeLang}
+                    >
+                      {activeDialogue.titleTranslation}
                     </p>
                   )}
-                  {grammar.status === "error" && (
-                    <p className="listening__error">{grammar.errorText}</p>
-                  )}
-                  {grammar.status === "ready" && (
-                    <ul className="listening__grammar-list" lang={nativeLang}>
-                      {grammar.points.map((p, pi) => (
-                        <li key={pi}>{p}</li>
+                </header>
+              )}
+
+              {/* Диалог играется через готовый плеер: пауза/перемотка/переслушать
+                  фрагмент — можно слушать сколько угодно раз. */}
+              <div className="listening__player">
+                <AudioPlayer
+                  tracks={dialogueTracks}
+                  ariaLabel={t("listening.listen")}
+                />
+              </div>
+
+              <p className="listening__prompt">{t("listening.listenPrompt")}</p>
+
+              {/* Общий механизм вопросов: те же «верно/неверно» + объяснение
+                  ошибки, что и в чтении. Расшифровку показываем лишь в итоге. */}
+              <ComprehensionQuestions
+                questions={activeDialogue.questions}
+                learnLang={learnLang}
+                nativeLang={nativeLang}
+                footer={transcript}
+              />
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ============ Режим СЛОВ: старые форматы ============ */}
+      {mode === "words" && !offline && !loading && (
+        <>
+          {!activeSet && !finished && (
+            <div className="listening__center">
+              <div className="listening__emoji" aria-hidden="true">
+                🎧
+              </div>
+              <p className="listening__notice">
+                {formatId === "soundalike"
+                  ? t("listening.emptyHintSoundalike")
+                  : t("listening.emptyHintGap")}
+              </p>
+              {noWords && (
+                <p className="listening__tip">💡 {t("listening.tipNoWords")}</p>
+              )}
+            </div>
+          )}
+
+          {finished && (
+            <div className="listening__center">
+              <div className="listening__emoji" aria-hidden="true">
+                🎉
+              </div>
+              <h2 className="listening__done-title">
+                {t("listening.doneTitle")}
+              </h2>
+              <p className="listening__notice">
+                {t("listening.doneHint", {
+                  n: activeSet.correctCount || 0,
+                  total: items.length,
+                })}
+              </p>
+            </div>
+          )}
+
+          {current && (
+            <div className="listening__practice">
+              {fewWords && !result && (
+                <p className="listening__tip">💡 {t("listening.tipFewWords")}</p>
+              )}
+
+              <div className="listening__player">
+                <AudioPlayer
+                  tracks={audioTracks}
+                  autoPlay
+                  ariaLabel={t("listening.listen")}
+                />
+              </div>
+
+              <p className="listening__prompt">
+                {current.kind === "soundalike"
+                  ? t("listening.soundalikePrompt")
+                  : t("listening.gapPrompt")}
+              </p>
+              {current.kind === "gap" && (
+                <p className="listening__sentence" lang={learnLang}>
+                  {result
+                    ? renderFilled(current.display, current.answer)
+                    : current.display.split(BLANK).map((part, i, arr) => (
+                        <span key={i}>
+                          {part}
+                          {i < arr.length - 1 && (
+                            <span
+                              className="listening__blank"
+                              aria-hidden="true"
+                            >
+                              ▁▁▁
+                            </span>
+                          )}
+                        </span>
                       ))}
-                    </ul>
+                </p>
+              )}
+
+              {current.kind === "gap" &&
+                !current.choiceOnly &&
+                canChoose &&
+                !result && (
+                  <div className="listening__modes" role="group">
+                    <button
+                      type="button"
+                      className={
+                        "listening__mode-chip" +
+                        (modeAnswer === "type" ? " is-active" : "")
+                      }
+                      aria-pressed={modeAnswer === "type"}
+                      onClick={() => setModeAnswer("type")}
+                    >
+                      {t("listening.modeType")}
+                    </button>
+                    <button
+                      type="button"
+                      className={
+                        "listening__mode-chip" +
+                        (modeAnswer === "choice" ? " is-active" : "")
+                      }
+                      aria-pressed={modeAnswer === "choice"}
+                      onClick={() => setModeAnswer("choice")}
+                    >
+                      {t("listening.modeChoice")}
+                    </button>
+                  </div>
+                )}
+
+              {answerMode === "choice" && (
+                <div className="listening__options">
+                  {options.map((option, i) => {
+                    let mark = "";
+                    if (result) {
+                      if (optionMatches(option, correctText)) mark = " is-correct";
+                      else if (option === result.chosen) mark = " is-wrong";
+                    }
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        className={"listening__option" + mark}
+                        lang={learnLang}
+                        disabled={Boolean(result)}
+                        onClick={() => submitAnswer(option, false)}
+                      >
+                        {option}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {answerMode === "type" && (
+                <div className="listening__input-block">
+                  <input
+                    type="text"
+                    className="listening__input"
+                    lang={learnLang}
+                    value={typed}
+                    readOnly={Boolean(result)}
+                    placeholder={t("listening.inputPlaceholder")}
+                    onChange={(e) => setTyped(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && typed.trim() && !result) {
+                        e.preventDefault();
+                        submitAnswer(typed, true);
+                      }
+                    }}
+                  />
+                  {!result && (
+                    <button
+                      type="button"
+                      className="listening__check"
+                      disabled={!typed.trim()}
+                      onClick={() => submitAnswer(typed, true)}
+                    >
+                      {t("listening.check")}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {result && (
+                <div
+                  className={
+                    "listening__result" +
+                    (result.correct ? " is-correct" : " is-wrong")
+                  }
+                  role="status"
+                >
+                  <p className="listening__verdict">
+                    {result.correct
+                      ? `✅ ${t("listening.right")}`
+                      : `❌ ${t("listening.wrong")}`}
+                  </p>
+
+                  {current.kind === "gap" ? (
+                    <p className="listening__phrase" lang={learnLang}>
+                      {renderFilled(current.display, current.answer)}
+                    </p>
+                  ) : (
+                    <p className="listening__phrase" lang={learnLang}>
+                      <b className="listening__answer">{current.word}</b>
+                    </p>
+                  )}
+                  {current.translation && (
+                    <p className="listening__translation" lang={nativeLang}>
+                      {current.translation}
+                    </p>
+                  )}
+
+                  {result.viaType && !result.correct && (
+                    <p className="listening__youwrote">
+                      {t("listening.youWrote", {
+                        word: result.chosen.trim() || "—",
+                      })}
+                    </p>
+                  )}
+
+                  <div className="listening__result-actions">
+                    {current.kind === "gap" && (
+                      <button
+                        type="button"
+                        className={
+                          "listening__grammar-btn" + (grammar ? " is-open" : "")
+                        }
+                        onClick={handleGrammar}
+                        disabled={offline}
+                      >
+                        ¶ {t("listening.explain")}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="listening__next"
+                      onClick={handleNext}
+                    >
+                      {index + 1 < items.length
+                        ? t("listening.next")
+                        : t("listening.finish")}
+                    </button>
+                  </div>
+
+                  {grammar && (
+                    <div className="listening__grammar">
+                      {grammar.status === "loading" && (
+                        <p className="listening__notice">
+                          {t("reading.grammarLoading")}
+                        </p>
+                      )}
+                      {grammar.status === "error" && (
+                        <p className="listening__error">{grammar.errorText}</p>
+                      )}
+                      {grammar.status === "ready" && (
+                        <ul
+                          className="listening__grammar-list"
+                          lang={nativeLang}
+                        >
+                          {grammar.points.map((p, pi) => (
+                            <li key={pi}>{p}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
             </div>
           )}
-        </div>
+        </>
       )}
 
       {/* ---------- Управление ---------- */}
       {!offline && (
         <div className="listening__controls">
-          {formatPicker}
-          {/* Источник слов — в ОБОИХ форматах (mine/mixed/new работают везде). */}
+          {/* Формат «слов» — только в режиме слов. */}
+          {mode === "words" && formatPicker}
+
+          {/* Источник слов — в обоих режимах (mine/mixed/new работают везде). */}
           <WordSourcePicker
             value={wordSource}
             onChange={onChangeWordSource}
             takenCount={takenCount}
           />
+
           {levelPicker}
-          <button
-            type="button"
-            className="listening__generate"
-            onClick={handleGenerate}
-            disabled={loading}
-          >
-            {activeSet && !finished
-              ? t("listening.restart", { n: PHRASES_PER_SET })
-              : t("listening.start", { n: PHRASES_PER_SET })}
-          </button>
+
+          {mode === "comprehension" ? (
+            <button
+              type="button"
+              className="listening__generate"
+              onClick={handleGenerateDialogue}
+              disabled={loading}
+            >
+              {activeDialogue
+                ? t("listening.newDialogue")
+                : t("listening.startDialogue")}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="listening__generate"
+              onClick={handleGenerate}
+              disabled={loading}
+            >
+              {activeSet && !finished
+                ? t("listening.restart", { n: PHRASES_PER_SET })
+                : t("listening.start", { n: PHRASES_PER_SET })}
+            </button>
+          )}
         </div>
       )}
     </section>

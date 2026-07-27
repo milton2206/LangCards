@@ -43,7 +43,34 @@ export function saveListeningLevel(id) {
   }
 }
 
-// Формат аудирования (фаза 6.2):
+// Режим аудирования (фаза 6.2). ОСНОВНОЙ выбор на экране:
+//   comprehension — понимание: звучит мини-диалог, потом вопросы «верно/неверно»
+//                   с объяснением ошибки (формат Hörverstehen с экзаменов);
+//   words         — слова: старые форматы «пропущенное слово» / «на слух».
+// По умолчанию — понимание: именно оно проверяет понимание речи, а не узнавание
+// отдельного слова. Старые форматы оставлены как дополнительный выбор.
+export const LISTENING_MODES = ["comprehension", "words"];
+export const DEFAULT_LISTENING_MODE = "comprehension";
+const MODE_KEY = "listeningMode";
+
+export function loadListeningMode() {
+  try {
+    const raw = localStorage.getItem(MODE_KEY);
+    return LISTENING_MODES.includes(raw) ? raw : DEFAULT_LISTENING_MODE;
+  } catch {
+    return DEFAULT_LISTENING_MODE;
+  }
+}
+
+export function saveListeningMode(id) {
+  try {
+    localStorage.setItem(MODE_KEY, id);
+  } catch {
+    // ignore
+  }
+}
+
+// Формат «слов» внутри режима «words» (фаза 6.2):
 //   gap        — «пропущенное слово»: звучит всё предложение, одно слово скрыто;
 //   soundalike — «на слух»: звучит слово, варианты похожи по звучанию (сложнее).
 // Второй формат — для продвинутых: включается, когда пользователь его выбрал,
