@@ -529,6 +529,12 @@ export default function App() {
   const listeningAvailable =
     online && !restDay && vocab.takenWords.length > 0;
 
+  // Счётчик дня для ротации акцента базы (целое число дней по локальной дате):
+  // сегодня один формат ведущий, завтра другой — «как игра, а не одно и то же».
+  const sessionRotationDay = Math.floor(
+    (Date.parse(vocab.todayKey) || Date.now()) / 86400000,
+  );
+
   // Прогресс занятия на СЕГОДНЯ (см. sessionProgress.js): снимок числа созревших
   // на начало дня + ручные отметки + события завершения чтения/аудио. Живёт на
   // день и на пару, сбрасывается на новый день сам. sessionBlock — тип блока,
@@ -540,6 +546,8 @@ export default function App() {
   const [sessionBlock, setSessionBlock] = useState(null);
   const [sessionSentences, setSessionSentences] = useState(null);
   const [sessionQuestions, setSessionQuestions] = useState(null);
+  // Акцент дня «новые слова» → случайные слова / «Удиви меня»: подсказка хабу.
+  const [sessionRandom, setSessionRandom] = useState(false);
 
   // Смена дня или пары: перечитываем прогресс (пустой на новый день) и, если
   // снимок числа созревших ещё не сделан, снимаем его — чтобы подпись
@@ -572,6 +580,7 @@ export default function App() {
         restDay,
         readingAvailable,
         listeningAvailable,
+        rotationDay: sessionRotationDay,
       }),
     [
       reviewTarget,
@@ -581,6 +590,7 @@ export default function App() {
       restDay,
       readingAvailable,
       listeningAvailable,
+      sessionRotationDay,
     ],
   );
 
@@ -633,6 +643,8 @@ export default function App() {
       // Объём блока — размер порции генерации (сама генерация зажата суточным
       // лимитом в buildParams). Взятие слов идёт обычным потоком карточек.
       if (block.count > 0) setGenerateCount(block.count);
+      // Акцент «новые слова» → случайные слова / «Удиви меня» (подсказка хабу).
+      setSessionRandom(Boolean(block.random));
       setScreen("cards");
     }
   }
@@ -1204,6 +1216,7 @@ export default function App() {
             onExitSession={exitSession}
             sessionNewBlock={sessionBlock === "newWords"}
             sessionNewTarget={sessionNewTarget}
+            sessionRandom={sessionBlock === "newWords" && sessionRandom}
           />
         )}
 

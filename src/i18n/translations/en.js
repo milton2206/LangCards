@@ -343,7 +343,13 @@ export default {
     studyAnyway: "Study anyway",
     backShort: "Session",
     secondaryNote:
-      "A secondary language today — a short program: review and a few new words.",
+      "A secondary language today — the base is a bit denser to catch up: you study it less often.",
+    // Day accent (base rotation) and extras on top.
+    accentNote: "Today's focus: {block}",
+    accentBadge: "focus",
+    extrasTitle: "Want more?",
+    extraItem: "More: {block}",
+    extrasHint: "Finished the base — you can keep going with another format.",
     restTitle: "A rest day by your schedule",
     restHint: "Reviews are always available. Want to study — start manually.",
     loadLabel: "Session load:",
@@ -362,12 +368,16 @@ export default {
       review: "Review · {n}",
       reading: "Reading · 1 text · answer questions",
       newWords: "New words · {n}",
+      newWordsRandom: "Surprise words · {n}",
       listening: "Dialogue · listen and answer",
     },
     checkAria: "Mark block “{block}” done",
     uncheckAria: "Unmark block “{block}”",
     newBlockTitle: "Session · new words",
     newBlockHint: "Take about {n} new words, then return to the plan.",
+    newBlockRandomTitle: "Session · surprise words",
+    newBlockRandomHint:
+      "Take ~{n} surprise words (“🎲 Surprise me”), then return to the plan.",
     blockDone: "Done, back to session",
   },
 
@@ -584,6 +594,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      rotatingSession: {
+        title: "A different session every day",
+        desc: "The session base is now full every day but with a rotating focus: today listening, tomorrow reading, the day after surprise words. Finished the base? The engine offers extras on top.",
+      },
       editableSchedule: {
         title: "Edit your schedule by hand",
         desc: "In the weekly language schedule you can now tap any day and pick a different language or make it a rest day. Auto-fill stays as the starting layout.",

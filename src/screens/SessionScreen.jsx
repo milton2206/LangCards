@@ -59,13 +59,17 @@ export default function SessionScreen({
   const activeBlock = activeIndex >= 0 ? blocks[activeIndex] : null;
   const allDone = blocks.length > 0 && activeIndex === -1;
 
+  const extras = plan?.extras || [];
+
   // Конкретная задача блока (а не только заголовок): «Повторение · 14»,
   // «Чтение · 1 текст · ответить на вопросы», «Новые слова · 10»,
-  // «Диалог · прослушать и ответить».
+  // «Диалог · прослушать и ответить». Акцент дня «новые слова» → случайные.
   function blockTask(block) {
     if (block.type === "review") return t("session.task.review", { n: block.count });
     if (block.type === "newWords")
-      return t("session.task.newWords", { n: block.count });
+      return t(block.random ? "session.task.newWordsRandom" : "session.task.newWords", {
+        n: block.count,
+      });
     if (block.type === "reading") return t("session.task.reading");
     if (block.type === "listening") return t("session.task.listening");
     return "";
@@ -135,6 +139,16 @@ export default function SessionScreen({
       {plan?.secondary && (
         <p className="session__note">{t("session.secondaryNote")}</p>
       )}
+      {/* Акцент дня: ротируется по календарю — база одна, но каждый день другой
+          ведущий формат, чтобы не приедалось. */}
+      {plan?.accent && !plan?.restDay && (
+        <p className="session__accent-note">
+          ★{" "}
+          {t("session.accentNote", {
+            block: t(`session.block.${BLOCK_NAME_KEY[plan.accent]}`),
+          })}
+        </p>
+      )}
 
       {/* Выходной по расписанию: только повторения + предложение позаниматься. */}
       {plan?.restDay ? (
@@ -203,6 +217,11 @@ export default function SessionScreen({
                       {BLOCK_ICON[block.type]}
                     </span>
                     <span className="session__block-task">{blockTask(block)}</span>
+                    {block.accent && (
+                      <span className="session__accent-badge">
+                        {t("session.accentBadge")}
+                      </span>
+                    )}
                     <span className="session__block-go" aria-hidden="true">
                       ›
                     </span>
@@ -245,6 +264,30 @@ export default function SessionScreen({
             <p className="session__empty-text">{t("session.empty")}</p>
           </div>
         )
+      )}
+
+      {/* ДОБАВКИ сверху базы: «хотите ещё?». Приоритетному дню их больше. Это
+          отдельные предложения продолжить — в прогресс базы не входят. */}
+      {extras.length > 0 && !plan?.restDay && (
+        <div className="session__extras">
+          <p className="session__extras-title">{t("session.extrasTitle")}</p>
+          <div className="session__extras-list">
+            {extras.map((block, i) => (
+              <button
+                key={`${block.type}-${i}`}
+                type="button"
+                className="session__extra"
+                onClick={() => onStartBlock(block)}
+              >
+                <span aria-hidden="true">{BLOCK_ICON[block.type]} </span>
+                {t("session.extraItem", {
+                  block: t(`session.block.${BLOCK_NAME_KEY[block.type]}`),
+                })}
+              </button>
+            ))}
+          </div>
+          <p className="session__extras-hint">{t("session.extrasHint")}</p>
+        </div>
       )}
 
       {/* Регулируемая нагрузка */}

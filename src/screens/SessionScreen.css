@@ -45,6 +45,66 @@
   line-height: 1.45;
 }
 
+/* Акцент дня (ротация): заметная подсказка «сегодня в фокусе …» */
+.session__accent-note {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--accent);
+}
+
+/* Бейдж «акцент» на ведущем блоке дня */
+.session__accent-badge {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background-color: rgba(108, 140, 255, 0.18);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Добавки сверху («хотите ещё?») ---------- */
+.session__extras {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  background-color: var(--surface);
+}
+
+.session__extras-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.session__extras-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.session__extra {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--bg-elevated);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.session__extras-hint {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
 /* ---------- Прогресс ---------- */
 .session__progress {
   display: flex;

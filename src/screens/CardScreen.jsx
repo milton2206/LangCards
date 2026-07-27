@@ -109,6 +109,8 @@ export default function CardScreen({
   onExitSession,
   sessionNewBlock = false,
   sessionNewTarget = 0,
+  // Акцент дня «новые слова» → случайные слова / «Удиви меня»: меняем подсказку.
+  sessionRandom = false,
 }) {
   const { t, tp } = useI18n();
   const { takenWords, knownWords, take, skip, markKnown, rememberCards } = vocab;
@@ -303,10 +305,12 @@ export default function CardScreen({
         <div className="cards__session-banner">
           <div className="cards__session-banner-text">
             <p className="cards__session-banner-title">
-              {t("session.newBlockTitle")}
+              {t(sessionRandom ? "session.newBlockRandomTitle" : "session.newBlockTitle")}
             </p>
             <p className="cards__session-banner-hint">
-              {t("session.newBlockHint", { n: sessionNewTarget })}
+              {t(sessionRandom ? "session.newBlockRandomHint" : "session.newBlockHint", {
+                n: sessionNewTarget,
+              })}
             </p>
           </div>
           <button
