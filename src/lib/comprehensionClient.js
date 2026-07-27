@@ -64,6 +64,7 @@ export async function requestDialogueSet({
   takenWords = [],
   source = "mixed",
   recentTitles = [],
+  questionCount, // число вопросов на понимание (объём блока в движке заданий)
 }) {
   let res;
   try {
@@ -81,6 +82,9 @@ export async function requestDialogueSet({
         source,
         // Заголовки недавних диалогов этой темы — чтобы модель не повторяла сюжет.
         recentTitles,
+        // Объём: сколько вопросов просить (сервер зажимает в свои рамки). Пусто —
+        // серверный дефолт.
+        questions: questionCount,
       }),
     });
   } catch {

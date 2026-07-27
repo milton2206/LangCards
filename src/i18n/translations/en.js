@@ -329,6 +329,39 @@ export default {
     retake: "Take it again",
   },
 
+  // Session engine: today's session assembled from available formats.
+  session: {
+    title: "Today's session",
+    progress: "{n} of {total}",
+    allDoneShort: "All done",
+    start: "Start session",
+    continue: "Continue: {block}",
+    allDone: "Session complete. Great work!",
+    empty:
+      "Nothing to review today, and texts and dialogues aren't available right now. You can pick an activity yourself.",
+    manual: "I want something else",
+    studyAnyway: "Study anyway",
+    backShort: "Session",
+    secondaryNote:
+      "A secondary language today — a short program: review and a few new words.",
+    restTitle: "A rest day by your schedule",
+    restHint: "Reviews are always available. Want to study — start manually.",
+    loadLabel: "Session load:",
+    loadHint: "Changes block sizes. Reviews always run in full.",
+    loadAutoHint:
+      "Auto sizes it for you (now: {level}). Reviews always run in full.",
+    load: { auto: "Auto", light: "Lighter", normal: "Normal", heavy: "Heavier" },
+    block: {
+      review: "Review",
+      reading: "Reading with questions",
+      newWords: "New words",
+      listening: "Dialogue with questions",
+    },
+    newBlockTitle: "Session · new words",
+    newBlockHint: "Take about {n} new words, then return to the plan.",
+    blockDone: "Done, back to session",
+  },
+
   // Word source for reading and listening (one setting for both modes).
   wordSource: {
     label: "Word source:",
@@ -537,6 +570,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      sessionEngine: {
+        title: "Today's session",
+        desc: "The app now assembles your day — review, reading, new words and a dialogue. A load slider makes it lighter or heavier, and “I want something else” opens manual choice.",
+      },
       listeningVariety: {
         title: "More varied dialogues",
         desc: "Listening dialogues no longer repeat one storyline: even at the same topic and level, each one has a different situation, place and participants.",

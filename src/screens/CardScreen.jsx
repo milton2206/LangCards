@@ -104,6 +104,11 @@ export default function CardScreen({
   onOpenReview,
   onOpenStats,
   onOpenTutorial,
+  // Движок заданий (необязательно): возврат к плану занятия и баннер блока
+  // «новые слова». Без них экран работает как обычный ручной хаб.
+  onExitSession,
+  sessionNewBlock = false,
+  sessionNewTarget = 0,
 }) {
   const { t, tp } = useI18n();
   const { takenWords, knownWords, take, skip, markKnown, rememberCards } = vocab;
@@ -225,15 +230,26 @@ export default function CardScreen({
   const remaining = total - learnedInBatch;
 
   const topbar = (
-    <header className="cards__topbar">
-      <button
-        type="button"
-        className="cards__mywords"
-        onClick={onOpenMyWords}
-      >
-        {t("cards.myWords")}
-        <span className="cards__badge">{takenWords.length}</span>
-      </button>
+    <>
+      <header className="cards__topbar">
+        {/* Возврат к плану занятия — когда экран открыт из движка заданий. */}
+        {onExitSession && (
+          <button
+            type="button"
+            className="cards__session-back"
+            onClick={onExitSession}
+          >
+            ← {t("session.backShort")}
+          </button>
+        )}
+        <button
+          type="button"
+          className="cards__mywords"
+          onClick={onOpenMyWords}
+        >
+          {t("cards.myWords")}
+          <span className="cards__badge">{takenWords.length}</span>
+        </button>
       <div className="cards__topbar-actions">
         {/* Переключатель языковой пары — ТОЛЬКО при multiLangMode=true.
             В одноязычном режиме его нет вообще — интерфейс как раньше. */}
@@ -281,7 +297,28 @@ export default function CardScreen({
           </span>
         </button>
       </div>
-    </header>
+      </header>
+      {/* Блок «новые слова» из движка заданий: подсказка объёма + выход к плану. */}
+      {sessionNewBlock && (
+        <div className="cards__session-banner">
+          <div className="cards__session-banner-text">
+            <p className="cards__session-banner-title">
+              {t("session.newBlockTitle")}
+            </p>
+            <p className="cards__session-banner-hint">
+              {t("session.newBlockHint", { n: sessionNewTarget })}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="cards__session-done"
+            onClick={onExitSession}
+          >
+            {t("session.blockDone")}
+          </button>
+        </div>
+      )}
+    </>
   );
 
   // Ежедневная сводка: ведём пользователя, а не заставляем решать самому.

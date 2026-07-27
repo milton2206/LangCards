@@ -72,3 +72,7 @@ alter table if exists public.user_languages
 -- удаление колонки не касается.
 alter table if exists public.user_languages
   drop column if exists custom_topics;
+
+-- Движок заданий: регулируемая нагрузка занятия (колонка profiles).
+alter table public.profiles
+  drop column if exists session_load;

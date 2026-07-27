@@ -45,6 +45,9 @@ export default function ReadingScreen({
   onChangeWordSource,
   onAddWord,
   onBack,
+  // Движок заданий (необязательно): объём блока «чтение» — сколько предложений
+  // в тексте. Без него — обычная длина под уровень.
+  plannedSentences = null,
 }) {
   const { t } = useI18n();
 
@@ -152,6 +155,8 @@ export default function ReadingScreen({
         knownWords: takenWords || [],
         source: wordSource,
         recentTitles,
+        // Объём блока чтения из движка заданий (сервер зажимает 3–8).
+        sentences: plannedSentences || undefined,
       });
       // Помечаем текст темой (для фильтра «недавних сюжетов» выше) и кладём в
       // кэш ЭТОГО источника: новый текст становится текущим (заменяет прежний на

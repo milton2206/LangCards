@@ -11,6 +11,7 @@ import MyWordsScreen from "./screens/MyWordsScreen.jsx";
 import AddWordScreen from "./screens/AddWordScreen.jsx";
 import ReadingScreen from "./screens/ReadingScreen.jsx";
 import ListeningScreen from "./screens/ListeningScreen.jsx";
+import SessionScreen from "./screens/SessionScreen.jsx";
 import PlacementScreen from "./screens/PlacementScreen.jsx";
 import KnownWordsScreen from "./screens/KnownWordsScreen.jsx";
 import KnownReviewScreen from "./screens/KnownReviewScreen.jsx";
@@ -42,6 +43,7 @@ import {
   MAX_CUSTOM_TOPICS,
 } from "./lib/userLanguages.js";
 import { computeDailyQuotas } from "./lib/dailyBalance.js";
+import { buildSession } from "./lib/sessionEngine.js";
 import {
   buildWeeklySchedule,
   todayScheduledPair,
@@ -101,7 +103,9 @@ export default function App() {
   const [settings, setSettings] = useState(loadSettings);
   const settingsComplete = SETTINGS_KEYS.every((k) => settings[k]);
 
-  const [screen, setScreen] = useState(settingsComplete ? "cards" : "start");
+  // Главный экран — «занятие» (движок заданий показывает план на сегодня).
+  // Ручной хаб карточек остаётся по «Хочу другое».
+  const [screen, setScreen] = useState(settingsComplete ? "session" : "start");
 
   // Аккаунты (Supabase Auth). С фазы 4.2 вход ОБЯЗАТЕЛЕН: без аккаунта дальше
   // start/auth не пускаем. Если Supabase не настроен (dev без env) — гейт
@@ -435,6 +439,144 @@ export default function App() {
 
   const quotaExhausted = Boolean(activeBalance && activeBalance.done);
 
+  // ---------- Онлайн-статус (доступность форматов в занятии) ----------
+  const [online, setOnline] = useState(
+    typeof navigator === "undefined" || navigator.onLine,
+  );
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
+
+  // ---------- Движок заданий: занятие на сегодня ----------
+  // Нагрузка живёт в profiles (через userLangs), правит её пользователь ползунком.
+  const sessionLoad = userLangs.sessionLoad || "auto";
+  function handleChangeSessionLoad(value) {
+    userLangs.updateSchedulePrefs({ sessionLoad: value });
+  }
+
+  // День второстепенного языка — только в мультирежиме by_day, когда сегодня НЕ
+  // приоритетная пара. Одноязычный режим и mixed — всегда полная программа.
+  const isSecondaryDay = Boolean(
+    scheduleActive &&
+      activeLanguage &&
+      userLangs.priorityLanguage &&
+      (activeLanguage.learnLang !== userLangs.priorityLanguage.learnLang ||
+        activeLanguage.nativeLang !== userLangs.priorityLanguage.nativeLang),
+  );
+
+  // Дневная норма новых слов активной пары и её остаток (лимит не обходим).
+  // Фолбэк — константа (не generateCount): движок сам меняет размер порции
+  // генерации под блок «новые слова», а норма от неё зависеть не должна, иначе
+  // получилась бы обратная связь (норма ← порция ← норма).
+  const sessionDailyNewLimit = Math.max(
+    1,
+    Number(activeLanguage?.dailyNewLimit) || 10,
+  );
+  const sessionRemaining = activeBalance
+    ? Math.max(0, (activeBalance.quota || 0) - (activeBalance.taken || 0))
+    : Math.max(
+        0,
+        sessionDailyNewLimit - (vocab.takenTodayByPair?.[pairKey] || 0),
+      );
+
+  // Доступность форматов: без сети текст/диалог не сгенерировать — молча
+  // пропускаем; диалог требует активных слов.
+  const readingAvailable = online && !restDay;
+  const listeningAvailable =
+    online && !restDay && vocab.takenWords.length > 0;
+
+  const sessionPlan = useMemo(
+    () =>
+      buildSession({
+        dueCount: dueWords.length,
+        dailyNewLimit: sessionDailyNewLimit,
+        remaining: sessionRemaining,
+        sessionLoad,
+        isSecondaryDay,
+        restDay,
+        readingAvailable,
+        listeningAvailable,
+      }),
+    [
+      dueWords.length,
+      sessionDailyNewLimit,
+      sessionRemaining,
+      sessionLoad,
+      isSecondaryDay,
+      restDay,
+      readingAvailable,
+      listeningAvailable,
+    ],
+  );
+
+  // Прогресс занятия: типы пройденных блоков + блок, открытый ИЗ занятия. По
+  // sessionBlock возврат из экрана знает: отметить блок и вернуться к плану или
+  // уйти в ручной хаб. Сбрасывается при смене дня или активной пары.
+  const [sessionDone, setSessionDone] = useState([]);
+  const [sessionBlock, setSessionBlock] = useState(null);
+  const [sessionSentences, setSessionSentences] = useState(null);
+  const [sessionQuestions, setSessionQuestions] = useState(null);
+
+  useEffect(() => {
+    setSessionDone([]);
+    setSessionBlock(null);
+  }, [pairKey, vocab.todayKey]);
+
+  // Запуск блока: движок только выстраивает порядок и объём и открывает
+  // СУЩЕСТВУЮЩИЙ экран — своих экранов не заводит.
+  function startSessionBlock(block) {
+    setSessionBlock(block.type);
+    if (block.type === "review") setScreen("review");
+    else if (block.type === "reading") {
+      setSessionSentences(block.sentences || null);
+      setScreen("reading");
+    } else if (block.type === "listening") {
+      setSessionQuestions(block.questions || null);
+      setListeningMode("comprehension"); // блок аудирования — диалог с вопросами
+      setScreen("listening");
+    } else if (block.type === "newWords") {
+      // Объём блока — размер порции генерации (уже зажат остатком нормы в
+      // buildParams). Взятие слов идёт обычным потоком карточек.
+      if (block.count > 0) setGenerateCount(block.count);
+      setScreen("cards");
+    }
+  }
+
+  // Выход из блока к плану: отмечаем пройденным (если открыт из занятия) и
+  // возвращаемся на экран занятия. Из ручного хаба — просто к плану, без отметки.
+  function exitSession() {
+    if (sessionBlock) {
+      setSessionDone((prev) =>
+        prev.includes(sessionBlock) ? prev : [...prev, sessionBlock],
+      );
+    }
+    setSessionBlock(null);
+    setScreen("session");
+  }
+
+  // «Хочу другое»: ручной выбор формата (хаб карточек), вне логики занятия.
+  function goManualHub() {
+    setSessionBlock(null);
+    setScreen("cards");
+  }
+
+  // Возврат из блочного экрана: открыт из занятия → к плану (+отметка), открыт
+  // вручную (из хаба) → назад в хаб.
+  function handleSessionBack() {
+    if (sessionBlock) exitSession();
+    else setScreen("cards");
+  }
+
+  const sessionNewTarget =
+    sessionPlan.blocks.find((b) => b.type === "newWords")?.count || generateCount;
+
   // Короткий туториал показывается ОДИН раз при первом запуске (по флагу).
   const [showTutorial, setShowTutorial] = useState(
     () => !localStorage.getItem("tutorialSeen"),
@@ -471,7 +613,7 @@ export default function App() {
         setScreen("start");
       }
     } else if (screen === "start" || screen === "auth") {
-      setScreen("cards");
+      setScreen("session");
     }
   }, [authRequired, auth.user, screen, auth.recoveryError]);
 
@@ -630,7 +772,7 @@ export default function App() {
     const pair = { learnLang: chosen.learnLang, nativeLang: chosen.nativeLang };
     saveActivePair(pair);
     setChosenPair(pair);
-    setScreen("cards");
+    setScreen("session");
     if (auth.user) {
       await addUserLanguage(auth.user.id, pair.learnLang, pair.nativeLang, {
         isPriority: true,
@@ -947,12 +1089,42 @@ export default function App() {
             onOpenSettings={() => setScreen("settings")}
             onOpenMyWords={() => setScreen("mywords")}
             onOpenAddWord={() => setScreen("addword")}
-            onOpenReading={() => setScreen("reading")}
-            onOpenListening={() => setScreen("listening")}
+            onOpenReading={() => {
+              setSessionBlock(null);
+              setScreen("reading");
+            }}
+            onOpenListening={() => {
+              setSessionBlock(null);
+              setScreen("listening");
+            }}
             onAddWordFromExample={handleAddManualCard}
-            onOpenReview={() => setScreen("review")}
+            onOpenReview={() => {
+              setSessionBlock(null);
+              setScreen("review");
+            }}
             onOpenStats={() => setScreen("stats")}
             onOpenTutorial={() => setShowTutorial(true)}
+            onExitSession={exitSession}
+            sessionNewBlock={sessionBlock === "newWords"}
+            sessionNewTarget={sessionNewTarget}
+          />
+        )}
+
+        {screen === "session" && (
+          <SessionScreen
+            plan={sessionPlan}
+            doneTypes={sessionDone}
+            sessionLoad={sessionLoad}
+            onChangeLoad={handleChangeSessionLoad}
+            onStartBlock={startSessionBlock}
+            onManual={goManualHub}
+            onOpenSettings={() => setScreen("settings")}
+            languages={userLangs.languages}
+            multiLangMode={userLangs.multiLangMode}
+            activeLanguage={activeLanguage}
+            onSwitchLanguage={handleSwitchLanguage}
+            learnLang={learnLang}
+            scheduleActive={scheduleActive}
           />
         )}
 
@@ -962,7 +1134,7 @@ export default function App() {
             knownCount={vocab.knownWords.length}
             learnLang={learnLang}
             nativeLang={nativeLang}
-            onBack={() => setScreen("cards")}
+            onBack={() => setScreen("session")}
           />
         )}
 
@@ -975,7 +1147,7 @@ export default function App() {
             learnLang={learnLang}
             nativeLang={nativeLang}
             onReview={vocab.reviewWord}
-            onBack={() => setScreen("cards")}
+            onBack={handleSessionBack}
           />
         )}
 
@@ -988,7 +1160,7 @@ export default function App() {
             nativeLang={nativeLang}
             onMarkKnown={vocab.markKnown}
             onDelete={vocab.deleteWords}
-            onBack={() => setScreen("cards")}
+            onBack={() => setScreen("session")}
             onOpenKnown={() => setScreen("known")}
           />
         )}
@@ -999,7 +1171,7 @@ export default function App() {
             nativeLang={nativeLang}
             onAdd={handleAddManualCard}
             onOpenMyWords={() => setScreen("mywords")}
-            onBack={() => setScreen("cards")}
+            onBack={() => setScreen("session")}
           />
         )}
 
@@ -1015,7 +1187,10 @@ export default function App() {
             wordSource={wordSource}
             onChangeWordSource={setWordSource}
             onAddWord={handleAddManualCard}
-            onBack={() => setScreen("cards")}
+            onBack={handleSessionBack}
+            plannedSentences={
+              sessionBlock === "reading" ? sessionSentences : null
+            }
           />
         )}
 
@@ -1039,7 +1214,10 @@ export default function App() {
             wordSource={wordSource}
             onChangeWordSource={setWordSource}
             scheduleActive={scheduleActive}
-            onBack={() => setScreen("cards")}
+            onBack={handleSessionBack}
+            plannedQuestions={
+              sessionBlock === "listening" ? sessionQuestions : null
+            }
           />
         )}
 
@@ -1052,7 +1230,7 @@ export default function App() {
             nativeLang={nativeLang}
             onRestore={vocab.restoreToStudy}
             onDelete={vocab.deleteWords}
-            onBack={() => setScreen("cards")}
+            onBack={() => setScreen("session")}
             onOpenMyWords={() => setScreen("mywords")}
             onOpenKnownReview={() => setScreen("knownreview")}
           />
@@ -1074,7 +1252,7 @@ export default function App() {
             settings={settings}
             onChange={updateSetting}
             onOpenLanguages={() => setScreen("languages")}
-            onBack={() => setScreen("cards")}
+            onBack={() => setScreen("session")}
             onOpenTutorial={() => setShowTutorial(true)}
             placementLevel={activeLanguage?.placementLevel || null}
             onStartPlacement={() =>

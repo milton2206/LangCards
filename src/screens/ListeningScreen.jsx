@@ -63,6 +63,9 @@ export default function ListeningScreen({
   onChangeWordSource,
   scheduleActive,
   onBack,
+  // Движок заданий (необязательно): объём блока «диалог» — сколько вопросов на
+  // понимание. Без него — серверный дефолт.
+  plannedQuestions = null,
 }) {
   const { t } = useI18n();
   const listeningLevel = getListeningLevel(levelId);
@@ -252,6 +255,8 @@ export default function ListeningScreen({
         takenWords: takenWords || [],
         source: wordSource,
         recentTitles,
+        // Объём блока диалога из движка заданий (сервер зажимает число вопросов).
+        questionCount: plannedQuestions || undefined,
       });
       // Новый диалог становится текущим (заменяет прежний на экране); прежние
       // остаются в кэше только для разнообразия и показа последнего при перезаходе.

@@ -22,6 +22,59 @@
   gap: 8px;
 }
 
+/* Возврат к плану занятия (движок заданий) */
+.cards__session-back {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Баннер блока «новые слова»: подсказка объёма + кнопка «Готово, к занятию» */
+.cards__session-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(108, 140, 255, 0.3);
+  background-color: rgba(108, 140, 255, 0.1);
+}
+
+.cards__session-banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.cards__session-banner-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cards__session-banner-hint {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.cards__session-done {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent);
+  color: #0b0d12;
+  font-size: 14px;
+  font-weight: 700;
+}
+
 /* ---------- Ежедневная сводка: ведёт пользователя, приоритет повтору ---------- */
 .cards__daily {
   display: flex;
