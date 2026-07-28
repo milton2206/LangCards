@@ -17,11 +17,15 @@ import { apiErrorText } from "../lib/apiClient.js";
 import { ENOUGH_WORDS_FOR_READING } from "../hooks/useWordLists.js";
 import { useWordLookup } from "../hooks/useWordLookup.js";
 import WordLookupSheet from "../components/WordLookupSheet.jsx";
-import WordSourcePicker from "../components/WordSourcePicker.jsx";
 import AudioPlayer from "../components/AudioPlayer.jsx";
 import ComprehensionQuestions from "../components/ComprehensionQuestions.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./ReadingScreen.css";
+
+// Единственное поведение генерации (выбор источника слов убран): «смешанно» —
+// узнавание уже изучаемых слов + немного нового под тему и уровень. Служит и
+// ключом кэша: старые записи «mine»/«new» просто не читаются (не ломают выдачу).
+const WORD_SOURCE = "mixed";
 
 /**
  * Режим чтения (фаза 6.1): короткий текст под уровень и тему, где каждое слово
@@ -41,8 +45,6 @@ export default function ReadingScreen({
   level,
   takenWords,
   knownWords,
-  wordSource,
-  onChangeWordSource,
   onAddWord,
   onBack,
   // Движок заданий (необязательно): объём блока «чтение» — сколько предложений
@@ -53,13 +55,11 @@ export default function ReadingScreen({
 }) {
   const { t } = useI18n();
 
-  // Недавние тексты пары И источника: [0] — самый свежий, он и на экране (один
-  // текст за раз, «Новый текст» его ЗАМЕНЯЕТ). Историю храним не для листалки, а
-  // чтобы (1) при перезаходе показать последний без запроса к API и (2) отдать
-  // модели заголовки недавних сюжетов — тогда она не повторяет один и тот же
-  // сценарий. Ключ кэша включает источник (mine/mixed/new), чтобы тексты разных
-  // источников не смешивались.
-  const [texts, setTexts] = useState(() => loadTexts(pairKey, wordSource));
+  // Недавние тексты пары: [0] — самый свежий, он и на экране (один текст за раз,
+  // «Новый текст» его ЗАМЕНЯЕТ). Историю храним не для листалки, а чтобы (1) при
+  // перезаходе показать последний без запроса к API и (2) отдать модели
+  // заголовки недавних сюжетов — тогда она не повторяет один и тот же сценарий.
+  const [texts, setTexts] = useState(() => loadTexts(pairKey, WORD_SOURCE));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -96,12 +96,11 @@ export default function ReadingScreen({
     return () => stopCurrentAudio();
   }, []);
 
-  // Смена источника (или пары) — показываем последний текст ИМЕННО этого
-  // источника: «только мои» и «только новые» тексты не смешиваются.
+  // Смена пары — показываем её последний текст.
   useEffect(() => {
-    setTexts(loadTexts(pairKey, wordSource));
+    setTexts(loadTexts(pairKey, WORD_SOURCE));
     setGrammar(null);
-  }, [pairKey, wordSource]);
+  }, [pairKey]);
 
   // Сменился показанный текст (сгенерировали новый) — прячем вопросы прошлого.
   useEffect(() => {
@@ -151,19 +150,17 @@ export default function ReadingScreen({
         nativeLang,
         topic,
         level,
-        // Слова пользователя всегда уходят в промпт; сервер по source решает,
-        // вплетать их (mine/mixed) или избегать (new). При нуле слов «Мои» на
-        // сервере трактуется как «Смешанно» (уровень-онли).
+        // Слова пользователя вплетаются в текст (поведение «смешанно»: узнавание
+        // изучаемого + немного нового под тему и уровень).
         knownWords: takenWords || [],
-        source: wordSource,
         recentTitles,
         // Объём блока чтения из движка заданий (сервер зажимает 3–8).
         sentences: plannedSentences || undefined,
       });
       // Помечаем текст темой (для фильтра «недавних сюжетов» выше) и кладём в
-      // кэш ЭТОГО источника: новый текст становится текущим (заменяет прежний на
-      // экране), прежние остаются в кэше только для разнообразия и перезахода.
-      const list = saveText(pairKey, wordSource, { ...text, topic });
+      // кэш пары: новый текст становится текущим (заменяет прежний на экране),
+      // прежние остаются в кэше только для разнообразия и перезахода.
+      const list = saveText(pairKey, WORD_SOURCE, { ...text, topic });
       setTexts(list);
     } catch (err) {
       setError(apiErrorText(err, t, "reading.failed"));
@@ -449,16 +446,10 @@ export default function ReadingScreen({
         </div>
       )}
 
-      {/* Управление: источник слов, новый текст. Листалки нет — «Новый текст»
-          ЗАМЕНЯЕТ текущий (один текст на экране); недавние живут в кэше только
-          ради разнообразия сюжетов и показа последнего при перезаходе. */}
+      {/* Управление: новый текст. Листалки нет — «Новый текст» ЗАМЕНЯЕТ текущий
+          (один текст на экране); недавние живут в кэше только ради разнообразия
+          сюжетов и показа последнего при перезаходе. */}
       <div className="reading__controls">
-        <WordSourcePicker
-          value={wordSource}
-          onChange={onChangeWordSource}
-          takenCount={takenCount}
-        />
-
         <button
           type="button"
           className="reading__generate"

@@ -234,14 +234,18 @@ export default function CardScreen({
   const topbar = (
     <>
       <header className="cards__topbar">
-        {/* Возврат к плану занятия — когда экран открыт из движка заданий. */}
+        {/* Возврат к плану занятия — компактная иконка (чтобы верхний ряд
+            помещался по ширине экрана и без движка тоже). */}
         {onExitSession && (
           <button
             type="button"
-            className="cards__session-back"
+            className="cards__icon-btn cards__session-back"
             onClick={onExitSession}
+            aria-label={t("session.backToSession")}
           >
-            ← {t("session.backShort")}
+            <span className="cards__icon-btn-glyph" aria-hidden="true">
+              ←
+            </span>
           </button>
         )}
         <button

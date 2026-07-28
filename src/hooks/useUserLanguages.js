@@ -45,7 +45,6 @@ export function useUserLanguages(user) {
     studyDaysPerWeek: DEFAULT_SCHEDULE_PREFS.studyDaysPerWeek,
     scheduleMode: DEFAULT_SCHEDULE_PREFS.scheduleMode,
     weeklySchedule: DEFAULT_SCHEDULE_PREFS.weeklySchedule,
-    sessionLoad: DEFAULT_SCHEDULE_PREFS.sessionLoad,
   });
   // true, пока после входа идёт первая загрузка языков (гейт от мигания
   // онбординга до того, как пары пришли из облака).
@@ -60,7 +59,6 @@ export function useUserLanguages(user) {
         studyDaysPerWeek: DEFAULT_SCHEDULE_PREFS.studyDaysPerWeek,
         scheduleMode: DEFAULT_SCHEDULE_PREFS.scheduleMode,
         weeklySchedule: DEFAULT_SCHEDULE_PREFS.weeklySchedule,
-        sessionLoad: DEFAULT_SCHEDULE_PREFS.sessionLoad,
       });
       setLoading(false);
       return;
@@ -80,7 +78,6 @@ export function useUserLanguages(user) {
           studyDaysPerWeek: prefs.studyDaysPerWeek,
           scheduleMode: prefs.scheduleMode,
           weeklySchedule: prefs.weeklySchedule,
-          sessionLoad: prefs.sessionLoad,
         });
         setLoading(false);
       }
@@ -105,7 +102,6 @@ export function useUserLanguages(user) {
       studyDaysPerWeek: prefs.studyDaysPerWeek,
       scheduleMode: prefs.scheduleMode,
       weeklySchedule: prefs.weeklySchedule,
-      sessionLoad: prefs.sessionLoad,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
@@ -178,8 +174,6 @@ export function useUserLanguages(user) {
     studyDaysPerWeek: schedulePrefs.studyDaysPerWeek,
     scheduleMode: schedulePrefs.scheduleMode,
     weeklySchedule: schedulePrefs.weeklySchedule,
-    // Нагрузка занятия (движок заданий): 'light'|'normal'|'heavy'|'auto'.
-    sessionLoad: schedulePrefs.sessionLoad,
     updateSchedulePrefs,
     // Свои темы генерации по паре.
     updateCustomTopics,

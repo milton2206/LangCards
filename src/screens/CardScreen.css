@@ -12,7 +12,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  /* На узких экранах группа иконок переносится на вторую строку, а не вылезает
+     за край (без горизонтального скролла). Когда влезает — остаётся один ряд. */
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 4px;
 }
 
@@ -20,20 +23,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
-/* Возврат к плану занятия (движок заданий) */
-.cards__session-back {
-  flex: 0 0 auto;
-  min-height: 40px;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
+/* «Мои слова» может сжиматься, чтобы ряд помещался (текст не рвёт вёрстку). */
+.cards__mywords {
+  min-width: 0;
 }
 
 /* Баннер блока «новые слова»: подсказка объёма + кнопка «Готово, к занятию» */

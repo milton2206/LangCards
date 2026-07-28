@@ -23,11 +23,8 @@ const SETS_KEY = "listeningSets"; // { "de-ru": { format, items, index, … } }
 export const PHRASES_PER_SET = 6;
 // Сколько вариантов показываем в режиме выбора (правильный + отвлекающие).
 export const OPTIONS_PER_PHRASE = 3;
-// Доля нового в gap-фразе по источнику:
-//   mine  — новое добирается только по необходимости (сам промпт «предпочитай
-//           мои»), поэтому доля минимальная;
-//   mixed — новое добавляется НАМЕРЕННО и заметно (расширение словаря).
-const GAP_NEW_SHARE_MINE = 0.1;
+// Доля нового в gap-фразе: заметная (расширение словаря), но фраза всё ещё
+// строится вокруг уже изучаемых слов.
 const GAP_NEW_SHARE_MIXED = 0.35;
 // Сколько активных слов отдаём модели на подбор похоже звучащих: с запасом,
 // потому что для части слов пары не найдётся и они отсеются.
@@ -204,17 +201,12 @@ export function buildGapChoices(answer, takenWords, count = OPTIONS_PER_PHRASE) 
 }
 
 /**
- * Подход формата «пропущенное слово». Способ построения зависит от источника:
- *   mine/mixed — пропущено ЗНАКОМОЕ слово (можно вписать или выбрать); фраза
- *                из режима чтения (mine — преимущественно мои, mixed — с заметной
- *                долей нового), пропуск делаем локально из takenWords;
- *   new        — пропущено НОВОЕ слово, ответ ТОЛЬКО выбором из вариантов (см.
- *                requestGapNewSet).
- * Возвращает { format:"gap", source, items, … } или бросает Error с .code.
+ * Подход формата «пропущенное слово»: звучит фраза (из режима чтения, единое
+ * поведение «смешанно» — знакомые слова + немного нового), одно ЗНАКОМОЕ слово
+ * скрыто, пропуск делаем локально из takenWords. Возвращает { format:"gap",
+ * source, items, … } или бросает Error с .code.
  */
 export async function requestGapSet(params) {
-  if (params.source === "new") return requestGapNewSet(params);
-
   const {
     learnLang,
     nativeLang,
@@ -230,13 +222,11 @@ export async function requestGapSet(params) {
     nativeLang,
     topic,
     level,
-    // Активные слова уходят в промпт; сервер по source решает, как их вплетать.
-    // Пропуск делаем из takenWords — значит фраза должна их содержать (mine/mixed).
+    // Активные слова вплетаются в фразу; пропуск делаем из takenWords.
     knownWords: takenWords,
-    newWordShare: source === "mixed" ? GAP_NEW_SHARE_MIXED : GAP_NEW_SHARE_MINE,
+    newWordShare: GAP_NEW_SHARE_MIXED,
     sentences: PHRASES_PER_SET,
     sentenceLength,
-    source,
   });
 
   const usedKeys = new Set();
@@ -258,88 +248,6 @@ export async function requestGapSet(params) {
   return {
     format: "gap",
     source,
-    items,
-    index: 0,
-    correctCount: 0,
-    createdAt: new Date().toISOString(),
-  };
-}
-
-/**
- * Подход «пропущенное слово», источник «Новые»: пропущено НЕЗНАКОМОЕ слово,
- * поэтому вписать его нельзя — отвечаем выбором из вариантов. И скрываемое
- * слово, и варианты приходят от той же генерации чтения (gapChoices), пропуск
- * ставим по её метке. Возвращает { format:"gap", source:"new", items, … }.
- */
-export async function requestGapNewSet({
-  learnLang,
-  nativeLang,
-  topic,
-  level,
-  takenWords = [],
-  sentenceLength,
-}) {
-  const text = await requestReadingText({
-    learnLang,
-    nativeLang,
-    topic,
-    level,
-    // Слова пользователя — как «избегать» (source=new), чтобы фраза была новой.
-    knownWords: takenWords,
-    sentences: PHRASES_PER_SET,
-    sentenceLength,
-    source: "new",
-    gapChoices: true, // просим у модели скрываемое слово и варианты
-  });
-
-  const usedKeys = new Set();
-  const items = [];
-  for (const s of text.sentences) {
-    const blank = String(s.blank || "").trim();
-    const rawOptions = Array.isArray(s.options)
-      ? s.options.map((o) => String(o || "").trim()).filter(Boolean)
-      : [];
-    if (!blank || rawOptions.length < 2) continue; // без выбора нет задания
-
-    // Находим скрываемое слово в предложении (ловит и словоформу) и заменяем ___.
-    const segs = highlightWordInExample(s.text, blank);
-    const hitIdx = segs.findIndex((x) => x.highlight);
-    if (hitIdx === -1) continue; // слово не нашли в тексте — пропускаем
-
-    const key = blank.toLowerCase();
-    if (usedKeys.has(key)) continue; // не повторяем то же слово в подходе
-    usedKeys.add(key);
-
-    const display = segs
-      .map((x, i) => (i === hitIdx ? BLANK : x.text))
-      .join("");
-
-    // Ответ — само скрытое слово (blank). Гарантируем, что оно есть среди
-    // вариантов, дедупим и режем до 4.
-    const seen = new Set();
-    const options = [];
-    for (const o of [blank, ...rawOptions]) {
-      const k = o.toLowerCase();
-      if (seen.has(k)) continue;
-      seen.add(k);
-      options.push(o);
-      if (options.length >= OPTIONS_PER_PHRASE + 1) break;
-    }
-
-    items.push({
-      kind: "gap",
-      text: s.text, // звучит целиком
-      display, // на экране — с пропуском
-      answer: blank, // новое слово
-      choiceOnly: true, // незнакомое — только выбор, без ввода
-      choices: shuffle(options),
-      translation: s.translation || "",
-    });
-  }
-
-  return {
-    format: "gap",
-    source: "new",
     items,
     index: 0,
     correctCount: 0,

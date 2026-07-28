@@ -3,38 +3,30 @@
 // вся логика тестируется без UI и без сети.
 // ----------------------------------------------------------------------------
 // ПРИНЦИП: «полная база всегда, но с ротацией + добавки сверху».
-//   • Повторения ВСЕГДА первыми, каждый день, в ПОЛНОМ объёме — вне ротации,
-//     их не режет ни нагрузка, ни что-либо ещё.
+//   • Повторения ВСЕГДА первыми, каждый день, в ПОЛНОМ объёме — вне ротации.
 //   • База каждый день ПОЛНАЯ (все доступные форматы: чтение, новые слова,
 //     аудирование), но не одинаковая: АКЦЕНТ дня ротируется по календарю —
 //     сегодня аудирование, завтра чтение, послезавтра случайные новые слова —
 //     и так по кругу. Акцентный формат идёт первым и заметно объёмнее.
-//   • ДОБАВКИ сверху базы — «хотите ещё?»: приоритетному дню их предлагается
-//     больше (приоритет через ДОБАВКИ, а не через урезание базы остальных).
-//   • День ВТОРОСТЕПЕННОГО языка = база чуть ПЛОТНЕЕ (навёрстывать: им
-//     занимаются реже и он быстрее забывается), а НЕ урезаннее.
+//   • ДОБАВКИ сверху базы — «хотите ещё?»: приоритетному дню их больше
+//     (приоритет через ДОБАВКИ, а не через урезание базы остальных).
+//   • День ВТОРОСТЕПЕННОГО языка = база чуть ПЛОТНЕЕ (навёрстывать), а НЕ меньше.
 //   • Форматы, которых нет (нет сети → нет текста/диалога), пропускаются молча.
-//   • Нагрузка (легче/нормально/тяжелее) меняет ОБЪЁМ внутри базы, но НЕ убирает
-//     форматы — база всё равно полная.
+//
+// Уровней нагрузки НЕТ: база адекватна сама по себе, хочешь больше — жмёшь
+// «ещё» (добавки) или «хочу другое». Ползунок «легче/нормально/тяжелее» и
+// profiles.session_load из логики убраны.
 // ============================================================================
-
-// Регулируемая нагрузка. 'auto' считается из лимита и числа повторений, дальше
-// человек правит ползунком. Порядок в массиве = порядок «легче → тяжелее».
-export const SESSION_LOADS = ["light", "normal", "heavy"];
 
 // Учебные форматы, по которым РОТИРУЕТСЯ акцент базы. Повторение сюда НЕ входит —
 // оно вне ротации (всегда первое и полное). Порядок = порядок ротации по дням.
 export const ROTATION_FORMATS = ["listening", "reading", "newWords"];
 
-// Объёмы по уровням нагрузки:
+// Базовые объёмы (без уровней нагрузки — единственная адекватная база):
 //   newFactor — множитель дневной нормы новых слов;
 //   sentences — длина текста для чтения (предложений);
 //   questions — число вопросов на понимание в диалоге аудирования.
-const VOLUME = {
-  light: { newFactor: 0.5, sentences: 4, questions: 2 },
-  normal: { newFactor: 1.0, sentences: 6, questions: 3 },
-  heavy: { newFactor: 1.5, sentences: 8, questions: 4 },
-};
+const BASE = { newFactor: 1, sentences: 6, questions: 3 };
 
 // День второстепенного языка — база ЧУТЬ ПЛОТНЕЕ (навёрстывать), а НЕ урезаннее.
 const CATCHUP = 1.25;
@@ -44,25 +36,6 @@ const ACCENT_BOOST = 1.5;
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 const mod = (n, m) => ((Math.round(n) % m) + m) % m;
 
-/**
- * Автоматический стартовый уровень из дневной нормы и числа созревших повторений:
- * много повторений → занятие и так насыщенное, новых поменьше; большая норма и
- * мало повторений → можно плотнее.
- */
-export function autoLevel(dailyNewLimit, reviewCount) {
-  const limit = Math.max(1, Number(dailyNewLimit) || 0);
-  const due = Math.max(0, Number(reviewCount) || 0);
-  if (due >= 2 * limit) return "light";
-  if (due >= limit) return "normal";
-  return limit >= 15 ? "heavy" : "normal";
-}
-
-/** Эффективный уровень: явный выбор пользователя, либо авто-расчёт при 'auto'. */
-export function effectiveLevel(sessionLoad, dailyNewLimit, reviewCount) {
-  if (SESSION_LOADS.includes(sessionLoad)) return sessionLoad;
-  return autoLevel(dailyNewLimit, reviewCount); // 'auto' и любое неизвестное
-}
-
 /** Акцент дня (какой формат ведущий) по календарному счётчику дня. */
 export function accentForDay(rotationDay) {
   return ROTATION_FORMATS[mod(rotationDay, ROTATION_FORMATS.length)];
@@ -70,7 +43,7 @@ export function accentForDay(rotationDay) {
 
 /**
  * Собирает занятие на сегодня — СТРУКТУРУ и ОБЪЁМ (задачи), а не статус.
- * Возвращает { level, accent, secondary, restDay?, blocks: [...], extras: [...] }.
+ * Возвращает { accent, secondary, restDay?, blocks: [...], extras: [...] }.
  * Типы блоков: 'review' | 'reading' | 'newWords' | 'listening'. Блоки базы несут
  * accent (акцентный ли), у newWords в его акцентный день — random (случайные слова).
  *
@@ -80,15 +53,12 @@ export function accentForDay(rotationDay) {
 export function buildSession({
   reviewCount = 0,
   dailyNewLimit = 10,
-  sessionLoad = "auto",
   isSecondaryDay = false, // мультирежим by_day: сегодня НЕ приоритетный язык
   restDay = false,
   readingAvailable = false,
   listeningAvailable = false,
   rotationDay = 0,
 }) {
-  const level = effectiveLevel(sessionLoad, dailyNewLimit, reviewCount);
-  const vol = VOLUME[level] || VOLUME.normal;
   const review = Math.max(0, Number(reviewCount) || 0);
   // База второстепенному дню — плотнее (навёрстывать), приоритетному — обычная.
   const catchUp = isSecondaryDay ? CATCHUP : 1;
@@ -100,7 +70,7 @@ export function buildSession({
 
   // Выходной по расписанию: только повторения (+ предложение позаниматься в UI).
   if (restDay) {
-    return { level, accent: null, secondary: isSecondaryDay, restDay: true, blocks, extras: [] };
+    return { accent: null, secondary: isSecondaryDay, restDay: true, blocks, extras: [] };
   }
 
   // Порядок учебных форматов: акцент дня — первым, дальше по кругу ротации.
@@ -110,16 +80,16 @@ export function buildSession({
   );
   const accent = order[0];
 
-  // Объём формата: база (нагрузка) × плотнее второстепенному × эмфаза акцента.
+  // Объём формата: база × плотнее второстепенному × эмфаза акцента.
   const volFor = (fmt, boostAccent) => {
     const boost = boostAccent && fmt === accent ? ACCENT_BOOST : 1;
     if (fmt === "newWords") {
-      return { count: Math.max(1, Math.round(limit * vol.newFactor * catchUp * boost)) };
+      return { count: Math.max(1, Math.round(limit * BASE.newFactor * catchUp * boost)) };
     }
     if (fmt === "reading") {
-      return { sentences: clamp(Math.round(vol.sentences * catchUp * boost), 3, 8) };
+      return { sentences: clamp(Math.round(BASE.sentences * catchUp * boost), 3, 8) };
     }
-    return { questions: clamp(Math.round(vol.questions * catchUp * boost), 2, 4) };
+    return { questions: clamp(Math.round(BASE.questions * catchUp * boost), 2, 4) };
   };
 
   // Новые слова — базовая активность, есть всегда; чтение/аудио — по доступности.
@@ -149,5 +119,5 @@ export function buildSession({
     extras.push({ type: fmt, extra: true, ...volFor(fmt, false) });
   }
 
-  return { level, accent, secondary: isSecondaryDay, blocks, extras };
+  return { accent, secondary: isSecondaryDay, blocks, extras };
 }

@@ -31,15 +31,10 @@ const BLOCK_NAME_KEY = {
   listening: "listening",
 };
 
-// Порядок ползунка нагрузки: авто + три ручных уровня.
-const LOAD_OPTIONS = ["auto", "light", "normal", "heavy"];
-
 export default function SessionScreen({
   plan,
   doneMap = {},
   onToggle,
-  sessionLoad,
-  onChangeLoad,
   onStartBlock,
   onManual,
   onOpenSettings,
@@ -96,34 +91,6 @@ export default function SessionScreen({
         </button>
       </div>
     </header>
-  );
-
-  // Ползунок нагрузки: «Авто / Легче / Нормально / Тяжелее». При «Авто» подсказка
-  // показывает, какой уровень рассчитался сам.
-  const loadPicker = (
-    <div className="session__load">
-      <span className="session__load-label">{t("session.loadLabel")}</span>
-      <div className="session__load-chips" role="group">
-        {LOAD_OPTIONS.map((id) => (
-          <button
-            key={id}
-            type="button"
-            className={
-              "session__load-chip" + (sessionLoad === id ? " is-active" : "")
-            }
-            aria-pressed={sessionLoad === id}
-            onClick={() => onChangeLoad(id)}
-          >
-            {t(`session.load.${id}`)}
-          </button>
-        ))}
-      </div>
-      <p className="session__load-hint">
-        {sessionLoad === "auto"
-          ? t("session.loadAutoHint", { level: t(`session.load.${plan?.level}`) })
-          : t("session.loadHint")}
-      </p>
-    </div>
   );
 
   return (
@@ -289,9 +256,6 @@ export default function SessionScreen({
           <p className="session__extras-hint">{t("session.extrasHint")}</p>
         </div>
       )}
-
-      {/* Регулируемая нагрузка */}
-      {loadPicker}
 
       {/* Свобода выбора: одним нравится, когда ведут, другие хотят выбрать сами. */}
       <button type="button" className="session__manual" onClick={onManual}>

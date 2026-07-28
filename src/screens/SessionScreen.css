@@ -265,51 +265,11 @@
   font-weight: 700;
 }
 
-/* ---------- Регулируемая нагрузка ---------- */
-.session__load {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: auto; /* прижимаем управление к низу экрана */
-}
-
-.session__load-label {
-  color: var(--text-muted);
-  font-size: 13px;
-}
-
-.session__load-chips {
-  display: flex;
-  gap: 6px;
-}
-
-.session__load-chip {
-  flex: 1;
-  min-height: 40px;
-  padding: 8px 6px;
-  border: 1.5px solid var(--border);
-  border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.session__load-chip.is-active {
-  border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.14);
-  color: var(--accent);
-}
-
-.session__load-hint {
-  color: var(--text-muted);
-  font-size: 12px;
-  line-height: 1.4;
-}
 
 /* ---------- Свобода выбора ---------- */
 .session__manual {
   width: 100%;
+  margin-top: auto; /* прижимаем к низу экрана, когда контента мало */
   min-height: 48px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);

@@ -73,7 +73,6 @@ import {
   loadListeningFormat,
   saveListeningFormat,
 } from "./lib/listeningLevels.js";
-import { loadWordSource, saveWordSource } from "./lib/wordSource.js";
 import { prewarmTts } from "./lib/ttsClient.js";
 import { deleteAccountRequest } from "./lib/accountClient.js";
 import { sendFeedback } from "./lib/feedbackClient.js";
@@ -338,13 +337,6 @@ export default function App() {
     saveListeningFormat(listeningFormat);
   }, [listeningFormat]);
 
-  // Источник слов для чтения И аудирования (6.1/6.2): ОДНА общая настройка на
-  // оба режима — mine / mixed / new. Сохраняется между сессиями.
-  const [wordSource, setWordSource] = useState(loadWordSource);
-  useEffect(() => {
-    saveWordSource(wordSource);
-  }, [wordSource]);
-
   // Слова, которым сегодня пора на повтор (отдельно от потока новых карточек).
   const dueWords = getDueWords(vocab.takenWords, vocab.srsByWord, vocab.todayKey);
 
@@ -499,12 +491,7 @@ export default function App() {
   }, []);
 
   // ---------- Движок заданий: занятие на сегодня ----------
-  // Нагрузка живёт в profiles (через userLangs), правит её пользователь ползунком.
-  const sessionLoad = userLangs.sessionLoad || "auto";
-  function handleChangeSessionLoad(value) {
-    userLangs.updateSchedulePrefs({ sessionLoad: value });
-  }
-
+  // Уровней нагрузки нет: база адекватна сама по себе, «ещё» — через добавки.
   // День второстепенного языка — только в мультирежиме by_day, когда сегодня НЕ
   // приоритетная пара. Одноязычный режим и mixed — всегда полная программа.
   const isSecondaryDay = Boolean(
@@ -575,7 +562,6 @@ export default function App() {
       buildSession({
         reviewCount: reviewTarget,
         dailyNewLimit: sessionDailyNewLimit,
-        sessionLoad,
         isSecondaryDay,
         restDay,
         readingAvailable,
@@ -585,7 +571,6 @@ export default function App() {
     [
       reviewTarget,
       sessionDailyNewLimit,
-      sessionLoad,
       isSecondaryDay,
       restDay,
       readingAvailable,
@@ -1225,8 +1210,6 @@ export default function App() {
             plan={sessionPlan}
             doneMap={sessionDoneMap}
             onToggle={toggleSessionBlock}
-            sessionLoad={sessionLoad}
-            onChangeLoad={handleChangeSessionLoad}
             onStartBlock={startSessionBlock}
             onManual={goManualHub}
             onOpenSettings={() => setScreen("settings")}
@@ -1296,8 +1279,6 @@ export default function App() {
             level={settings.level}
             takenWords={vocab.takenWords}
             knownWords={vocab.knownWords}
-            wordSource={wordSource}
-            onChangeWordSource={setWordSource}
             onAddWord={handleAddManualCard}
             onBack={handleSessionBack}
             plannedSentences={
@@ -1324,8 +1305,6 @@ export default function App() {
             onChangeMode={setListeningMode}
             formatId={listeningFormat}
             onChangeFormat={setListeningFormat}
-            wordSource={wordSource}
-            onChangeWordSource={setWordSource}
             scheduleActive={scheduleActive}
             onBack={handleSessionBack}
             plannedQuestions={

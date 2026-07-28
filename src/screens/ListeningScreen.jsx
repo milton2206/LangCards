@@ -26,9 +26,13 @@ import {
   LISTENING_MODES,
 } from "../lib/listeningLevels.js";
 import { ENOUGH_WORDS_FOR_READING } from "../hooks/useWordLists.js";
-import WordSourcePicker from "../components/WordSourcePicker.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./ListeningScreen.css";
+
+// Единственное поведение генерации (выбор источника слов убран): «смешанно» —
+// вокруг уже изучаемых слов + немного нового под тему и уровень. Служит и ключом
+// кэша: старые записи «mine»/«new» просто не читаются (не ломают выдачу).
+const WORD_SOURCE = "mixed";
 
 /**
  * Аудирование (фаза 6.2). ОСНОВНОЙ режим — проверка ПОНИМАНИЯ (Hörverstehen):
@@ -59,8 +63,6 @@ export default function ListeningScreen({
   onChangeMode,
   formatId,
   onChangeFormat,
-  wordSource,
-  onChangeWordSource,
   scheduleActive,
   onBack,
   // Движок заданий (необязательно): объём блока «диалог» — сколько вопросов на
@@ -73,9 +75,9 @@ export default function ListeningScreen({
   const listeningLevel = getListeningLevel(levelId);
 
   // ---------- Состояние ----------
-  // Понимание: диалог + вопросы (кэшируются вместе по паре И источнику).
+  // Понимание: диалог + вопросы (кэшируются вместе по паре).
   const [dialogueSet, setDialogueSet] = useState(() =>
-    loadDialogue(pairKey, wordSource),
+    loadDialogue(pairKey, WORD_SOURCE),
   );
   // Слова: текущий подход старых форматов (по паре).
   const [set, setSet] = useState(() => loadSet(pairKey));
@@ -113,25 +115,13 @@ export default function ListeningScreen({
     if (pairRef.current === pairKey) return;
     pairRef.current = pairKey;
     stopCurrentAudio();
-    setDialogueSet(loadDialogue(pairKey, wordSource));
+    setDialogueSet(loadDialogue(pairKey, WORD_SOURCE));
     setSet(loadSet(pairKey));
     setResult(null);
     setGrammar(null);
     setTyped("");
     setError(null);
-  }, [pairKey, wordSource]);
-
-  // Смена источника: диалог кэшируется по источнику — подгружаем свой; старый
-  // набор слов сбрасываем (нужен новый под источник).
-  useEffect(() => {
-    setDialogueSet(loadDialogue(pairKey, wordSource));
-    stopCurrentAudio();
-    setResult(null);
-    setGrammar(null);
-    setTyped("");
-    setError(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wordSource]);
+  }, [pairKey]);
 
   // Смена режима или формата: глушим звук и чистим временное состояние.
   useEffect(() => {
@@ -146,7 +136,7 @@ export default function ListeningScreen({
   // Показываем диалог, только если он совпадает с текущим источником: наборы
   // разных источников (мои/смешанно/новые) — разные, кэш их не путает.
   const activeDialogue =
-    dialogueSet && dialogueSet.source === wordSource ? dialogueSet : null;
+    dialogueSet && dialogueSet.source === WORD_SOURCE ? dialogueSet : null;
 
   // Реплики диалога → треки плеера. Плеер склеит их в одну шкалу времени и даст
   // паузу/перемотку/переслушать. Скорость (rate) берётся из выбранного уровня.
@@ -184,7 +174,7 @@ export default function ListeningScreen({
 
   // ---------- Старые форматы (слова) ----------
   const activeSet =
-    set && set.format === formatId && set.source === wordSource ? set : null;
+    set && set.format === formatId && set.source === WORD_SOURCE ? set : null;
   const items = activeSet?.items || [];
   const index = activeSet?.index || 0;
   const current = index < items.length ? items[index] : null;
@@ -248,21 +238,20 @@ export default function ListeningScreen({
     stopCurrentAudio();
     try {
       // Заголовки недавних диалогов ЭТОЙ темы — чтобы модель дала другой сюжет.
-      const recentTitles = recentDialogueTitles(pairKey, wordSource, topic);
+      const recentTitles = recentDialogueTitles(pairKey, WORD_SOURCE, topic);
       const next = await requestDialogueSet({
         learnLang,
         nativeLang,
         topic,
         level,
         takenWords: takenWords || [],
-        source: wordSource,
         recentTitles,
         // Объём блока диалога из движка заданий (сервер зажимает число вопросов).
         questionCount: plannedQuestions || undefined,
       });
       // Новый диалог становится текущим (заменяет прежний на экране); прежние
       // остаются в кэше только для разнообразия и показа последнего при перезаходе.
-      saveDialogue(pairKey, wordSource, next);
+      saveDialogue(pairKey, WORD_SOURCE, next);
       setDialogueSet(next);
       // Заранее греем озвучку реплик в общем кэше — переслушивание мгновенное.
       prewarmPhrases(
@@ -300,7 +289,7 @@ export default function ListeningScreen({
         takenWords: takenWords || [],
         wordInfo: wordInfo || {},
         sentenceLength: listeningLevel.length,
-        source: wordSource,
+        source: WORD_SOURCE,
       });
       if (!next.items.length) {
         setError(
@@ -816,13 +805,6 @@ export default function ListeningScreen({
         <div className="listening__controls">
           {/* Формат «слов» — только в режиме слов. */}
           {mode === "words" && formatPicker}
-
-          {/* Источник слов — в обоих режимах (mine/mixed/new работают везде). */}
-          <WordSourcePicker
-            value={wordSource}
-            onChange={onChangeWordSource}
-            takenCount={takenCount}
-          />
 
           {levelPicker}
 

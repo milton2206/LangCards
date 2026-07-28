@@ -341,7 +341,7 @@ export default {
       "Nothing to review today, and texts and dialogues aren't available right now. You can pick an activity yourself.",
     manual: "I want something else",
     studyAnyway: "Study anyway",
-    backShort: "Session",
+    backToSession: "To session",
     secondaryNote:
       "A secondary language today — the base is a bit denser to catch up: you study it less often.",
     // Day accent (base rotation) and extras on top.
@@ -352,11 +352,6 @@ export default {
     extrasHint: "Finished the base — you can keep going with another format.",
     restTitle: "A rest day by your schedule",
     restHint: "Reviews are always available. Want to study — start manually.",
-    loadLabel: "Session load:",
-    loadHint: "Changes block sizes. Reviews always run in full.",
-    loadAutoHint:
-      "Auto sizes it for you (now: {level}). Reviews always run in full.",
-    load: { auto: "Auto", light: "Lighter", normal: "Normal", heavy: "Heavier" },
     block: {
       review: "Review",
       reading: "Reading with questions",
@@ -379,22 +374,6 @@ export default {
     newBlockRandomHint:
       "Take ~{n} surprise words (“🎲 Surprise me”), then return to the plan.",
     blockDone: "Done, back to session",
-  },
-
-  // Word source for reading and listening (one setting for both modes).
-  wordSource: {
-    label: "Word source:",
-    mine: "My words",
-    mixed: "Mixed",
-    new: "New",
-    hint: {
-      mine: "Mostly your words; if there aren't enough for a phrase, a little new is added.",
-      mixed: "Familiar words mixed with new ones — best for learning.",
-      new: "Unfamiliar words at your level — growing your vocabulary.",
-    },
-    fewMine:
-      "You have few taken words yet — there won't be much variety and words will start to repeat.",
-    switchMixed: "Switch to “Mixed”",
   },
 
   // Card audio (phase 5.1).
@@ -594,6 +573,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      simplerSession: {
+        title: "Simpler session and generation",
+        desc: "Dropped the session load slider (the base is already sensible; want more — “I want something else”) and the word-source picker in reading/listening: content now always matches your topic, weaving in your words plus a little new.",
+      },
       rotatingSession: {
         title: "A different session every day",
         desc: "The session base is now full every day but with a rotating focus: today listening, tomorrow reading, the day after surprise words. Finished the base? The engine offers extras on top.",
