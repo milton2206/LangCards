@@ -2,6 +2,7 @@ import { useState } from "react";
 import { LANG_EMOJI } from "../data/onboarding.js";
 import { isoWeekday } from "../lib/weeklySchedule.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import Flag from "./icons/Flag.jsx";
 import "./WeekSchedule.css";
 
 // Пара "de-ru" → код изучаемого языка "DE" (для точек недели).
@@ -28,10 +29,16 @@ export default function WeekSchedule({
   editable = false,
   languages = [],
   onChangeDay,
+  // appearance — ТОЛЬКО вид (поведение одинаково): "ember" даёт тёплые плашки
+  // и круглые флаги (строка на экране карточки). Редактируемый режим на «Мои
+  // языки» проп не передаёт и остаётся прежним.
+  appearance = "default",
 }) {
   const { t } = useI18n();
   const [editingDay, setEditingDay] = useState(null);
   if (!schedule) return null;
+
+  const ember = appearance === "ember";
 
   const todayIso = isoWeekday(new Date());
   const todayPair = schedule[String(todayIso)] || null;
@@ -47,13 +54,24 @@ export default function WeekSchedule({
   }
 
   return (
-    <div className="week" role="group" aria-label={t("schedule.aria")}>
+    <div
+      className={"week" + (ember ? " week--ember" : "")}
+      role="group"
+      aria-label={t("schedule.aria")}
+    >
       <p className="week__today">
-        {todayPair && (
-          <span aria-hidden="true">
-            {LANG_EMOJI[todayPair.split("-")[0]] || "🌐"}{" "}
-          </span>
-        )}
+        {todayPair &&
+          (ember ? (
+            <Flag
+              lang={todayPair.split("-")[0]}
+              size={18}
+              className="week__today-flag"
+            />
+          ) : (
+            <span aria-hidden="true">
+              {LANG_EMOJI[todayPair.split("-")[0]] || "🌐"}{" "}
+            </span>
+          ))}
         {todayLabel}
       </p>
 
@@ -69,9 +87,22 @@ export default function WeekSchedule({
           const content = (
             <>
               <span className="week__dot-day">{dayNames[d - 1]}</span>
-              <span className="week__dot-lang">
-                {pair ? learnCode(pair) : "—"}
-              </span>
+              {ember ? (
+                pair ? (
+                  <Flag
+                    lang={pair.split("-")[0]}
+                    size={20}
+                    className="week__dot-flag"
+                  />
+                ) : (
+                  // Выходной — нейтральная метка без флага.
+                  <span className="week__dot-lang week__dot-rest">—</span>
+                )
+              ) : (
+                <span className="week__dot-lang">
+                  {pair ? learnCode(pair) : "—"}
+                </span>
+              )}
             </>
           );
           return editable ? (

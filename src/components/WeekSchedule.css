@@ -56,6 +56,55 @@
   color: var(--text-muted);
 }
 
+/* ---------- Вид Ember (только read-only строка на экране карточки) ---------- */
+/* Тёплые плашки вместо синих, круглый флаг вместо кода, сегодня — терракота,
+   выходной — нейтральная плашка без флага. Семь дней помещаются в строку:
+   каждая плашка flex:1 (равная доля ширины) и сжимается (min-width:0). */
+.week--ember .week__today {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+}
+
+.week--ember .week__dots {
+  gap: 5px;
+}
+
+.week--ember .week__dot {
+  gap: 4px;
+  border-color: var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+}
+
+.week--ember .week__dot-day {
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
+}
+
+/* Сегодня — терракотовый акцент (рамка + тёплая подложка + акцентная подпись) */
+.week--ember .week__dot.is-today {
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 16%, transparent);
+}
+
+.week--ember .week__dot.is-today .week__dot-day {
+  color: var(--ember-accent);
+}
+
+/* Выходной — нейтральная плашка (не приглушаем, просто «—» приглушённым тоном) */
+.week--ember .week__dot.is-off {
+  opacity: 1;
+  background-color: var(--ember-surface);
+}
+
+.week--ember .week__dot-rest {
+  color: var(--ember-text-muted);
+  font-weight: 700;
+}
+
 /* ---------- Редактируемый режим: тап по дню меняет язык ---------- */
 .week__dot--edit {
   cursor: pointer;

@@ -573,6 +573,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberWeekStrip: {
+        title: "A warm week strip",
+        desc: "The schedule row on the word card got the new look: warm tiles instead of blue, round language flags instead of letter codes, today highlighted in terracotta, and a neutral marker for rest days. Looks only — the schedule works as before.",
+      },
       emberCardPolish: {
         title: "A tidier word card",
         desc: "Polished the top of the card: language flags are now round, the top bar fits on a single line without wrapping, the example’s audio button got a filled circle, and the settings icon is cleaner. Looks only — everything works as before.",

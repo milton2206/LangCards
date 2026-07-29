@@ -471,14 +471,15 @@
   border-top-color: var(--ember-on-accent);
 }
 
-/* Озвучка примера — тот же приём, что у слова (кружок с заливкой), только
-   меньше и мягче: тёплая терракотовая заливка + терракотовая иконка. */
+/* Озвучка примера — та же форма, что у слова: скруглённый ПРЯМОУГОЛЬНИК (не
+   круг), только меньше и мягче. Радиус пропорционален кнопке слова (14px на
+   44px → ~10px на 30px), заливка — тёплая терракота, иконка терракотовая. */
 .cards__example-label-row .playbtn--ember {
   width: 30px;
   height: 30px;
   min-height: 30px;
   border: none;
-  border-radius: 999px;
+  border-radius: 10px;
   background-color: color-mix(in srgb, var(--ember-accent) 20%, transparent);
   color: var(--ember-accent);
 }

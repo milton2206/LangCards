@@ -374,7 +374,9 @@ export default function CardScreen({
   ) : null;
 
   // Обзор недельного расписания (фаза 4.5) — только мультирежим + 'by_day'.
-  const weekStrip = weekSchedule ? <WeekSchedule schedule={weekSchedule} /> : null;
+  const weekStrip = weekSchedule ? (
+    <WeekSchedule schedule={weekSchedule} appearance="ember" />
+  ) : null;
 
   // Неучебный день по расписанию: не блокируем — показываем отдых, повторения
   // (они идут всегда — кнопка в сводке и здесь) и «Позаниматься всё равно»
