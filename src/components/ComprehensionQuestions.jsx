@@ -169,12 +169,14 @@ export default function ComprehensionQuestions({
               aria-pressed={chosen === value}
               onClick={() => answer(value)}
             >
-              {ember && (
-                <Icon
-                  name={value ? "check" : "close"}
-                  size={16}
-                  className="comp__answer-icon"
-                />
+              {/* Иконка — только как РЕЗУЛЬТАТ (после ответа): галочка у верного,
+                  крестик у ошибочного выбора. До ответа иконок нет — обе кнопки
+                  нейтральны и одинаковы, правильный вариант не подсказан. */}
+              {ember && mark === " is-correct" && (
+                <Icon name="check" size={16} className="comp__answer-icon" />
+              )}
+              {ember && mark === " is-wrong" && (
+                <Icon name="close" size={16} className="comp__answer-icon" />
               )}
               {value ? t("comprehension.true") : t("comprehension.false")}
             </button>

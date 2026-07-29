@@ -590,6 +590,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      answersNeutralBeforeAnswer: {
+        title: "The answer is no longer given away",
+        desc: "In comprehension questions (reading and listening), the “True” and “False” buttons now look identically neutral before you answer — the correct option isn't visible in advance. Green with a check marks the right answer and a red tint the wrong pick, only AFTER you answer.",
+      },
       readingGrammarPerSentence: {
         title: "Grammar, one sentence at a time",
         desc: "In reading, the grammar breakdown works per sentence again: tap the “¶” next to a sentence and just that one is explained, with no length error. Tapping a word still gives its translation.",

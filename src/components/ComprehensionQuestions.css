@@ -236,14 +236,10 @@
   flex: 0 0 auto;
 }
 
-/* True — оливковый (утвердительный), False — нейтральный. */
-.comp--ember .comp__answer--true {
-  border-color: color-mix(in srgb, var(--ember-learned) 55%, transparent);
-  background-color: color-mix(in srgb, var(--ember-learned) 16%, transparent);
-  color: var(--ember-learned);
-}
+/* До ответа True и False одинаково нейтральны (см. базовый .comp--ember
+   .comp__answer выше) — правильный вариант не подсказан. Зелёный-с-галочкой и
+   красный — только состояния РЕЗУЛЬТАТА ниже. */
 
-/* Результат ответа перекрывает дефолт (специфичнее). */
 .comp--ember .comp__answer.is-correct {
   border-color: var(--ember-learned);
   background-color: color-mix(in srgb, var(--ember-learned) 20%, transparent);
