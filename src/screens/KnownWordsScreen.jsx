@@ -4,6 +4,7 @@ import { useWordSelection } from "../hooks/useWordSelection.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import SelectBar from "../components/SelectBar.jsx";
 import WordListTabs from "../components/WordListTabs.jsx";
+import Icon from "../components/icons/Icon.jsx";
 import "./MyWordsScreen.css";
 
 /**
@@ -98,7 +99,8 @@ export default function KnownWordsScreen({
             className="mywords__review-known"
             onClick={onOpenKnownReview}
           >
-            🔄 {t("knownReview.entry")}
+            <Icon name="review" size={18} className="mywords__review-icon" />
+            {t("knownReview.entry")}
           </button>
         )}
 
@@ -111,9 +113,10 @@ export default function KnownWordsScreen({
 
       {items.length === 0 ? (
         <div className="mywords__empty">
-          <div className="mywords__empty-emoji" aria-hidden="true">
+          <div className="mywords__empty-icon" aria-hidden="true">
             🧠
           </div>
+          <p className="mywords__empty-title">{t("words.emptyTitle")}</p>
           <p className="mywords__empty-text">{t("words.knownEmpty")}</p>
         </div>
       ) : (

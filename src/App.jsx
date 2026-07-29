@@ -1251,6 +1251,8 @@ export default function App() {
             takenWords={vocab.takenWords}
             knownCount={vocab.knownWords.length}
             wordInfo={vocab.wordInfo}
+            srsByWord={vocab.srsByWord}
+            todayKey={vocab.todayKey}
             learnLang={learnLang}
             nativeLang={nativeLang}
             onMarkKnown={vocab.markKnown}

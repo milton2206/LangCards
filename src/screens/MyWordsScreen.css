@@ -1,14 +1,23 @@
+/* ============================================================================
+ * Экраны «Мои слова» / «Известные» — оформление Ember (шаг 6/N).
+ * ----------------------------------------------------------------------------
+ * Один файл на оба экрана (KnownWordsScreen переиспользует .mywords*) + вкладки
+ * .wordtabs. Все цвета через `--ember-*`. Логику не трогали — только вид (плюс
+ * метка срока повторения из существующих SRS-данных). Свайпы НЕ добавлялись.
+ * ========================================================================== */
+
 .mywords {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  background-color: var(--ember-bg);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
 }
 
-/* Закреплённая сверху шапка: заголовок + вкладки переключения списков. Не
-   уезжает при прокрутке длинного списка — переключиться между «Мои слова» и
-   «Известные» можно из любой точки. Список скроллится ПОД ней. Фон непрозрачный,
-   чтобы карточки списка красиво уходили под шапку. */
+/* Закреплённая сверху шапка: заголовок + вкладки. Тёплый непрозрачный фон —
+   карточки списка красиво уходят под неё. */
 .mywords__top {
   position: sticky;
   top: 0;
@@ -16,12 +25,10 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  /* фон тянем в горизонтальные поля контейнера, а сверху закрываем его отступ —
-     при закреплении шапка ложится встык к краю экрана без просветов */
   margin: -24px -20px 0;
   padding: 20px 20px 12px;
-  background-color: var(--bg);
-  border-bottom: 1px solid var(--border);
+  background-color: var(--ember-bg);
+  border-bottom: 1px solid var(--ember-border);
 }
 
 .mywords__header {
@@ -35,23 +42,23 @@
   width: 44px;
   height: 44px;
   min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: 12px;
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 20px;
   line-height: 1;
 }
 
 .mywords__title {
   flex: 1;
+  font-family: var(--font-word); /* Alegreya — заголовок */
   font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.3px;
+  color: var(--ember-text);
 }
 
-/* Мягкое сообщение о лимите активных слов — не блокировка, просто подсказка */
-/* Ряды «текст + кнопка озвучки» (фаза 5.1) */
 .mywords__word-row {
   display: inline-flex;
   align-items: center;
@@ -71,27 +78,36 @@
 
 .mywords__limit-notice {
   padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 176, 32, 0.4);
-  background-color: rgba(255, 176, 32, 0.12);
-  color: #ffb020;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid rgba(224, 158, 74, 0.4);
+  background-color: rgba(224, 158, 74, 0.12);
+  color: #e0964a;
   font-size: 13px;
   line-height: 1.4;
 }
 
-/* Кнопка «Повторить известные» — необязательная самопроверка списка «Знаю» */
+/* Кнопка «Повторить известные» — мягкая терракотовая, с иконкой. */
 .mywords__review-known {
   width: 100%;
   min-height: 46px;
-  border: 1px solid rgba(108, 140, 255, 0.5);
-  border-radius: var(--radius-sm);
-  background-color: rgba(108, 140, 255, 0.1);
-  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 45%, transparent);
+  border-radius: var(--ember-radius-sm);
+  background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
+  color: var(--ember-accent);
+  font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 700;
 }
 
-/* ---------- Вкладки переключения списков (в закреплённой шапке) ---------- */
+.mywords__review-icon {
+  flex: 0 0 auto;
+}
+
+/* ---------- Вкладки переключения списков ---------- */
 .wordtabs {
   display: flex;
   gap: 8px;
@@ -106,22 +122,24 @@
   justify-content: center;
   gap: 8px;
   padding: 8px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ember-border);
   border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text-muted);
+  background-color: var(--ember-surface);
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   transition:
     border-color 0.15s,
     background-color 0.15s,
     color 0.15s;
 }
 
+/* Активная вкладка — терракотой. */
 .wordtabs__tab.is-active {
-  border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.14);
-  color: var(--text);
+  border-color: var(--ember-accent);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
 }
 
 .wordtabs__count {
@@ -132,15 +150,15 @@
   height: 22px;
   padding: 0 6px;
   border-radius: 999px;
-  background-color: var(--border);
-  color: var(--text);
+  background-color: color-mix(in srgb, var(--ember-text) 12%, transparent);
+  color: var(--ember-text);
   font-size: 12px;
   font-weight: 700;
 }
 
 .wordtabs__tab.is-active .wordtabs__count {
-  background-color: var(--accent);
-  color: #0b0d12;
+  background-color: color-mix(in srgb, var(--ember-on-accent) 22%, transparent);
+  color: var(--ember-on-accent);
 }
 
 /* Кнопка входа в режим выбора */
@@ -148,10 +166,10 @@
   flex: 0 0 auto;
   min-height: 36px;
   padding: 0 14px;
-  border: 1px solid var(--accent);
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 50%, transparent);
   border-radius: 999px;
-  background-color: rgba(108, 140, 255, 0.14);
-  color: var(--accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
   font-size: 14px;
   font-weight: 600;
 }
@@ -170,12 +188,11 @@
   flex-direction: column;
   gap: 10px;
   padding: 14px 16px;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  background-color: var(--ember-card);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius);
 }
 
-/* Режим выбора: карточка кликабельна целиком, выбранная — подсвечена */
 .mywords__item--selectable {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -185,11 +202,10 @@
 }
 
 .mywords__item.is-selected {
-  border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.12);
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 12%, var(--ember-card));
 }
 
-/* Чекбокс слева от текста слова */
 .mywords__checkbox {
   flex: 0 0 auto;
   align-self: center;
@@ -198,25 +214,24 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--ember-border);
   border-radius: 7px;
-  background-color: var(--bg-elevated);
-  color: #0b0d12;
+  background-color: var(--ember-surface);
+  color: var(--ember-on-accent);
   font-size: 15px;
   font-weight: 800;
 }
 
 .mywords__checkbox.is-checked {
-  border-color: var(--accent);
-  background-color: var(--accent);
+  border-color: var(--ember-accent);
+  background-color: var(--ember-accent);
 }
 
-/* Верхняя строка: слово+перевод слева, действие («Выучил»/«Вернуть») справа */
+/* Верхняя строка: слово+перевод слева, метка срока/озвучка/действие справа */
 .mywords__item-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
 .mywords__item-text {
@@ -224,40 +239,68 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
+/* Метка срока повторения: «today» — терракотой, близкий — оливковым,
+   далёкий — приглушённо. */
+.mywords__due {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.mywords__due--today {
+  background-color: color-mix(in srgb, var(--ember-accent) 16%, transparent);
+  color: var(--ember-accent);
+}
+
+.mywords__due--near {
+  background-color: color-mix(in srgb, var(--ember-learned) 16%, transparent);
+  color: var(--ember-learned);
+}
+
+.mywords__due--far {
+  background-color: color-mix(in srgb, var(--ember-text) 8%, transparent);
+  color: var(--ember-text-muted);
+}
+
+/* Кнопка «Вернуть» (в изучение) — терракотовый акцент. */
 .mywords__restore {
   flex: 0 0 auto;
-  min-height: 44px;
+  min-height: 40px;
   padding: 8px 14px;
-  border: 1px solid rgba(108, 140, 255, 0.5);
-  border-radius: 8px;
-  background-color: rgba(108, 140, 255, 0.14);
-  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 50%, transparent);
+  border-radius: var(--ember-radius-sm);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
   font-size: 14px;
   font-weight: 600;
 }
 
-/* Кнопка «Выучил» — переносит слово в известные (зелёный акцент) */
+/* Кнопка «Выучил» — переносит в известные (оливковый = выучено). */
 .mywords__learned {
   flex: 0 0 auto;
-  min-height: 44px;
+  min-height: 40px;
   padding: 8px 14px;
-  border: 1px solid rgba(53, 200, 139, 0.5);
-  border-radius: 8px;
-  background-color: rgba(53, 200, 139, 0.14);
-  color: #35c88b;
+  border: 1px solid color-mix(in srgb, var(--ember-learned) 50%, transparent);
+  border-radius: var(--ember-radius-sm);
+  background-color: color-mix(in srgb, var(--ember-learned) 15%, transparent);
+  color: var(--ember-learned);
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .mywords__word {
+  font-family: var(--font-word); /* Alegreya — слово */
   font-size: 18px;
-  font-weight: 600;
-  /* корректный перенос длинных слов: по слогам (с дефисом), без разрыва
-     посреди буквы и без вылезания за экран */
+  font-weight: 700;
+  color: var(--ember-text);
   overflow-wrap: anywhere;
   word-break: break-word;
   hyphens: auto;
@@ -265,27 +308,51 @@
 }
 
 .mywords__translit {
-  color: var(--accent);
+  color: var(--ember-accent);
   font-size: 13px;
 }
 
 .mywords__translation {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 15px;
 }
 
-/* ---------- Пример предложения (контекст слова) ---------- */
+/* Озвучка на этом экране (вид Ember) — мягкий терракотовый кружок. */
+.mywords__item-row > .playbtn--ember {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  border: none;
+  border-radius: 10px;
+  background-color: color-mix(in srgb, var(--ember-accent) 16%, transparent);
+  color: var(--ember-accent);
+}
+
+.mywords__example-row .playbtn--ember {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  border: none;
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--ember-accent) 16%, transparent);
+  color: var(--ember-accent);
+}
+
+/* ---------- Пример предложения ---------- */
 .mywords__example {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding: 10px 12px;
-  border-left: 3px solid var(--accent);
-  background-color: var(--bg-elevated);
-  border-radius: 0 8px 8px 0;
+  border-left: 3px solid var(--ember-accent);
+  background-color: var(--ember-surface);
+  border-radius: 0 var(--ember-radius-sm) var(--ember-radius-sm) 0;
 }
 
 .mywords__example-text {
+  font-family: var(--font-word); /* пример на изучаемом языке — Alegreya */
   font-size: 14px;
   line-height: 1.45;
   font-weight: 500;
@@ -298,30 +365,47 @@
 .mywords__example-translation {
   font-size: 13px;
   line-height: 1.45;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
-/* ---------- Пустое состояние ---------- */
+/* ---------- Пустое состояние — тёплая плашка ---------- */
 .mywords__empty {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   text-align: center;
-  gap: 12px;
+  gap: 10px;
+  padding: 40px 24px;
+  background-color: var(--ember-surface);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius);
 }
 
-.mywords__empty-emoji {
-  font-size: 48px;
+.mywords__empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background-color: color-mix(in srgb, var(--ember-accent) 16%, transparent);
+  font-size: 26px;
   line-height: 1;
+  margin-bottom: 4px;
+}
+
+.mywords__empty-title {
+  font-family: var(--font-word);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ember-text);
 }
 
 .mywords__empty-text {
-  color: var(--text-muted);
-  font-size: 16px;
-  max-width: 30ch;
+  color: var(--ember-text-muted);
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 34ch;
 }
-

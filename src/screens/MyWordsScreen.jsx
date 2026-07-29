@@ -18,6 +18,8 @@ export default function MyWordsScreen({
   takenWords,
   knownCount,
   wordInfo,
+  srsByWord = {},
+  todayKey,
   learnLang,
   nativeLang,
   onMarkKnown,
@@ -30,6 +32,22 @@ export default function MyWordsScreen({
     word,
     ...wordInfo[word],
   }));
+
+  // Метка срока повторения из СУЩЕСТВУЮЩИХ SRS-данных (nextReviewDate) — только
+  // отображение, планирование не трогаем. «today» — пора/просрочено (терракота),
+  // близкий срок — оливковым, далёкий — приглушённо.
+  function dueInfo(word) {
+    const next = srsByWord?.[word]?.nextReviewDate;
+    if (!next || !todayKey) return null;
+    const days = Math.round(
+      (Date.parse(next) - Date.parse(todayKey)) / 86400000,
+    );
+    if (days <= 0) return { label: t("words.dueToday"), state: "today" };
+    return {
+      label: t("words.dueInDays", { n: days }),
+      state: days <= 3 ? "near" : "far",
+    };
+  }
 
   // Открываем список с начала: при переключении вкладок сверху не остаёмся
   // прокрученными в середину нового (другого по длине) списка.
@@ -78,9 +96,10 @@ export default function MyWordsScreen({
 
       {items.length === 0 ? (
         <div className="mywords__empty">
-          <div className="mywords__empty-emoji" aria-hidden="true">
+          <div className="mywords__empty-icon" aria-hidden="true">
             📭
           </div>
+          <p className="mywords__empty-title">{t("words.emptyTitle")}</p>
           <p className="mywords__empty-text">{t("words.mineEmpty")}</p>
         </div>
       ) : (
@@ -111,17 +130,8 @@ export default function MyWordsScreen({
                     </span>
                   )}
                   <div className="mywords__item-text">
-                    <span className="mywords__word-row">
-                      <span className="mywords__word" lang={learnLang}>
-                        {item.word}
-                      </span>
-                      {!sel.selectMode && (
-                        <PlayButton
-                          text={item.word}
-                          learnLang={learnLang}
-                          kind="word"
-                        />
-                      )}
+                    <span className="mywords__word" lang={learnLang}>
+                      {item.word}
                     </span>
                     {item.translit && (
                       <span className="mywords__translit">
@@ -134,6 +144,25 @@ export default function MyWordsScreen({
                       </span>
                     )}
                   </div>
+                  {!sel.selectMode &&
+                    (() => {
+                      const due = dueInfo(item.word);
+                      return due ? (
+                        <span
+                          className={`mywords__due mywords__due--${due.state}`}
+                        >
+                          {due.label}
+                        </span>
+                      ) : null;
+                    })()}
+                  {!sel.selectMode && (
+                    <PlayButton
+                      text={item.word}
+                      learnLang={learnLang}
+                      kind="word"
+                      appearance="ember"
+                    />
+                  )}
                   {!sel.selectMode && (
                     <button
                       type="button"
@@ -156,6 +185,7 @@ export default function MyWordsScreen({
                           text={item.example}
                           learnLang={learnLang}
                           kind="example"
+                          appearance="ember"
                         />
                       )}
                     </div>

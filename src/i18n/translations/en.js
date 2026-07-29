@@ -507,6 +507,9 @@ export default {
     restore: "Restore",
     mineEmpty: "Empty for now. Take words with the “Take” button — they'll appear here.",
     knownEmpty: "Empty for now. Words marked “Know” will collect here.",
+    emptyTitle: "Nothing here yet",
+    dueToday: "today",
+    dueInDays: "in {n}d",
   },
   tabs: {
     mine: "My words",
@@ -583,6 +586,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberMyWords: {
+        title: "A warmer word list",
+        desc: "The “My words” and “Known” screens got the new look: tabs with the active one in terracotta, a review-due label on words in progress (“today” in terracotta, greener as the review nears), and a warm empty state. The actions are unchanged: “Learned”, “Restore”, select-and-delete, and reviewing known words.",
+      },
       emberStats: {
         title: "A warmer statistics screen",
         desc: "Statistics got the new look: a big progress ring in olive (learned), counter tiles (learning in terracotta, learned in olive), and a terracotta active-words bar. The numbers are counted just as before.",
