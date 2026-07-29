@@ -1,138 +1,107 @@
+/* ============================================================================
+ * Экран занятия «Сегодня» — оформление Ember (шаг 3/N).
+ * ----------------------------------------------------------------------------
+ * Все цвета через токены `--ember-*` (активна тёмная тема, светлая заработает
+ * без переделки). Блоки показаны как ПУТЬ: слева статус-кружок каждого блока,
+ * соединённый вертикальной линией. Логика движка не менялась — только вид.
+ * ========================================================================== */
+
 .session {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background-color: var(--ember-bg);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
 }
 
-/* ---------- Верхняя панель ---------- */
+/* ---------- Верхняя панель: язык слева, настройки справа ---------- */
 .session__topbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
-.session__title {
-  flex: 1;
-  min-width: 0;
-  font-size: 22px;
+/* Статичный индикатор языка (одноязычный режим): круглый флаг + название. */
+.session__lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px 0 6px;
+  border: 1px solid var(--ember-border);
+  border-radius: 999px;
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+}
+
+.session__lang-name {
+  font-size: 14px;
   font-weight: 700;
 }
 
-.session__topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .session__icon-btn {
-  width: 44px;
-  height: 44px;
-  min-height: 44px;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  min-height: 40px; /* перекрывает глобальный button min-height 44px */
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
-  font-size: 18px;
+  border: 1px solid var(--ember-border);
+  border-radius: 12px;
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+}
+
+/* ---------- Заголовок дня ---------- */
+.session__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.session__daypart {
+  color: var(--ember-text-muted);
+  font-size: 14px;
+}
+
+.session__title {
+  font-family: var(--font-word); /* Alegreya — заголовок */
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--ember-text);
+}
+
+/* Метка «Focus today» — терракотовый акцент с искрой. */
+.session__focus {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 30%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.session__focus-icon {
+  flex: 0 0 auto;
 }
 
 .session__note {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
   line-height: 1.45;
 }
 
-/* Акцент дня (ротация): заметная подсказка «сегодня в фокусе …» */
-.session__accent-note {
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.4;
-  color: var(--accent);
-}
-
-/* Бейдж «акцент» на ведущем блоке дня */
-.session__accent-badge {
-  flex: 0 0 auto;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background-color: rgba(108, 140, 255, 0.18);
-  color: var(--accent);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-/* ---------- Добавки сверху («хотите ещё?») ---------- */
-.session__extras {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px 14px;
-  border-radius: var(--radius);
-  border: 1px dashed var(--border);
-  background-color: var(--surface);
-}
-
-.session__extras-title {
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.session__extras-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.session__extra {
-  min-height: 44px;
-  padding: 10px 14px;
-  border: 1.5px solid var(--border);
-  border-radius: 999px;
-  background-color: var(--bg-elevated);
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.session__extras-hint {
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--text-muted);
-}
-
-/* ---------- Прогресс ---------- */
-.session__progress {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.session__progress-text {
-  color: var(--text-muted);
-  font-size: 13px;
-}
-
-.session__progress-bar {
-  height: 6px;
-  border-radius: 999px;
-  background-color: var(--border);
-  overflow: hidden;
-}
-
-.session__progress-fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background-color: var(--accent);
-  transition: width 0.3s ease;
-}
-
-/* ---------- Блоки занятия ---------- */
+/* ---------- Блоки занятия как ПУТЬ ---------- */
 .session__blocks {
   list-style: none;
   margin: 0;
@@ -142,35 +111,93 @@
   gap: 8px;
 }
 
-/* Строка блока: чекбокс статуса + тело (открывает упражнение) */
+/* Строка блока: статус-кружок (в колонке с линией) + тело (открывает упражнение) */
 .session__block {
   display: flex;
   align-items: stretch;
-  gap: 8px;
+  gap: 10px;
 }
 
-/* Чекбокс: авто/ручная отметка — один и тот же. */
+/* Колонка статуса: прозрачная кнопка-чекбокс во всю высоту блока. Вертикальная
+   линия пути рисуется псевдоэлементом ::before и проходит через центр кружка;
+   на первом блоке линия начинается от кружка, на последнем — заканчивается им,
+   между блоками продлевается на величину зазора (8px) — путь непрерывный. */
 .session__check {
+  position: relative;
   flex: 0 0 auto;
-  width: 44px;
+  width: 34px;
   min-height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  background-color: var(--surface);
-  color: transparent;
-  font-size: 20px;
-  font-weight: 700;
+  padding: 0;
+  border: none;
+  background: none;
 }
 
-.session__check.is-checked {
-  border-color: rgba(53, 200, 139, 0.6);
-  background-color: rgba(53, 200, 139, 0.14);
-  color: #35c88b;
+.session__check::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  top: 0;
+  height: calc(100% + 8px);
+  background-color: var(--ember-border);
+  z-index: 0;
 }
 
+.session__block:first-child .session__check::before {
+  top: 50%;
+  height: calc(50% + 8px);
+}
+
+.session__block:last-child .session__check::before {
+  top: 0;
+  height: 50%;
+}
+
+.session__block:only-child .session__check::before {
+  display: none;
+}
+
+/* Кружок статуса. Пусто (обводка) — пока блок не пройден. Активный — терракотовое
+   «ты здесь» (обводка + точка). Пройден (реально!) — залит терракотой с галочкой.
+   Непрозрачный фон кружка перекрывает линию — получается путь из точек. */
+.session__check-dot {
+  position: relative;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--ember-border);
+  background-color: var(--ember-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ember-on-accent);
+}
+
+/* Активный блок — «ты здесь»: терракотовая обводка + маленькая точка внутри. */
+.session__block.is-active .session__check-dot {
+  border-color: var(--ember-accent);
+}
+
+.session__block.is-active .session__check-dot::after {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: var(--ember-accent);
+}
+
+/* Пройден — залит терракотой + галочка (только по реальному прохождению). */
+.session__check.is-checked .session__check-dot {
+  border-color: var(--ember-accent);
+  background-color: var(--ember-accent);
+}
+
+/* Тело блока: иконка формата + задача + (акцент) + стрелка. */
 .session__block-btn {
   flex: 1;
   min-width: 0;
@@ -179,26 +206,39 @@
   gap: 12px;
   min-height: 60px;
   padding: 12px 14px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
   text-align: left;
 }
 
 .session__block.is-active .session__block-btn {
-  border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.1);
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 10%, var(--ember-surface));
 }
 
 .session__block.is-done .session__block-btn {
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
+/* Иконка формата — линейная (Ember) в скруглённой плашке. */
 .session__block-icon {
   flex: 0 0 auto;
-  font-size: 22px;
-  line-height: 1;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background-color: color-mix(in srgb, var(--ember-text) 8%, transparent);
+  color: var(--ember-text);
+}
+
+.session__block.is-active .session__block-icon {
+  background-color: color-mix(in srgb, var(--ember-accent) 18%, transparent);
+  color: var(--ember-accent);
 }
 
 .session__block-task {
@@ -214,25 +254,50 @@
   text-decoration: line-through;
 }
 
+/* Бейдж «акцент» на ведущем блоке дня. */
+.session__accent-badge {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--ember-accent) 18%, transparent);
+  color: var(--ember-accent);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .session__block-go {
   flex: 0 0 auto;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 22px;
   line-height: 1;
 }
 
-/* ---------- Главная кнопка / итог ---------- */
+/* ---------- Главная кнопка Start (терракота + тёплое свечение) ---------- */
 .session__cta {
   width: 100%;
-  min-height: 52px;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--accent);
-  color: #0b0d12;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
   font-size: 16px;
   font-weight: 700;
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--ember-accent) 45%, transparent);
 }
 
+.session__cta-arrow {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* ---------- Итог / пусто / выходной ---------- */
 .session__done,
 .session__empty,
 .session__rest {
@@ -254,27 +319,76 @@
 .session__done-text,
 .session__empty-text,
 .session__rest-hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 15px;
   line-height: 1.5;
   max-width: 32ch;
 }
 
 .session__rest-title {
-  font-size: 19px;
+  font-family: var(--font-word);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ember-text);
+}
+
+/* ---------- Добавки сверху («хотите ещё?») ---------- */
+.session__extras {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: var(--ember-radius);
+  background-color: var(--ember-surface);
+}
+
+.session__extras-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ember-text);
+}
+
+.session__extras-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.session__extra {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--ember-border);
+  border-radius: 999px;
+  background-color: var(--ember-card);
+  color: var(--ember-text);
+  font-size: 14px;
   font-weight: 700;
 }
 
+.session__extra-icon {
+  flex: 0 0 auto;
+  color: var(--ember-accent);
+}
 
-/* ---------- Свобода выбора ---------- */
+.session__extras-hint {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ember-text-muted);
+}
+
+/* ---------- Свобода выбора («хочу другое») — нейтральная кнопка ---------- */
 .session__manual {
   width: 100%;
-  margin-top: auto; /* прижимаем к низу экрана, когда контента мало */
-  min-height: 48px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  margin-top: auto; /* прижимаем к низу, когда контента мало */
+  min-height: 50px;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
   font-size: 15px;
   font-weight: 700;
   margin-bottom: calc(4px + env(safe-area-inset-bottom));

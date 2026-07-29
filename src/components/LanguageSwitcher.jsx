@@ -20,6 +20,10 @@ export default function LanguageSwitcher({
   activeLanguage,
   onSwitch,
   appearance = "default",
+  // showName — в свёрнутом чипе показать полное название языка (напр. «Greek»)
+  // вместо кода («EL»). Нужно экрану занятия (эталон Ember); карточка не
+  // передаёт и остаётся с кодом.
+  showName = false,
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -58,9 +62,11 @@ export default function LanguageSwitcher({
       >
         {/* В Ember флаг в свёрнутом чипе не показываем — только код языка (EL).
             В прежнем виде (экран занятия) эмодзи-флаг остаётся как был. */}
-        {!ember && flagFor(activeLanguage.learnLang)}
+        {(!ember || showName) && flagFor(activeLanguage.learnLang)}
         <span className="langswitch__code">
-          {String(activeLanguage.learnLang).toUpperCase()}
+          {showName
+            ? t(`lang.${activeLanguage.learnLang}`)
+            : String(activeLanguage.learnLang).toUpperCase()}
         </span>
       </button>
 

@@ -1,4 +1,6 @@
 import LanguageSwitcher from "../components/LanguageSwitcher.jsx";
+import Flag from "../components/icons/Flag.jsx";
+import Icon from "../components/icons/Icon.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./SessionScreen.css";
 
@@ -13,23 +15,37 @@ import "./SessionScreen.css";
 // пройдено (движок сверяет с данными/событиями), и его же можно поставить/снять
 // вручную. Прогресс и «Всё пройдено» считаются от отмеченных блоков.
 // Тап по ТЕЛУ блока ведёт в само упражнение; тап по чекбоксу — только отметка.
+//
+// Оформление Ember (шаг 3/N): блоки показаны как ПУТЬ — слева статус-кружок
+// каждого блока, соединённый вертикальной линией. Кружок заполняется (галочка)
+// ТОЛЬКО когда блок реально пройден (doneMap из движка) — логика не тронута,
+// поменялось лишь представление статуса.
 // ============================================================================
 
-// Иконка по типу блока. Порядок и объём задаёт движок.
+// Линейная иконка формата блока (Ember, вместо эмодзи). Порядок/объём — движок.
 const BLOCK_ICON = {
-  review: "🔁",
-  reading: "📖",
-  newWords: "🆕",
-  listening: "🎧",
+  review: "review",
+  reading: "reading",
+  newWords: "spark",
+  listening: "listening",
 };
 
-// i18n-ключ короткого имени блока (для кнопки «Продолжить: …»).
+// i18n-ключ короткого имени блока (для кнопки «Продолжить: …» и aria).
 const BLOCK_NAME_KEY = {
   review: "review",
   reading: "reading",
   newWords: "newWords",
   listening: "listening",
 };
+
+// Часть суток по локальному часу — для дружелюбного подзаголовка «<день> <часть>».
+function partOfDayKey(hour) {
+  if (hour < 6) return "night";
+  if (hour < 12) return "morning";
+  if (hour < 18) return "afternoon";
+  if (hour < 22) return "evening";
+  return "night";
+}
 
 export default function SessionScreen({
   plan,
@@ -52,9 +68,26 @@ export default function SessionScreen({
   // Активный блок — первый ещё не отмеченный.
   const activeIndex = blocks.findIndex((b) => !doneMap[b.type]);
   const activeBlock = activeIndex >= 0 ? blocks[activeIndex] : null;
-  const allDone = blocks.length > 0 && activeIndex === -1;
 
   const extras = plan?.extras || [];
+
+  // Дружелюбный подзаголовок «<день недели> <часть суток>» на языке интерфейса
+  // (родной язык активной пары). Чисто отображение — из текущей даты.
+  const locale = activeLanguage?.nativeLang || "en";
+  const now = new Date();
+  let weekday = "";
+  try {
+    weekday = now.toLocaleDateString(locale, { weekday: "long" });
+    weekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+  } catch {
+    weekday = "";
+  }
+  const dayGreeting = weekday
+    ? t("session.greeting", {
+        day: weekday,
+        part: t(`session.partOfDay.${partOfDayKey(now.getHours())}`),
+      })
+    : "";
 
   // Конкретная задача блока (а не только заголовок): «Повторение · 14»,
   // «Чтение · 1 текст · ответить на вопросы», «Новые слова · 10»,
@@ -70,26 +103,36 @@ export default function SessionScreen({
     return "";
   }
 
+  // Индикатор языка слева вверху: круглый флаг + название. В мультирежиме —
+  // интерактивный переключатель (тап открывает список пар); иначе — статичный
+  // чип. Круглый флаг — как договорились на карточке.
+  const langChip =
+    multiLangMode && languages?.length > 0 ? (
+      <LanguageSwitcher
+        languages={languages}
+        activeLanguage={activeLanguage}
+        onSwitch={onSwitchLanguage}
+        appearance="ember"
+        showName
+      />
+    ) : (
+      <div className="session__lang">
+        <Flag lang={learnLang} size={22} />
+        <span className="session__lang-name">{t(`lang.${learnLang}`)}</span>
+      </div>
+    );
+
   const topbar = (
     <header className="session__topbar">
-      <h1 className="session__title">{t("session.title")}</h1>
-      <div className="session__topbar-actions">
-        {multiLangMode && languages?.length > 0 && (
-          <LanguageSwitcher
-            languages={languages}
-            activeLanguage={activeLanguage}
-            onSwitch={onSwitchLanguage}
-          />
-        )}
-        <button
-          type="button"
-          className="session__icon-btn"
-          onClick={onOpenSettings}
-          aria-label={t("cards.settingsAria")}
-        >
-          <span aria-hidden="true">⚙️</span>
-        </button>
-      </div>
+      {langChip}
+      <button
+        type="button"
+        className="session__icon-btn"
+        onClick={onOpenSettings}
+        aria-label={t("cards.settingsAria")}
+      >
+        <Icon name="settings" size={20} />
+      </button>
     </header>
   );
 
@@ -97,7 +140,23 @@ export default function SessionScreen({
     <section className="session">
       {topbar}
 
-      {/* Пояснение дня: расписание / день второстепенного языка. */}
+      {/* Заголовок дня: дружелюбный подзаголовок + крупное название (Alegreya). */}
+      <div className="session__heading">
+        {dayGreeting && <p className="session__daypart">{dayGreeting}</p>}
+        <h1 className="session__title">{t("session.title")}</h1>
+      </div>
+
+      {/* Метка «Focus today» терракотовым акцентом (ротация ведущего формата). */}
+      {plan?.accent && !plan?.restDay && (
+        <p className="session__focus">
+          <Icon name="spark" size={16} className="session__focus-icon" />
+          {t("session.accentNote", {
+            block: t(`session.block.${BLOCK_NAME_KEY[plan.accent]}`),
+          })}
+        </p>
+      )}
+
+      {/* Пояснения дня (расписание / день второстепенного языка) — приглушённо. */}
       {scheduleActive && (
         <p className="session__note">
           {t("schedule.today", { lang: t(`lang.${learnLang}`) })}
@@ -105,16 +164,6 @@ export default function SessionScreen({
       )}
       {plan?.secondary && (
         <p className="session__note">{t("session.secondaryNote")}</p>
-      )}
-      {/* Акцент дня: ротируется по календарю — база одна, но каждый день другой
-          ведущий формат, чтобы не приедалось. */}
-      {plan?.accent && !plan?.restDay && (
-        <p className="session__accent-note">
-          ★{" "}
-          {t("session.accentNote", {
-            block: t(`session.block.${BLOCK_NAME_KEY[plan.accent]}`),
-          })}
-        </p>
       )}
 
       {/* Выходной по расписанию: только повторения + предложение позаниматься. */}
@@ -128,23 +177,9 @@ export default function SessionScreen({
         </div>
       ) : null}
 
-      {/* План блоков на сегодня */}
+      {/* План блоков на сегодня — как путь: статус-кружки + соединяющая линия. */}
       {blocks.length > 0 ? (
         <>
-          <div className="session__progress">
-            <span className="session__progress-text">
-              {allDone
-                ? t("session.allDoneShort")
-                : t("session.progress", { n: doneCount, total: blocks.length })}
-            </span>
-            <div className="session__progress-bar" aria-hidden="true">
-              <span
-                className="session__progress-fill"
-                style={{ width: `${(doneCount / blocks.length) * 100}%` }}
-              />
-            </div>
-          </div>
-
           <ol className="session__blocks">
             {blocks.map((block, i) => {
               const isDone = Boolean(doneMap[block.type]);
@@ -159,19 +194,24 @@ export default function SessionScreen({
                     (isActive ? " is-active" : "")
                   }
                 >
-                  {/* Чекбокс: авто/ручная отметка — один и тот же. Тап по нему
-                      НЕ открывает упражнение, только меняет статус. */}
+                  {/* Статус-кружок = чекбокс (авто/ручная отметка — один и тот же).
+                      Тап по нему НЕ открывает упражнение, только меняет статус.
+                      Заполняется галочкой ТОЛЬКО когда блок реально пройден. */}
                   <button
                     type="button"
                     className={"session__check" + (isDone ? " is-checked" : "")}
                     role="checkbox"
                     aria-checked={isDone}
                     aria-label={
-                      isDone ? t("session.uncheckAria", { block: name }) : t("session.checkAria", { block: name })
+                      isDone
+                        ? t("session.uncheckAria", { block: name })
+                        : t("session.checkAria", { block: name })
                     }
                     onClick={() => onToggle(block.type)}
                   >
-                    <span aria-hidden="true">{isDone ? "✓" : ""}</span>
+                    <span className="session__check-dot" aria-hidden="true">
+                      {isDone && <Icon name="check" size={14} strokeWidth={2.4} />}
+                    </span>
                   </button>
 
                   {/* Тело блока: тап ведёт в само упражнение (объём передаётся). */}
@@ -181,7 +221,7 @@ export default function SessionScreen({
                     onClick={() => onStartBlock(block)}
                   >
                     <span className="session__block-icon" aria-hidden="true">
-                      {BLOCK_ICON[block.type]}
+                      <Icon name={BLOCK_ICON[block.type]} size={20} />
                     </span>
                     <span className="session__block-task">{blockTask(block)}</span>
                     {block.accent && (
@@ -205,11 +245,16 @@ export default function SessionScreen({
               className="session__cta"
               onClick={() => onStartBlock(activeBlock)}
             >
-              {doneCount === 0
-                ? t("session.start")
-                : t("session.continue", {
-                    block: t(`session.block.${BLOCK_NAME_KEY[activeBlock.type]}`),
-                  })}
+              <span>
+                {doneCount === 0
+                  ? t("session.start")
+                  : t("session.continue", {
+                      block: t(`session.block.${BLOCK_NAME_KEY[activeBlock.type]}`),
+                    })}
+              </span>
+              <span className="session__cta-arrow" aria-hidden="true">
+                →
+              </span>
             </button>
           ) : (
             <div className="session__done">
@@ -246,7 +291,11 @@ export default function SessionScreen({
                 className="session__extra"
                 onClick={() => onStartBlock(block)}
               >
-                <span aria-hidden="true">{BLOCK_ICON[block.type]} </span>
+                <Icon
+                  name={BLOCK_ICON[block.type]}
+                  size={18}
+                  className="session__extra-icon"
+                />
                 {t("session.extraItem", {
                   block: t(`session.block.${BLOCK_NAME_KEY[block.type]}`),
                 })}

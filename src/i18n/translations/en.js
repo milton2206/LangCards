@@ -332,6 +332,14 @@ export default {
   // Session engine: today's session assembled from available formats.
   session: {
     title: "Today's session",
+    // Friendly subtitle: "<weekday> <part of day>" (weekday comes from the date).
+    greeting: "{day} {part}",
+    partOfDay: {
+      morning: "morning",
+      afternoon: "afternoon",
+      evening: "evening",
+      night: "night",
+    },
     progress: "{n} of {total}",
     allDoneShort: "All done",
     start: "Start session",
@@ -573,6 +581,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberSession: {
+        title: "A warmer session screen",
+        desc: "The “Today's session” screen got the new look: blocks are shown as a path — a status circle on the left of each block, connected by a line, so you can see where you are. Line icons for formats and a warm terracotta “Start” button. The session logic is unchanged: a block counts only after you actually complete it.",
+      },
       emberHeaderFlags: {
         title: "Fewer duplicate flags",
         desc: "Removed duplicate flags in the card header: the “Today” label and the collapsed language chip now show just text and the code (the flag there repeated the flags in the week strip). The flags in the week strip stay put.",
