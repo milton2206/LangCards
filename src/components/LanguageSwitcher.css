@@ -82,3 +82,40 @@
   color: var(--accent);
   font-weight: 700;
 }
+
+/* ---------- Вид Ember (только на мигрированном экране карточки) ---------- */
+/* Тёплые токены + компактнее (высота в тон иконкам топбара 40px). Круглый флаг
+   рендерит JSX (<Flag>), здесь — цвета/размеры. Прочие экраны (занятие) проп
+   appearance не передают и используют стили выше без изменений. */
+.langswitch--ember .langswitch__chip {
+  height: 40px;
+  min-height: 40px; /* перекрывает глобальный button min-height 44px — ровно по иконкам топбара */
+  padding: 0 11px 0 6px;
+  gap: 7px;
+  border-color: var(--ember-border);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+}
+
+.langswitch--ember .langswitch__list {
+  border-color: var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+}
+
+.langswitch--ember .langswitch__item {
+  color: var(--ember-text);
+}
+
+.langswitch--ember .langswitch__item.is-active {
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+}
+
+.langswitch--ember .langswitch__item-native {
+  color: var(--ember-text-muted);
+}
+
+.langswitch--ember .langswitch__check {
+  color: var(--ember-accent);
+}

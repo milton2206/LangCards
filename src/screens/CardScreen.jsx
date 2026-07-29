@@ -255,7 +255,7 @@ export default function CardScreen({
           className="cards__mywords"
           onClick={onOpenMyWords}
         >
-          {t("cards.myWords")}
+          <span className="cards__mywords-label">{t("cards.myWords")}</span>
           <span className="cards__badge">{takenWords.length}</span>
         </button>
       <div className="cards__topbar-actions">
@@ -266,6 +266,7 @@ export default function CardScreen({
             languages={languages}
             activeLanguage={activeLanguage}
             onSwitch={onSwitchLanguage}
+            appearance="ember"
           />
         )}
         <button

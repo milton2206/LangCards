@@ -573,6 +573,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberCardPolish: {
+        title: "A tidier word card",
+        desc: "Polished the top of the card: language flags are now round, the top bar fits on a single line without wrapping, the example’s audio button got a filled circle, and the settings icon is cleaner. Looks only — everything works as before.",
+      },
       emberCard: {
         title: "A warmer word card",
         desc: "The word card is the first screen with the new look: a warm background, the word in a large humanist typeface, the transcription in a terracotta accent, and “Know” (terracotta) and “Take” (olive) buttons. Actions and swipes are unchanged — only the look is new.",

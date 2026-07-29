@@ -26,22 +26,33 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  /* На узких экранах группа иконок переносится на вторую строку, а не вылезает
-     за край (без горизонтального скролла). Когда влезает — остаётся один ряд. */
-  flex-wrap: wrap;
-  gap: 8px;
+  /* Одна строка на телефоне: элементы не переносятся и не создают горизонтальный
+     скролл. Помещаемость обеспечивают компактные иконки (40px), небольшие
+     промежутки и сжимаемая кнопка «Мои слова» (подпись усекается многоточием). */
+  flex-wrap: nowrap;
+  gap: 6px;
   margin-bottom: 4px;
 }
 
 .cards__topbar-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex: 0 0 auto; /* группа иконок фиксирована; при нехватке места сжимается «Мои слова» */
   min-width: 0;
 }
 
-/* «Мои слова» может сжиматься, чтобы ряд помещался (текст не рвёт вёрстку). */
+/* «Мои слова» сжимается первой, чтобы ряд помещался; подпись — с усечением. */
 .cards__mywords {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cards__mywords-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   min-width: 0;
 }
 
@@ -144,9 +155,10 @@
 .cards__mywords {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 44px;
-  padding: 0 16px;
+  gap: 6px;
+  height: 40px;
+  min-height: 40px; /* перекрывает глобальный button min-height 44px — ровно по иконкам */
+  padding: 0 12px;
   border: 1px solid var(--ember-border);
   border-radius: 999px;
   background-color: var(--ember-surface);
@@ -174,8 +186,9 @@
    (наследует цвет через currentColor). */
 .cards__icon-btn {
   flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px; /* перекрывает глобальный button min-height 44px, чтобы ряд был компактнее */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -458,18 +471,25 @@
   border-top-color: var(--ember-on-accent);
 }
 
+/* Озвучка примера — тот же приём, что у слова (кружок с заливкой), только
+   меньше и мягче: тёплая терракотовая заливка + терракотовая иконка. */
 .cards__example-label-row .playbtn--ember {
-  width: 28px;
-  height: 28px;
-  min-height: 28px;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
   border: none;
   border-radius: 999px;
-  background: transparent;
-  color: var(--ember-text-muted);
+  background-color: color-mix(in srgb, var(--ember-accent) 20%, transparent);
+  color: var(--ember-accent);
 }
 
 .cards__example-label-row .playbtn--ember.playbtn--playing {
-  color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 30%, transparent);
+}
+
+.cards__example-label-row .playbtn--ember .playbtn__spinner {
+  border-color: color-mix(in srgb, var(--ember-accent) 30%, transparent);
+  border-top-color: var(--ember-accent);
 }
 
 /* ---------- Три действия ---------- */
