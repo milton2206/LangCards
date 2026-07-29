@@ -170,3 +170,66 @@
     animation-duration: 2s;
   }
 }
+
+/* ============================================================================
+ * Вид Ember (appearance="ember" — только мигрированные экраны, напр. чтение).
+ * Аудирование проп не передаёт и использует стили выше без изменений.
+ * ========================================================================== */
+
+/* Компактная кнопка → терракотовый скруглённый квадрат (озвучка всего текста). */
+.aplayer-mini--ember {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: none;
+  border-radius: 12px;
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+}
+
+.aplayer-mini--ember .aplayer__spinner {
+  border-color: color-mix(in srgb, var(--ember-on-accent) 35%, transparent);
+  border-top-color: var(--ember-on-accent);
+}
+
+/* Развёрнутая полоса — тёплые токены. */
+.aplayer--ember {
+  background-color: var(--ember-surface);
+  border-color: var(--ember-border);
+}
+
+.aplayer--ember .aplayer__btn {
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+}
+
+.aplayer--ember .aplayer__restart {
+  background-color: var(--ember-card);
+  color: var(--ember-text);
+  border-color: var(--ember-border);
+}
+
+.aplayer--ember .aplayer__time {
+  color: var(--ember-text-muted);
+}
+
+.aplayer--ember .aplayer__bar::-webkit-slider-runnable-track {
+  background-color: color-mix(in srgb, var(--ember-text) 15%, transparent);
+}
+.aplayer--ember .aplayer__bar::-webkit-slider-thumb {
+  background-color: var(--ember-accent);
+}
+.aplayer--ember .aplayer__bar::-moz-range-track {
+  background-color: color-mix(in srgb, var(--ember-text) 15%, transparent);
+}
+.aplayer--ember .aplayer__bar::-moz-range-progress {
+  background-color: var(--ember-accent);
+}
+.aplayer--ember .aplayer__bar::-moz-range-thumb {
+  background-color: var(--ember-accent);
+}
+
+.aplayer--ember .aplayer__btn .aplayer__spinner {
+  border-color: color-mix(in srgb, var(--ember-on-accent) 35%, transparent);
+  border-top-color: var(--ember-on-accent);
+}

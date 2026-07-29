@@ -164,3 +164,142 @@
   font-size: 14px;
   font-weight: 700;
 }
+
+/* ============================================================================
+ * Вид Ember (передаётся appearance="ember" — только мигрированные экраны, напр.
+ * чтение). Аудирование проп не передаёт и использует стили выше без изменений.
+ * ========================================================================== */
+.comp--ember {
+  gap: 14px;
+}
+
+.comp--ember .comp__head {
+  justify-content: space-between;
+}
+
+.comp--ember .comp__title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ember-text-muted);
+}
+
+.comp--ember .comp__dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.comp--ember .comp__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--ember-text) 18%, transparent);
+  transition:
+    width 0.2s,
+    background-color 0.2s;
+}
+
+.comp--ember .comp__dot.is-done {
+  background-color: color-mix(in srgb, var(--ember-accent) 45%, transparent);
+}
+
+.comp--ember .comp__dot.is-active {
+  width: 18px;
+  background-color: var(--ember-accent);
+}
+
+.comp--ember .comp__statement {
+  font-family: var(--font-word); /* Alegreya — утверждение */
+  font-weight: 700;
+  color: var(--ember-text);
+}
+
+.comp--ember .comp__statement-tr {
+  color: var(--ember-text-muted);
+}
+
+.comp--ember .comp__answer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid var(--ember-border);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+}
+
+.comp--ember .comp__answer-icon {
+  flex: 0 0 auto;
+}
+
+/* True — оливковый (утвердительный), False — нейтральный. */
+.comp--ember .comp__answer--true {
+  border-color: color-mix(in srgb, var(--ember-learned) 55%, transparent);
+  background-color: color-mix(in srgb, var(--ember-learned) 16%, transparent);
+  color: var(--ember-learned);
+}
+
+/* Результат ответа перекрывает дефолт (специфичнее). */
+.comp--ember .comp__answer.is-correct {
+  border-color: var(--ember-learned);
+  background-color: color-mix(in srgb, var(--ember-learned) 20%, transparent);
+  color: var(--ember-learned);
+}
+
+.comp--ember .comp__answer.is-wrong {
+  border-color: #e0605a;
+  background-color: color-mix(in srgb, #e0605a 16%, transparent);
+  color: #e0605a;
+}
+
+.comp--ember .comp__result {
+  border-radius: var(--ember-radius);
+  border-color: var(--ember-border);
+  background-color: var(--ember-surface);
+}
+
+.comp--ember .comp__result.is-correct {
+  border-color: color-mix(in srgb, var(--ember-learned) 35%, transparent);
+  background-color: color-mix(in srgb, var(--ember-learned) 8%, transparent);
+}
+
+.comp--ember .comp__result.is-wrong {
+  border-color: color-mix(in srgb, #e0605a 35%, transparent);
+  background-color: color-mix(in srgb, #e0605a 8%, transparent);
+}
+
+.comp--ember .comp__why {
+  border-radius: var(--ember-radius-sm);
+  border-color: color-mix(in srgb, var(--ember-accent) 25%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 8%, transparent);
+}
+
+.comp--ember .comp__why-label {
+  color: var(--ember-text-muted);
+}
+
+.comp--ember .comp__next {
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
+}
+
+.comp--ember .comp__done-title {
+  font-family: var(--font-word);
+  color: var(--ember-text);
+}
+
+.comp--ember .comp__done-score {
+  color: var(--ember-text-muted);
+}
+
+.comp--ember .comp__retake {
+  border: 1px solid var(--ember-border);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+}

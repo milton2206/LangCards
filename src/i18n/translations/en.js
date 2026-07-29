@@ -168,9 +168,12 @@ export default {
     generate: "New text",
     generating: "Writing your text…",
     emptyHint:
-      "A short text for your topic and level, weaving in words you're already learning. Tap a word for its translation, tap ¶ for the grammar of that sentence.",
+      "A short text for your topic and level, weaving in words you're already learning. Tap a word for its translation, or Grammar to see how it works.",
     newShare: "New words:",
     playAll: "Play the whole text",
+    legend: "green — words you already know · tap any word for a translation",
+    grammar: "Grammar",
+    noScore: "No score, no timer. A wrong answer just explains itself.",
     grammarAria: "Explain this sentence's grammar",
     grammarLoading: "Looking at the sentence…",
     grammarFailed: "Couldn't explain this sentence. Please try again.",
@@ -315,6 +318,7 @@ export default {
 
   // Comprehension questions (phase 6.2): one mechanism for listening and reading.
   comprehension: {
+    title: "Did you get it?",
     prompt: "True or false?",
     true: "True",
     false: "False",
@@ -586,6 +590,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberReading: {
+        title: "A warmer reading screen",
+        desc: "Reading got the new look: the text in a warm card, familiar words in green, a terracotta button to play the whole text, a separate “Grammar” button, and a “Did you get it?” block with True/False. Tapping a word gives a translation and wrong answers still explain themselves — all as before.",
+      },
       emberMyWords: {
         title: "A warmer word list",
         desc: "The “My words” and “Known” screens got the new look: tabs with the active one in terracotta, a review-due label on words in progress (“today” in terracotta, greener as the review nears), and a warm empty state. The actions are unchanged: “Learned”, “Restore”, select-and-delete, and reviewing known words.",

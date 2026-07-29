@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { checkComprehension } from "../lib/comprehensionClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import Icon from "./icons/Icon.jsx";
 import "./ComprehensionQuestions.css";
 
 // ============================================================================
@@ -23,8 +24,13 @@ export default function ComprehensionQuestions({
   // реально прошёл все вопросы (дошёл до итога) — по этому событию блок занятия
   // отмечается выполненным. Простой заход на экран его не вызывает.
   onFinished = null,
+  // appearance — ТОЛЬКО вид (поведение одинаково): "ember" даёт тёплые стили,
+  // заголовок «Did you get it?» и точки-прогресс. Экран аудирования проп не
+  // передаёт и остаётся прежним.
+  appearance = "default",
 }) {
   const { t } = useI18n();
+  const ember = appearance === "ember";
 
   // Подпись набора: по ней сбрасываемся, когда пришли ДРУГИЕ вопросы (новый
   // диалог/текст), но не при перерисовке тем же набором.
@@ -85,7 +91,7 @@ export default function ComprehensionQuestions({
 
   if (finished) {
     return (
-      <div className="comp">
+      <div className={"comp" + (ember ? " comp--ember" : "")}>
         <div className="comp__done" role="status">
           <div className="comp__done-emoji" aria-hidden="true">
             🎉
@@ -104,14 +110,34 @@ export default function ComprehensionQuestions({
   }
 
   return (
-    <div className="comp">
+    <div className={"comp" + (ember ? " comp--ember" : "")}>
       <div className="comp__head">
-        <span className="comp__progress">
-          {t("comprehension.progress", { n: index + 1, total })}
-        </span>
+        {ember && (
+          <span className="comp__title">{t("comprehension.title")}</span>
+        )}
+        {ember ? (
+          <span
+            className="comp__dots"
+            aria-label={t("comprehension.progress", { n: index + 1, total })}
+          >
+            {list.map((_, i) => (
+              <span
+                key={i}
+                className={
+                  "comp__dot" + (i === index ? " is-active" : i < index ? " is-done" : "")
+                }
+                aria-hidden="true"
+              />
+            ))}
+          </span>
+        ) : (
+          <span className="comp__progress">
+            {t("comprehension.progress", { n: index + 1, total })}
+          </span>
+        )}
       </div>
 
-      <p className="comp__prompt">{t("comprehension.prompt")}</p>
+      {!ember && <p className="comp__prompt">{t("comprehension.prompt")}</p>}
 
       <p className="comp__statement" lang={learnLang}>
         {current.statement}
@@ -134,11 +160,22 @@ export default function ComprehensionQuestions({
             <button
               key={String(value)}
               type="button"
-              className={"comp__answer" + mark}
+              className={
+                "comp__answer comp__answer--" +
+                (value ? "true" : "false") +
+                mark
+              }
               disabled={chosen !== null}
               aria-pressed={chosen === value}
               onClick={() => answer(value)}
             >
+              {ember && (
+                <Icon
+                  name={value ? "check" : "close"}
+                  size={16}
+                  className="comp__answer-icon"
+                />
+              )}
               {value ? t("comprehension.true") : t("comprehension.false")}
             </button>
           );

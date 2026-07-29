@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { fetchTtsUrl, claimAudio, releaseAudio } from "../lib/ttsClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import Icon from "./icons/Icon.jsx";
 import "./AudioPlayer.css";
 
 // ============================================================================
@@ -46,8 +47,13 @@ export default function AudioPlayer({
   autoPlay = false,
   compact = false,
   ariaLabel,
+  // appearance — ТОЛЬКО вид (поведение одинаково): "ember" рисует линейные
+  // иконки Ember вместо эмодзи и добавляет классы для тёплых стилей. Экраны, ещё
+  // не мигрированные (аудирование), проп не передают и выглядят как прежде.
+  appearance = "default",
 }) {
   const { t } = useI18n();
+  const ember = appearance === "ember";
 
   // Подпись набора: список текстов+скоростей. По ней сбрасываемся при смене
   // содержимого (новое предложение, другой текст, другая скорость).
@@ -345,13 +351,15 @@ export default function AudioPlayer({
     return (
       <button
         type="button"
-        className={`aplayer-mini${disabled || failed ? " is-disabled" : ""}`}
+        className={`aplayer-mini${ember ? " aplayer-mini--ember" : ""}${disabled || failed ? " is-disabled" : ""}`}
         onClick={handlePlayPause}
         disabled={disabled}
         aria-label={disabled ? t("audio.unavailable") : label}
       >
         {busy ? (
           <span className="aplayer__spinner" aria-hidden="true" />
+        ) : ember ? (
+          <Icon name={disabled || failed ? "mute" : "speak"} size={20} />
         ) : (
           <span aria-hidden="true">{disabled || failed ? "🔇" : "🔊"}</span>
         )}
@@ -360,7 +368,7 @@ export default function AudioPlayer({
   }
 
   return (
-    <div className={`aplayer${disabled ? " is-disabled" : ""}`}>
+    <div className={`aplayer${ember ? " aplayer--ember" : ""}${disabled ? " is-disabled" : ""}`}>
       <audio
         ref={audioRef}
         src={urls ? urls[index] : undefined}

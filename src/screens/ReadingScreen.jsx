@@ -19,6 +19,7 @@ import { useWordLookup } from "../hooks/useWordLookup.js";
 import WordLookupSheet from "../components/WordLookupSheet.jsx";
 import AudioPlayer from "../components/AudioPlayer.jsx";
 import ComprehensionQuestions from "../components/ComprehensionQuestions.jsx";
+import Icon from "../components/icons/Icon.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./ReadingScreen.css";
 
@@ -102,10 +103,11 @@ export default function ReadingScreen({
     setGrammar(null);
   }, [pairKey]);
 
-  // Сменился показанный текст (сгенерировали новый) — прячем вопросы прошлого.
+  // Сменился показанный текст (сгенерировали новый) — прячем вопросы и разбор прошлого.
   useEffect(() => {
     setQuestions(null);
     setQError(null);
+    setGrammar(null);
   }, [texts]);
 
   const lookup = useWordLookup({ learnLang, nativeLang, onAdd: onAddWord });
@@ -169,28 +171,28 @@ export default function ReadingScreen({
     }
   }
 
-  async function handleGrammar(sentence) {
-    // Повторный тап по тому же предложению просто закрывает разбор.
-    if (grammar && grammar.sentence === sentence.text) {
+  // Грамматика ВСЕГО текста (эталон: одна кнопка «Grammar»). Тап-тумблер:
+  // открыто — закрываем; иначе запрашиваем разбор по всему тексту. Используем тот
+  // же requestGrammar (передаём текст целиком как «предложение») — логика/эндпоинт
+  // прежние, меняется только гранулярность (весь текст вместо одного предложения).
+  async function handleToggleGrammar() {
+    if (grammar) {
       setGrammar(null);
       return;
     }
-    setGrammar({ sentence: sentence.text, status: "loading" });
+    if (offline || !current) return;
+    const fullText = current.sentences.map((s) => s.text).join(" ");
+    setGrammar({ status: "loading" });
     try {
       const res = await requestGrammar({
-        sentence: sentence.text,
+        sentence: fullText,
         learnLang,
         nativeLang,
         level,
       });
-      setGrammar({
-        sentence: sentence.text,
-        status: "ready",
-        points: res.points,
-      });
+      setGrammar({ status: "ready", points: res.points });
     } catch (err) {
       setGrammar({
-        sentence: sentence.text,
         status: "error",
         errorText: apiErrorText(err, t, "reading.grammarFailed"),
       });
@@ -258,14 +260,12 @@ export default function ReadingScreen({
           ←
         </button>
         <h1 className="reading__title">{t("reading.title")}</h1>
+        {(level || topic) && (
+          <span className="reading__meta">
+            {[level && level.toUpperCase(), topic].filter(Boolean).join(" · ")}
+          </span>
+        )}
       </header>
-
-      {/* Плеер всего текста: пауза/продолжить, перемотка, время, повтор. */}
-      {current && !loading && (
-        <div className="reading__player">
-          <AudioPlayer tracks={textTracks} ariaLabel={t("reading.playAll")} />
-        </div>
-      )}
 
       {/* Офлайн и нечего перечитать — режим недоступен, остальное приложение
           (карточки, повторение) работает как обычно. */}
@@ -299,97 +299,106 @@ export default function ReadingScreen({
 
       {current && !loading && (
         <article className="reading__text">
-          {current.title && (
-            <header className="reading__text-head">
-              <h2 className="reading__text-title" lang={learnLang}>
-                {current.title}
-              </h2>
+          <div className="reading__text-head">
+            <div className="reading__text-titles">
+              {current.title && (
+                <h2 className="reading__text-title" lang={learnLang}>
+                  {current.title}
+                </h2>
+              )}
               {current.titleTranslation && (
                 <p className="reading__text-subtitle" lang={nativeLang}>
                   {current.titleTranslation}
                 </p>
               )}
-            </header>
-          )}
+            </div>
+            {/* Озвучка всего текста — терракотовый квадрат, разворачивается в
+                плеер при запуске. Источник звука и плеер прежние. */}
+            <AudioPlayer
+              tracks={textTracks}
+              compact
+              appearance="ember"
+              ariaLabel={t("reading.playAll")}
+            />
+          </div>
 
-          {current.sentences.map((sentence, si) => {
-            const open = grammar && grammar.sentence === sentence.text;
-            return (
-              <div className="reading__sentence" key={si}>
-                <p className="reading__sentence-text" lang={learnLang}>
-                  {splitWords(sentence.text).map((seg, i) =>
-                    seg.isWord ? (
-                      <button
-                        key={i}
-                        type="button"
-                        className={
-                          "reading__word" +
-                          (knownSet.has(seg.text.toLowerCase())
-                            ? " is-known"
-                            : "")
-                        }
-                        onClick={() => lookup.open(seg.text)}
-                      >
-                        {seg.text}
-                      </button>
-                    ) : (
-                      <span key={i}>{seg.text}</span>
-                    ),
-                  )}
-                </p>
-
-                {/* Озвучка отдельного предложения — тот же плеер (компактный до
-                    запуска). Рядом — разбор грамматики. */}
-                <div className="reading__tools">
-                  <AudioPlayer
-                    tracks={[{ text: sentence.text, learnLang }]}
-                    compact
-                    ariaLabel={t("tts.playExample")}
-                  />
-                  <button
-                    type="button"
-                    className={
-                      "reading__grammar-btn" + (open ? " is-open" : "")
-                    }
-                    onClick={() => handleGrammar(sentence)}
-                    disabled={offline}
-                    aria-label={t("reading.grammarAria")}
-                  >
-                    ¶
-                  </button>
-                </div>
-
-                {open && (
-                  <div className="reading__grammar">
-                    {sentence.translation && (
-                      <p
-                        className="reading__grammar-translation"
-                        lang={nativeLang}
-                      >
-                        {sentence.translation}
-                      </p>
-                    )}
-                    {grammar.status === "loading" && (
-                      <p className="reading__notice">
-                        {t("reading.grammarLoading")}
-                      </p>
-                    )}
-                    {grammar.status === "error" && (
-                      <p className="reading__error">{grammar.errorText}</p>
-                    )}
-                    {grammar.status === "ready" && (
-                      <ul className="reading__grammar-list" lang={nativeLang}>
-                        {grammar.points.map((p, pi) => (
-                          <li key={pi}>{p}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+          {/* Сплошной текст: слова тапабельны (перевод), знакомые — зелёным. */}
+          <p className="reading__body" lang={learnLang}>
+            {current.sentences.map((sentence, si) => (
+              <span key={si}>
+                {splitWords(sentence.text).map((seg, i) =>
+                  seg.isWord ? (
+                    <button
+                      key={i}
+                      type="button"
+                      className={
+                        "reading__word" +
+                        (knownSet.has(seg.text.toLowerCase()) ? " is-known" : "")
+                      }
+                      onClick={() => lookup.open(seg.text)}
+                    >
+                      {seg.text}
+                    </button>
+                  ) : (
+                    <span key={i}>{seg.text}</span>
+                  ),
                 )}
-              </div>
-            );
-          })}
+                {si < current.sentences.length - 1 ? " " : ""}
+              </span>
+            ))}
+          </p>
+
+          <p className="reading__legend">
+            <span className="reading__legend-dot" aria-hidden="true" />
+            {t("reading.legend")}
+          </p>
         </article>
+      )}
+
+      {/* Две кнопки: разбор грамматики всего текста + новый текст. */}
+      {!loading && (current || !offline) && (
+        <div className="reading__actions">
+          {current && (
+            <button
+              type="button"
+              className={"reading__action" + (grammar ? " is-open" : "")}
+              onClick={handleToggleGrammar}
+              disabled={offline}
+              aria-expanded={Boolean(grammar)}
+            >
+              <Icon name="grammar" size={18} className="reading__action-icon" />
+              {t("reading.grammar")}
+            </button>
+          )}
+          <button
+            type="button"
+            className="reading__action"
+            onClick={handleGenerate}
+            disabled={loading || offline}
+          >
+            <Icon name="spark" size={18} className="reading__action-icon" />
+            {t("reading.generate")}
+          </button>
+        </div>
+      )}
+
+      {/* Разбор грамматики всего текста (тумблер кнопкой «Grammar»). */}
+      {grammar && (
+        <div className="reading__grammar">
+          {grammar.status === "loading" && (
+            <p className="reading__notice">{t("reading.grammarLoading")}</p>
+          )}
+          {grammar.status === "error" && (
+            <p className="reading__error">{grammar.errorText}</p>
+          )}
+          {grammar.status === "ready" && (
+            <ul className="reading__grammar-list" lang={nativeLang}>
+              {grammar.points.map((p, pi) => (
+                <li key={pi}>{p}</li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
 
       {/* Проверка понимания содержания (отзыв Игоря): те же вопросы «верно/
@@ -419,6 +428,7 @@ export default function ReadingScreen({
               learnLang={learnLang}
               nativeLang={nativeLang}
               onFinished={onQuestionsComplete}
+              appearance="ember"
             />
           )}
         </section>
@@ -446,19 +456,10 @@ export default function ReadingScreen({
         </div>
       )}
 
-      {/* Управление: новый текст. Листалки нет — «Новый текст» ЗАМЕНЯЕТ текущий
-          (один текст на экране); недавние живут в кэше только ради разнообразия
-          сюжетов и показа последнего при перезаходе. */}
-      <div className="reading__controls">
-        <button
-          type="button"
-          className="reading__generate"
-          onClick={handleGenerate}
-          disabled={loading || offline}
-        >
-          {t("reading.generate")}
-        </button>
-      </div>
+      {/* Нижняя подсказка: без баллов и таймера — ошибка просто объясняется. */}
+      {current && !loading && (
+        <p className="reading__foot">{t("reading.noScore")}</p>
+      )}
 
       <WordLookupSheet
         lookup={lookup.lookup}
