@@ -199,6 +199,42 @@
   border-bottom-color: color-mix(in srgb, var(--ember-learned) 50%, transparent);
 }
 
+/* Предложение — инлайн-группа слов + свой значок грамматики (в потоке текста). */
+.reading__sentence {
+  /* группировка предложения; поток не ломаем */
+}
+
+/* Значок «¶» разбора грамматики предложения — маленькая инлайн-плашка Ember. */
+.reading__grammar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
+  margin-left: 3px;
+  padding: 0;
+  vertical-align: -4px;
+  border: 1px solid var(--ember-border);
+  border-radius: 6px;
+  background-color: var(--ember-surface);
+  color: var(--ember-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.reading__grammar-btn.is-open {
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
+}
+
+.reading__grammar-btn:disabled {
+  opacity: 0.45;
+}
+
 /* Легенда под текстом */
 .reading__legend {
   display: flex;
@@ -261,7 +297,7 @@
   opacity: 0.5;
 }
 
-/* ---------- Разбор грамматики всего текста ---------- */
+/* ---------- Разбор грамматики выбранного предложения ---------- */
 .reading__grammar {
   display: flex;
   flex-direction: column;
@@ -270,6 +306,13 @@
   border-radius: var(--ember-radius);
   border: 1px solid color-mix(in srgb, var(--ember-accent) 25%, transparent);
   background-color: color-mix(in srgb, var(--ember-accent) 8%, transparent);
+}
+
+/* Перевод разбираемого предложения — над пунктами разбора. */
+.reading__grammar-translation {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ember-text-muted);
 }
 
 .reading__grammar-list {

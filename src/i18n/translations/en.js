@@ -590,6 +590,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      readingGrammarPerSentence: {
+        title: "Grammar, one sentence at a time",
+        desc: "In reading, the grammar breakdown works per sentence again: tap the “¶” next to a sentence and just that one is explained, with no length error. Tapping a word still gives its translation.",
+      },
       emberReading: {
         title: "A warmer reading screen",
         desc: "Reading got the new look: the text in a warm card, familiar words in green, a terracotta button to play the whole text, a separate “Grammar” button, and a “Did you get it?” block with True/False. Tapping a word gives a translation and wrong answers still explain themselves — all as before.",

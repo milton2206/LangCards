@@ -171,28 +171,34 @@ export default function ReadingScreen({
     }
   }
 
-  // Грамматика ВСЕГО текста (эталон: одна кнопка «Grammar»). Тап-тумблер:
-  // открыто — закрываем; иначе запрашиваем разбор по всему тексту. Используем тот
-  // же requestGrammar (передаём текст целиком как «предложение») — логика/эндпоинт
-  // прежние, меняется только гранулярность (весь текст вместо одного предложения).
-  async function handleToggleGrammar() {
-    if (grammar) {
+  // Грамматика ПО ОДНОМУ предложению (как до редизайна): лимит 300 символов
+  // применяется к одному предложению, а не ко всему тексту. Тап по значку «¶»
+  // у предложения разбирает ИМЕННО его; повторный тап по тому же — закрывает.
+  // grammar хранит text открытого предложения — чтобы подсветить его значок и
+  // показать разбор именно под текстом.
+  async function handleGrammar(sentence) {
+    if (grammar && grammar.sentence === sentence.text) {
       setGrammar(null);
       return;
     }
-    if (offline || !current) return;
-    const fullText = current.sentences.map((s) => s.text).join(" ");
-    setGrammar({ status: "loading" });
+    if (offline) return;
+    setGrammar({ sentence: sentence.text, status: "loading" });
     try {
       const res = await requestGrammar({
-        sentence: fullText,
+        sentence: sentence.text,
         learnLang,
         nativeLang,
         level,
       });
-      setGrammar({ status: "ready", points: res.points });
+      setGrammar({
+        sentence: sentence.text,
+        status: "ready",
+        points: res.points,
+        translation: sentence.translation || null,
+      });
     } catch (err) {
       setGrammar({
+        sentence: sentence.text,
         status: "error",
         errorText: apiErrorText(err, t, "reading.grammarFailed"),
       });
@@ -322,30 +328,51 @@ export default function ReadingScreen({
             />
           </div>
 
-          {/* Сплошной текст: слова тапабельны (перевод), знакомые — зелёным. */}
+          {/* Текст по предложениям: слова тапабельны (перевод), у каждого
+              предложения — значок «¶» для разбора грамматики ИМЕННО его.
+              Предложения идут в поток (вид Ember сохранён). */}
           <p className="reading__body" lang={learnLang}>
-            {current.sentences.map((sentence, si) => (
-              <span key={si}>
-                {splitWords(sentence.text).map((seg, i) =>
-                  seg.isWord ? (
-                    <button
-                      key={i}
-                      type="button"
-                      className={
-                        "reading__word" +
-                        (knownSet.has(seg.text.toLowerCase()) ? " is-known" : "")
-                      }
-                      onClick={() => lookup.open(seg.text)}
-                    >
-                      {seg.text}
-                    </button>
-                  ) : (
-                    <span key={i}>{seg.text}</span>
-                  ),
-                )}
-                {si < current.sentences.length - 1 ? " " : ""}
-              </span>
-            ))}
+            {current.sentences.map((sentence, si) => {
+              const open = grammar && grammar.sentence === sentence.text;
+              return (
+                <span key={si} className="reading__sentence">
+                  {splitWords(sentence.text).map((seg, i) =>
+                    seg.isWord ? (
+                      <button
+                        key={i}
+                        type="button"
+                        className={
+                          "reading__word" +
+                          (knownSet.has(seg.text.toLowerCase())
+                            ? " is-known"
+                            : "")
+                        }
+                        onClick={() => lookup.open(seg.text)}
+                      >
+                        {seg.text}
+                      </button>
+                    ) : (
+                      <span key={i}>{seg.text}</span>
+                    ),
+                  )}
+                  {/* Разбор грамматики этого предложения (лимит 300 символов —
+                      к одному предложению, а не ко всему тексту). */}
+                  <button
+                    type="button"
+                    className={
+                      "reading__grammar-btn" + (open ? " is-open" : "")
+                    }
+                    onClick={() => handleGrammar(sentence)}
+                    disabled={offline}
+                    aria-label={t("reading.grammarAria")}
+                    aria-expanded={Boolean(open)}
+                  >
+                    ¶
+                  </button>
+                  {si < current.sentences.length - 1 ? " " : ""}
+                </span>
+              );
+            })}
           </p>
 
           <p className="reading__legend">
@@ -355,36 +382,14 @@ export default function ReadingScreen({
         </article>
       )}
 
-      {/* Две кнопки: разбор грамматики всего текста + новый текст. */}
-      {!loading && (current || !offline) && (
-        <div className="reading__actions">
-          {current && (
-            <button
-              type="button"
-              className={"reading__action" + (grammar ? " is-open" : "")}
-              onClick={handleToggleGrammar}
-              disabled={offline}
-              aria-expanded={Boolean(grammar)}
-            >
-              <Icon name="grammar" size={18} className="reading__action-icon" />
-              {t("reading.grammar")}
-            </button>
-          )}
-          <button
-            type="button"
-            className="reading__action"
-            onClick={handleGenerate}
-            disabled={loading || offline}
-          >
-            <Icon name="spark" size={18} className="reading__action-icon" />
-            {t("reading.generate")}
-          </button>
-        </div>
-      )}
-
-      {/* Разбор грамматики всего текста (тумблер кнопкой «Grammar»). */}
+      {/* Разбор грамматики выбранного предложения — под текстом. */}
       {grammar && (
         <div className="reading__grammar">
+          {grammar.translation && (
+            <p className="reading__grammar-translation" lang={nativeLang}>
+              {grammar.translation}
+            </p>
+          )}
           {grammar.status === "loading" && (
             <p className="reading__notice">{t("reading.grammarLoading")}</p>
           )}
@@ -398,6 +403,21 @@ export default function ReadingScreen({
               ))}
             </ul>
           )}
+        </div>
+      )}
+
+      {/* Новый текст (генерация заменяет текущий). */}
+      {!loading && (current || !offline) && (
+        <div className="reading__actions">
+          <button
+            type="button"
+            className="reading__action"
+            onClick={handleGenerate}
+            disabled={loading || offline}
+          >
+            <Icon name="spark" size={18} className="reading__action-icon" />
+            {t("reading.generate")}
+          </button>
         </div>
       )}
 
