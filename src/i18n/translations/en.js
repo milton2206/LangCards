@@ -590,6 +590,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberListening: {
+        title: "Listening got the warm look",
+        desc: "The Listening screen moved to the Ember design: the “Comprehension” and “Words” tabs with the active one in terracotta, a warm hint plate, a round language flag, a terracotta audio player, neutral True/False buttons before you answer, and speed as a segmented control. Everything works exactly as before — dialogues with questions, the older word formats, speed, replay and new dialogue.",
+      },
       emberPauseIcon: {
         title: "A warm pause icon",
         desc: "In the player (text audio, listening), the pause icon now matches the Ember play button — no more default blue glyph. Play and pause are a single toggling element.",

@@ -19,6 +19,8 @@ import { apiErrorText } from "../lib/apiClient.js";
 import { stopCurrentAudio, prewarmPhrases } from "../lib/ttsClient.js";
 import AudioPlayer from "../components/AudioPlayer.jsx";
 import ComprehensionQuestions from "../components/ComprehensionQuestions.jsx";
+import Icon from "../components/icons/Icon.jsx";
+import Flag from "../components/icons/Flag.jsx";
 import {
   LISTENING_LEVELS,
   getListeningLevel,
@@ -472,6 +474,7 @@ export default function ListeningScreen({
 
       {scheduleActive && (
         <p className="listening__schedule">
+          <Flag lang={learnLang} size={22} />
           {t("schedule.today", { lang: t(`lang.${learnLang}`) })}
         </p>
       )}
@@ -499,7 +502,10 @@ export default function ListeningScreen({
                 {t("listening.emptyHintDialogue")}
               </p>
               {noWords && (
-                <p className="listening__tip">💡 {t("listening.tipNoWords")}</p>
+                <p className="listening__tip">
+                  <Icon name="bulb" size={18} className="listening__tip-icon" />
+                  <span>{t("listening.tipNoWords")}</span>
+                </p>
               )}
             </div>
           )}
@@ -507,7 +513,10 @@ export default function ListeningScreen({
           {activeDialogue && (
             <div className="listening__practice">
               {fewWords && (
-                <p className="listening__tip">💡 {t("listening.tipFewWords")}</p>
+                <p className="listening__tip">
+                  <Icon name="bulb" size={18} className="listening__tip-icon" />
+                  <span>{t("listening.tipFewWords")}</span>
+                </p>
               )}
 
               {activeDialogue.title && (
@@ -531,6 +540,7 @@ export default function ListeningScreen({
               <div className="listening__player">
                 <AudioPlayer
                   tracks={dialogueTracks}
+                  appearance="ember"
                   ariaLabel={t("listening.listen")}
                 />
               </div>
@@ -545,6 +555,7 @@ export default function ListeningScreen({
                 nativeLang={nativeLang}
                 footer={transcript}
                 onFinished={onQuestionsComplete}
+                appearance="ember"
               />
             </div>
           )}
@@ -565,7 +576,10 @@ export default function ListeningScreen({
                   : t("listening.emptyHintGap")}
               </p>
               {noWords && (
-                <p className="listening__tip">💡 {t("listening.tipNoWords")}</p>
+                <p className="listening__tip">
+                  <Icon name="bulb" size={18} className="listening__tip-icon" />
+                  <span>{t("listening.tipNoWords")}</span>
+                </p>
               )}
             </div>
           )}
@@ -590,13 +604,17 @@ export default function ListeningScreen({
           {current && (
             <div className="listening__practice">
               {fewWords && !result && (
-                <p className="listening__tip">💡 {t("listening.tipFewWords")}</p>
+                <p className="listening__tip">
+                  <Icon name="bulb" size={18} className="listening__tip-icon" />
+                  <span>{t("listening.tipFewWords")}</span>
+                </p>
               )}
 
               <div className="listening__player">
                 <AudioPlayer
                   tracks={audioTracks}
                   autoPlay
+                  appearance="ember"
                   ariaLabel={t("listening.listen")}
                 />
               </div>
@@ -815,6 +833,7 @@ export default function ListeningScreen({
               onClick={handleGenerateDialogue}
               disabled={loading}
             >
+              <Icon name="review" size={18} className="listening__generate-icon" />
               {activeDialogue
                 ? t("listening.newDialogue")
                 : t("listening.startDialogue")}
@@ -826,6 +845,7 @@ export default function ListeningScreen({
               onClick={handleGenerate}
               disabled={loading}
             >
+              <Icon name="review" size={18} className="listening__generate-icon" />
               {activeSet && !finished
                 ? t("listening.restart", { n: PHRASES_PER_SET })
                 : t("listening.start", { n: PHRASES_PER_SET })}
