@@ -1,0 +1,126 @@
+/* ============================================================================
+ * ДИЗАЙН-ТОКЕНЫ EMBER — фундамент нового оформления (шаг 1/N).
+ * ----------------------------------------------------------------------------
+ * ВАЖНО: этот файл ТОЛЬКО ЗАВОДИТ переменные. Он НИЧЕГО не красит и не меняет
+ * ни на одном экране — экраны по-прежнему используют старые токены из
+ * index.css (--bg, --accent, …). Переменные Ember будут подключаться к экранам
+ * ПО ЧАСТЯМ на следующих шагах. Пока определение кастомного свойства инертно:
+ * оно не влияет на рендер, пока где-то не применено через var().
+ *
+ * Настроение: тёплая комната вечером. Терракота + оливковый на глиняном фоне.
+ * Точные коды — с листа палитры Ember (значения «с листа» помечены ↩ sheet;
+ * производные — помечены ↩ derived с объяснением).
+ *
+ * ТЕМА: механика светлая/тёмная заложена через data-theme на <html>:
+ *   :root (по умолчанию)      → тёмный Ember (как и текущее приложение)
+ *   :root[data-theme="dark"]  → тёмный Ember (явно)
+ *   :root[data-theme="light"] → светлый Ember
+ * Пока атрибут data-theme НЕ выставляется нигде в коде, поэтому поведение
+ * приложения не меняется. Переключатель добавим позже (см. emberTheme.js).
+ * ============================================================================ */
+
+:root {
+  /* ---------- Сырая палитра (значения с листа Ember) ---------- */
+  --ember-clay: #f7ece4; /* ↩ sheet · фон, свет */
+  --ember-cream: #fffaf6; /* ↩ sheet · карточка, свет */
+  --ember-terracotta: #c05f36; /* ↩ sheet · акцент · Know (свет) */
+  --ember-terracotta-light: #e2825a; /* ↩ sheet · акцент, тьма */
+  --ember-olive: #6d8f4e; /* ↩ sheet · Take · выучено (свет) */
+  --ember-olive-light: #93b56b; /* ↩ sheet · Take, тьма */
+  --ember-charcoal: #18110d; /* ↩ sheet · фон, тьма (тёплый уголь) */
+  --ember-espresso: #241a14; /* ↩ sheet · карточка, тьма */
+
+  /* Производные тёплые нейтрали (нет на листе — выведены из палитры,
+     чтобы токен-набор был самодостаточным: текст, приглушённый текст,
+     границы). Подобраны в тон терракоты/глины, вне двух акцентов. */
+  --ember-ink: #2a1c12; /* ↩ derived · тёплый «чернильный» для текста на свету */
+  --ember-brown-muted: #8a6f5c; /* ↩ derived · приглушённый коричневый (свет) */
+  --ember-line-light: #ead9cb; /* ↩ derived · тонкая линия на глине (свет) */
+  --ember-cream-muted: #c7b5a6; /* ↩ derived · приглушённый тёплый (тьма) */
+  --ember-line-dark: #3a2b21; /* ↩ derived · тонкая линия на угле (тьма) */
+
+  /* ---------- Типографика (шрифты подключены в index.html) ----------
+     Заведены как токены, но НЕ применяются к экранам глобально на этом шаге.
+     --font-word — Alegreya Sans (слова и заголовки, гуманистическая, тёплая).
+     --font-ui   — Fira Sans (интерфейс, разборчивая в мелком кегле).
+     Системный стек оставлен фолбэком (в т.ч. офлайн). */
+  --font-word: "Alegreya Sans", system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-ui: "Fira Sans", system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+
+  /* ---------- Радиусы Ember (крупные скругления, «карточка из стопки») ---------- */
+  --ember-radius: 20px;
+  --ember-radius-sm: 12px;
+  --ember-radius-pill: 999px;
+
+  /* ---------- Семантические токены · ТЁМНАЯ тема (по умолчанию) ----------
+     Тёмный Ember выбран базой, т.к. текущее приложение тёмное. */
+  --ember-bg: var(--ember-charcoal);
+  --ember-surface: var(--ember-espresso);
+  --ember-card: var(--ember-espresso);
+  --ember-text: var(--ember-clay);
+  --ember-text-muted: var(--ember-cream-muted);
+  --ember-border: var(--ember-line-dark);
+
+  /* Акцент и «выучено» на тёмном — осветлённые версии (контраст на угле). */
+  --ember-accent: var(--ember-terracotta-light);
+  --ember-accent-strong: var(--ember-terracotta);
+  --ember-learned: var(--ember-olive-light);
+
+  /* ---------- Смысловые цвета кнопок карточки (Know / Skip / Take) ----------
+     Заведены в токены сейчас, ПРИМЕНИМ на следующих шагах.
+       Know — терракота (знаю), Take — оливковый (беру в изучение),
+       Skip — приглушённый нейтральный (пропустить, без акцента). */
+  --ember-know: var(--ember-accent);
+  --ember-take: var(--ember-learned);
+  --ember-skip: var(--ember-text-muted);
+
+  /* Текст поверх акцентных плашек (тёплый угол читается на обоих акцентах). */
+  --ember-on-accent: var(--ember-charcoal);
+}
+
+/* Явная тёмная тема — те же значения, что и база (для симметрии механики). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ember-bg: var(--ember-charcoal);
+  --ember-surface: var(--ember-espresso);
+  --ember-card: var(--ember-espresso);
+  --ember-text: var(--ember-clay);
+  --ember-text-muted: var(--ember-cream-muted);
+  --ember-border: var(--ember-line-dark);
+
+  --ember-accent: var(--ember-terracotta-light);
+  --ember-accent-strong: var(--ember-terracotta);
+  --ember-learned: var(--ember-olive-light);
+
+  --ember-know: var(--ember-accent);
+  --ember-take: var(--ember-learned);
+  --ember-skip: var(--ember-text-muted);
+
+  --ember-on-accent: var(--ember-charcoal);
+}
+
+/* Светлая тема — глина + сливочная карточка, насыщенные акценты. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --ember-bg: var(--ember-clay);
+  --ember-surface: var(--ember-cream);
+  --ember-card: var(--ember-cream);
+  --ember-text: var(--ember-ink);
+  --ember-text-muted: var(--ember-brown-muted);
+  --ember-border: var(--ember-line-light);
+
+  /* На свету акценты берём в насыщенном варианте (терракота/олива с листа). */
+  --ember-accent: var(--ember-terracotta);
+  --ember-accent-strong: var(--ember-terracotta);
+  --ember-learned: var(--ember-olive);
+
+  --ember-know: var(--ember-accent);
+  --ember-take: var(--ember-learned);
+  --ember-skip: var(--ember-text-muted);
+
+  --ember-on-accent: var(--ember-cream);
+}

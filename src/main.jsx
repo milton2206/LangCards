@@ -1,6 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+// Токены Ember (шаг 1/N): только ЗАВОДЯТ переменные (палитра, шрифты, тема).
+// Ни к одному экрану не применяются — визуально ничего не меняется.
+import './theme/ember.css'
 import App from './App.jsx'
 
 // Одноразовая очистка перемешанных списков слов, оставшихся ДО разделения по

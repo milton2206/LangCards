@@ -573,6 +573,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberFoundation: {
+        title: "A new look is on the way",
+        desc: "We started making the app warmer and cozier: a warm color palette, new fonts for words and the interface, and tidy line icons instead of emoji. This is a groundwork step — screens still look the same for now, and we'll roll out the changes gradually.",
+      },
       simplerSession: {
         title: "Simpler session and generation",
         desc: "Dropped the session load slider (the base is already sensible; want more — “I want something else”) and the word-source picker in reading/listening: content now always matches your topic, weaving in your words plus a little new.",
