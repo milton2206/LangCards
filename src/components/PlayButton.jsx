@@ -1,17 +1,28 @@
 import { useState, useEffect } from "react";
 import { fetchTtsUrl, playUrl, MAX_TTS_TEXT_LEN } from "../lib/ttsClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import Icon from "./icons/Icon.jsx";
 import "./PlayButton.css";
 
 /**
  * Компактная кнопка озвучки (фаза 5.1). text — что озвучить (как есть),
  * learnLang — язык произношения, kind: "word" | "example" (только для aria).
  *
+ * appearance — ТОЛЬКО вид глифа (поведение одинаково):
+ *   "default" — эмодзи 🔊/🔇 (как раньше; используют все прежние экраны);
+ *   "ember"   — линейная иконка speak/mute (набор Ember). Экраны, которые ещё
+ *               не мигрировали на Ember, проп НЕ передают и выглядят как прежде.
+ *
  * Состояния: idle → loading (первый тап по слову без кэша — с индикатором) →
  * playing; ошибка/офлайн → кнопка неактивна пару секунд, затем можно
  * попробовать снова. Отсутствие аудио НИКОГДА не блокирует карточку.
  */
-export default function PlayButton({ text, learnLang, kind = "word" }) {
+export default function PlayButton({
+  text,
+  learnLang,
+  kind = "word",
+  appearance = "default",
+}) {
   const { t } = useI18n();
   const [state, setState] = useState("idle"); // idle | loading | playing | error
   const [offline, setOffline] = useState(
@@ -64,10 +75,20 @@ export default function PlayButton({ text, learnLang, kind = "word" }) {
   const label =
     kind === "example" ? t("tts.playExample") : t("tts.playWord");
 
+  const ember = appearance === "ember";
+  const glyph = ember ? (
+    <Icon
+      name={disabled ? "mute" : "speak"}
+      size={kind === "example" ? 16 : 22}
+    />
+  ) : (
+    <span aria-hidden="true">{disabled ? "🔇" : "🔊"}</span>
+  );
+
   return (
     <button
       type="button"
-      className={`playbtn playbtn--${state}${disabled ? " is-disabled" : ""}`}
+      className={`playbtn${ember ? " playbtn--ember" : ""} playbtn--${state}${disabled ? " is-disabled" : ""}`}
       aria-label={disabled ? t("tts.unavailable") : label}
       disabled={disabled}
       onClick={handlePlay}
@@ -75,7 +96,7 @@ export default function PlayButton({ text, learnLang, kind = "word" }) {
       {state === "loading" ? (
         <span className="playbtn__spinner" aria-hidden="true" />
       ) : (
-        <span aria-hidden="true">{disabled ? "🔇" : "🔊"}</span>
+        glyph
       )}
     </button>
   );

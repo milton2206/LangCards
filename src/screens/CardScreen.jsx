@@ -10,6 +10,7 @@ import LanguageSwitcher from "../components/LanguageSwitcher.jsx";
 import DailyBalance from "../components/DailyBalance.jsx";
 import WeekSchedule from "../components/WeekSchedule.jsx";
 import PlayButton from "../components/PlayButton.jsx";
+import Icon from "../components/icons/Icon.jsx";
 import { LANG_EMOJI } from "../data/onboarding.js";
 import "./CardScreen.css";
 
@@ -165,12 +166,13 @@ export default function CardScreen({
   const swipeRightProgress = Math.max(0, Math.min(swipe.dragX / SWIPE_THRESHOLD, 1));
   const swipeLeftProgress = Math.max(0, Math.min(-swipe.dragX / SWIPE_THRESHOLD, 1));
   const swipeProgress = Math.max(swipeRightProgress, swipeLeftProgress);
-  // Цвет действия совпадает с цветом кнопки: вправо = Взять = зелёный,
-  // влево = Знаю = синий. Рамка окрашивается и разгорается по мере натяжения,
+  // Цвет действия совпадает с цветом кнопки (Ember): вправо = Взять = оливковый,
+  // влево = Знаю = терракота. Рамка окрашивается и разгорается по мере натяжения,
   // вокруг карточки — лёгкое свечение того же цвета. В покое — нейтрально.
-  const TAKE_RGB = "53, 200, 139"; // зелёный
-  const KNOW_RGB = "108, 140, 255"; // синий
-  const swipeRgb = swipe.dragX > 0 ? TAKE_RGB : KNOW_RGB;
+  // Триплеты берём из токенов темы (var(--ember-*-rgb)) — свечение следует за
+  // активной темой (тёмная/светлая) без правок здесь.
+  const swipeRgb =
+    swipe.dragX > 0 ? "var(--ember-take-rgb)" : "var(--ember-know-rgb)";
   const cardStyle = {
     ...swipe.style,
     borderColor: swipeProgress
@@ -272,9 +274,7 @@ export default function CardScreen({
           onClick={onOpenStats}
           aria-label={t("cards.statsAria")}
         >
-          <span className="cards__icon-btn-glyph" aria-hidden="true">
-            📊
-          </span>
+          <Icon name="stats" size={20} />
         </button>
         {/* Ненавязчивый доступ к туториалу — простой знак вопроса (не эмодзи),
             рядом с настройками. Автопоказ туториала — только при первом
@@ -298,9 +298,7 @@ export default function CardScreen({
           onClick={onOpenSettings}
           aria-label={t("cards.settingsAria")}
         >
-          <span className="cards__icon-btn-glyph" aria-hidden="true">
-            ⚙️
-          </span>
+          <Icon name="settings" size={20} />
         </button>
       </div>
       </header>
@@ -590,7 +588,12 @@ export default function CardScreen({
             <h1 id="card-word" className="cards__word" lang={learnLang}>
               {card.word}
             </h1>
-            <PlayButton text={card.word} learnLang={learnLang} kind="word" />
+            <PlayButton
+              text={card.word}
+              learnLang={learnLang}
+              kind="word"
+              appearance="ember"
+            />
           </div>
           {card.translit && (
             <p className="cards__translit">{card.translit}</p>
@@ -607,6 +610,7 @@ export default function CardScreen({
               text={card.example}
               learnLang={learnLang}
               kind="example"
+              appearance="ember"
             />
           </div>
           {/* Каждое слово примера тапабельно: перевод + добавление в изучение

@@ -573,6 +573,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberCard: {
+        title: "A warmer word card",
+        desc: "The word card is the first screen with the new look: a warm background, the word in a large humanist typeface, the transcription in a terracotta accent, and “Know” (terracotta) and “Take” (olive) buttons. Actions and swipes are unchanged — only the look is new.",
+      },
       emberFoundation: {
         title: "A new look is on the way",
         desc: "We started making the app warmer and cozier: a warm color palette, new fonts for words and the interface, and tidy line icons instead of emoji. This is a groundwork step — screens still look the same for now, and we'll roll out the changes gradually.",

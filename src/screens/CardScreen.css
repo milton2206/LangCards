@@ -1,8 +1,22 @@
+/* ============================================================================
+ * Экран карточки — оформление Ember (шаг 2/N).
+ * ----------------------------------------------------------------------------
+ * Применяем токены Ember (theme/ember.css) и шрифты (Alegreya Sans — слово,
+ * Fira Sans — интерфейс). Активна ТЁМНАЯ тема (уголь/эспрессо), но все цвета
+ * идут через семантические токены `--ember-*`, поэтому светлая тема (глина)
+ * заработает без переделки, как только добавим переключатель. Логика, структура
+ * и порядок элементов не менялись — только представление.
+ * ========================================================================== */
+
 .cards {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  /* Тёплый фон экрана карточки (уголь в тёмной теме, глина в светлой). */
+  background-color: var(--ember-bg);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
 }
 
 /* ---------- Верхняя панель: «Мои слова» + иконки (единый стиль) ---------- */
@@ -37,9 +51,9 @@
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border-radius: var(--radius);
-  border: 1px solid rgba(108, 140, 255, 0.3);
-  background-color: rgba(108, 140, 255, 0.1);
+  border-radius: var(--ember-radius);
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 30%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 10%, transparent);
 }
 
 .cards__session-banner-text {
@@ -53,7 +67,7 @@
 }
 
 .cards__session-banner-hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
   line-height: 1.4;
 }
@@ -63,9 +77,9 @@
   min-height: 44px;
   padding: 10px 16px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--accent);
-  color: #0b0d12;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
   font-size: 14px;
   font-weight: 700;
 }
@@ -77,7 +91,7 @@
   gap: 12px;
   width: 100%;
   padding: 14px 16px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--ember-radius-sm);
   border: 1px solid transparent;
 }
 
@@ -97,33 +111,33 @@
   opacity: 0.85;
 }
 
-/* Есть что повторять — заметно, но не тревожно (янтарный акцент) */
+/* Есть что повторять — заметно, но не тревожно (тёплый янтарь) */
 .cards__daily--due {
-  border-color: rgba(255, 176, 32, 0.4);
-  background-color: rgba(255, 176, 32, 0.1);
-  color: #ffb020;
+  border-color: rgba(224, 158, 74, 0.4);
+  background-color: rgba(224, 158, 74, 0.12);
+  color: #e0964a;
 }
 
 .cards__daily-cta {
   width: 100%;
   min-height: 52px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: #ffb020;
-  color: #1a1300;
+  border-radius: var(--ember-radius-sm);
+  background-color: #e0964a;
+  color: #241a14;
   font-size: 16px;
   font-weight: 800;
 }
 
-/* Повторять нечего — спокойный, доброжелательный тон (зелёный) */
+/* Повторять нечего — спокойный, доброжелательный тон (оливковый = выучено) */
 .cards__daily--clear {
-  border-color: rgba(53, 200, 139, 0.35);
-  background-color: rgba(53, 200, 139, 0.08);
-  color: #35c88b;
+  border-color: color-mix(in srgb, var(--ember-learned) 35%, transparent);
+  background-color: color-mix(in srgb, var(--ember-learned) 10%, transparent);
+  color: var(--ember-learned);
 }
 
 .cards__daily--clear .cards__daily-hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   opacity: 1;
 }
 
@@ -133,10 +147,10 @@
   gap: 8px;
   height: 44px;
   padding: 0 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ember-border);
   border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 14px;
   font-weight: 600;
 }
@@ -149,14 +163,15 @@
   height: 22px;
   padding: 0 6px;
   border-radius: 999px;
-  background-color: var(--accent);
-  color: #0b0d12;
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
   font-size: 12px;
   font-weight: 700;
 }
 
 /* Иконочные кнопки (статистика, настройки) — единый размер и стиль,
-   круглые в тон скруглению «Мои слова». */
+   круглые в тон скруглению «Мои слова». Внутри — линейная иконка Ember
+   (наследует цвет через currentColor). */
 .cards__icon-btn {
   flex: 0 0 auto;
   width: 44px;
@@ -164,9 +179,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ember-border);
   border-radius: 999px;
-  background-color: var(--surface);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
 }
 
 .cards__icon-btn-glyph {
@@ -178,14 +194,14 @@
    и приглушённый цвет, чтобы выглядеть так же заметно, как соседние иконки. */
 .cards__icon-btn-glyph--help {
   font-weight: 800;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
 }
 
 /* ---------- Прогресс ---------- */
 .cards__progressbar {
   height: 4px;
   border-radius: 999px;
-  background-color: var(--border);
+  background-color: var(--ember-border);
   overflow: hidden;
 }
 
@@ -193,12 +209,12 @@
   display: block;
   height: 100%;
   border-radius: 999px;
-  background-color: var(--accent);
+  background-color: var(--ember-accent);
   transition: width 0.25s ease;
 }
 
 .cards__remaining {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
 }
 
@@ -211,9 +227,9 @@
   justify-content: center;
   gap: 24px;
   padding: 28px 22px;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background-color: var(--ember-card);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius);
   /* по умолчанию отдаём вертикальный жест браузеру (скролл), горизонтальный
      свайп перехватывается вручную в useSwipeCard */
   touch-action: pan-y;
@@ -290,15 +306,17 @@
   display: inline-block;
   padding: 3px 11px;
   border-radius: 999px;
-  border: 1px solid rgba(108, 140, 255, 0.35);
-  background-color: rgba(108, 140, 255, 0.14);
-  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 35%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.3px;
 }
 
 .cards__word {
+  /* Слово — гуманистическая Alegreya Sans, крупно (три алфавита читаются ровно). */
+  font-family: var(--font-word);
   /* чуть меньший минимум/предпочтительное значение — длинным составным
      словам (нем. Ermessensspielraum) остаётся больше места на строку */
   font-size: clamp(24px, 8vw, 38px);
@@ -315,7 +333,7 @@
 }
 
 .cards__translit {
-  color: var(--accent);
+  color: var(--ember-accent);
   font-size: 16px;
   letter-spacing: 0.5px;
 }
@@ -327,7 +345,7 @@
 
 .cards__divider {
   height: 1px;
-  background-color: var(--border);
+  background-color: var(--ember-border);
 }
 
 /* Пример — слово в контексте */
@@ -336,7 +354,7 @@
   flex-direction: column;
   gap: 8px;
   padding-left: 14px;
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--ember-accent);
 }
 
 .cards__example-label {
@@ -344,10 +362,12 @@
   letter-spacing: 1px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
 }
 
 .cards__example-text {
+  /* Пример на изучаемом языке — тоже Alegreya Sans (контент, не интерфейс). */
+  font-family: var(--font-word);
   font-size: 18px;
   line-height: 1.5;
   font-weight: 500;
@@ -360,7 +380,7 @@
 .cards__example-translation {
   font-size: 16px;
   line-height: 1.5;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -376,13 +396,14 @@
   background: none;
   color: inherit;
   font: inherit;
-  border-bottom: 1px dashed rgba(154, 164, 178, 0.45);
+  border-bottom: 1px dashed
+    color-mix(in srgb, var(--ember-text-muted) 55%, transparent);
   cursor: pointer;
 }
 
 .cards__example-word:active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--ember-accent);
+  border-bottom-color: var(--ember-accent);
 }
 
 
@@ -393,9 +414,9 @@
   flex-direction: column;
   gap: 6px;
   padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(108, 140, 255, 0.22);
-  background-color: rgba(108, 140, 255, 0.08);
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 22%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 8%, transparent);
 }
 
 .cards__note-label {
@@ -403,15 +424,52 @@
   letter-spacing: 1px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--ember-accent);
 }
 
 .cards__note-text {
   font-size: 15px;
   line-height: 1.5;
-  color: var(--text);
+  color: var(--ember-text);
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+/* ---------- Кнопка озвучки на карточке (вид Ember) ---------- */
+/* Слово: заметный терракотовый «сквиркл» с белой линейной иконкой (как на
+   макете). Пример: маленькая приглушённая иконка без плашки. Прочие экраны
+   используют вид "default" (эмодзи) и не затрагиваются. */
+.cards__word-row .playbtn--ember {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: none;
+  border-radius: 14px;
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+}
+
+.cards__word-row .playbtn--ember.playbtn--playing {
+  filter: brightness(1.06);
+}
+
+.cards__word-row .playbtn--ember .playbtn__spinner {
+  border-color: color-mix(in srgb, var(--ember-on-accent) 35%, transparent);
+  border-top-color: var(--ember-on-accent);
+}
+
+.cards__example-label-row .playbtn--ember {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ember-text-muted);
+}
+
+.cards__example-label-row .playbtn--ember.playbtn--playing {
+  color: var(--ember-accent);
 }
 
 /* ---------- Три действия ---------- */
@@ -453,7 +511,7 @@
 /* Выходной по расписанию (фаза 4.5): подпись и выбор языка для занятия */
 .cards__rest-label {
   margin-top: 6px;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 14px;
   font-weight: 600;
 }
@@ -469,10 +527,10 @@
 .cards__rest-lang {
   min-height: 44px;
   padding: 8px 16px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--ember-border);
   border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 14px;
   font-weight: 700;
 }
@@ -480,10 +538,10 @@
 /* Мягкое сообщение о лимите активных слов — не блокировка, просто подсказка */
 .cards__limit-notice {
   padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 176, 32, 0.4);
-  background-color: rgba(255, 176, 32, 0.12);
-  color: #ffb020;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid rgba(224, 158, 74, 0.4);
+  background-color: rgba(224, 158, 74, 0.12);
+  color: #e0964a;
   font-size: 13px;
   line-height: 1.4;
 }
@@ -497,7 +555,7 @@
 }
 
 .cards__count-label {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
 }
 
@@ -510,10 +568,10 @@
   min-width: 36px;
   min-height: 32px;
   padding: 4px 10px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--ember-border);
   border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 13px;
   font-weight: 700;
   transition:
@@ -522,9 +580,9 @@
 }
 
 .cards__count-chip.is-active {
-  border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.14);
-  color: var(--accent);
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
 }
 
 /* Переключатель типа контента (Слова / Контекст носителей) — метка сверху,
@@ -548,10 +606,10 @@
   min-width: 0;
   min-height: 34px;
   padding: 6px 10px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--ember-border);
   border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 13px;
   font-weight: 700;
   transition:
@@ -560,9 +618,9 @@
 }
 
 .cards__mode-chip.is-active {
-  border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.14);
-  color: var(--accent);
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
 }
 
 /* Вторичная кнопка ручной генерации новой порции */
@@ -570,10 +628,10 @@
   width: 100%;
   min-height: 46px;
   margin-top: 2px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
   background-color: transparent;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 14px;
   font-weight: 600;
 }
@@ -583,10 +641,10 @@
 .cards__surprise {
   width: 100%;
   min-height: 46px;
-  border: 1px solid rgba(108, 140, 255, 0.5);
-  border-radius: var(--radius-sm);
-  background-color: rgba(108, 140, 255, 0.1);
-  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 50%, transparent);
+  border-radius: var(--ember-radius-sm);
+  background-color: color-mix(in srgb, var(--ember-accent) 10%, transparent);
+  color: var(--ember-accent);
   font-size: 14px;
   font-weight: 700;
 }
@@ -602,8 +660,8 @@
   gap: 12px;
 }
 
-/* Три кнопки-дубля свайпа: Знаю (синий) · Пропустить (нейтральный) · Взять
-   (зелёный). Цвета совпадают с переливом рамки при свайпе в ту же сторону. */
+/* Три кнопки-дубля свайпа: Знаю (терракота) · Пропустить (нейтральный) · Взять
+   (оливковый). Цвета совпадают с переливом рамки при свайпе в ту же сторону. */
 .cards__swipe-buttons {
   display: flex;
   gap: 8px;
@@ -615,7 +673,8 @@
   min-height: 52px;
   padding: 8px 6px;
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: var(--ember-radius-sm);
+  font-family: var(--font-ui);
   font-size: 15px;
   font-weight: 700;
   /* Кнопки плавают над контентом — тень отделяет их и держит читаемыми на
@@ -631,19 +690,19 @@
 }
 
 .cards__swipe-btn--know {
-  background-color: #6c8cff; /* синий */
-  color: #0b0d12;
+  background-color: var(--ember-know); /* терракота */
+  color: var(--ember-on-accent);
 }
 
 .cards__swipe-btn--skip {
-  background-color: var(--surface);
-  border-color: var(--border);
-  color: var(--text-muted);
+  background-color: var(--ember-surface);
+  border-color: var(--ember-border);
+  color: var(--ember-text-muted);
 }
 
 .cards__swipe-btn--take {
-  background-color: #35c88b; /* зелёный */
-  color: #08130d;
+  background-color: var(--ember-take); /* оливковый */
+  color: var(--ember-on-accent);
 }
 
 /* ---------- Экраны статуса: загрузка / ошибка / финал ---------- */
@@ -658,8 +717,8 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 4px solid var(--border);
-  border-top-color: var(--accent);
+  border: 4px solid var(--ember-border);
+  border-top-color: var(--ember-accent);
   animation: cards-spin 0.9s linear infinite;
   margin-bottom: 4px;
 }
@@ -682,12 +741,14 @@
 }
 
 .cards__status-title {
+  /* Заголовки — тоже Alegreya Sans (в направлении Ember: «слова и заголовки»). */
+  font-family: var(--font-word);
   font-size: 26px;
   font-weight: 700;
 }
 
 .cards__status-hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 16px;
   max-width: 34ch;
 }
@@ -705,9 +766,9 @@
   min-height: 48px;
   padding: 12px 24px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--accent);
-  color: #0b0d12;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
   font-size: 16px;
   font-weight: 700;
 }
@@ -715,10 +776,10 @@
 .cards__ghost {
   min-height: 48px;
   padding: 12px 24px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 16px;
   font-weight: 600;
 }

@@ -76,6 +76,12 @@
   --ember-take: var(--ember-learned);
   --ember-skip: var(--ember-text-muted);
 
+  /* RGB-триплеты тех же смысловых цветов — для полупрозрачного свечения рамки
+     карточки при свайпе (задаётся из JS как rgba(var(--…-rgb), alpha)).
+     Тёмная тема: осветлённые акценты. */
+  --ember-know-rgb: 226, 130, 90; /* #e2825a */
+  --ember-take-rgb: 147, 181, 107; /* #93b56b */
+
   /* Текст поверх акцентных плашек (тёплый угол читается на обоих акцентах). */
   --ember-on-accent: var(--ember-charcoal);
 }
@@ -99,6 +105,9 @@
   --ember-take: var(--ember-learned);
   --ember-skip: var(--ember-text-muted);
 
+  --ember-know-rgb: 226, 130, 90; /* #e2825a */
+  --ember-take-rgb: 147, 181, 107; /* #93b56b */
+
   --ember-on-accent: var(--ember-charcoal);
 }
 
@@ -121,6 +130,10 @@
   --ember-know: var(--ember-accent);
   --ember-take: var(--ember-learned);
   --ember-skip: var(--ember-text-muted);
+
+  /* Светлая тема: насыщенные акценты. */
+  --ember-know-rgb: 192, 95, 54; /* #c05f36 */
+  --ember-take-rgb: 109, 143, 78; /* #6d8f4e */
 
   --ember-on-accent: var(--ember-cream);
 }
