@@ -1,8 +1,19 @@
+/* ============================================================================
+ * Экран настроек — оформление Ember (шаг 4/N).
+ * ----------------------------------------------------------------------------
+ * Все цвета через `--ember-*` (активна тёмная тема, светлая заработает без
+ * переделки). Логика (выбор темы/уровня, свои темы, тест уровня, аккаунт) не
+ * менялась — только представление.
+ * ========================================================================== */
+
 .settings {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  background-color: var(--ember-bg);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
 }
 
 .settings__header {
@@ -16,28 +27,31 @@
   width: 44px;
   height: 44px;
   min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: 12px;
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 20px;
   line-height: 1;
 }
 
 .settings__title {
-  font-size: 24px;
+  font-family: var(--font-word); /* Alegreya — заголовок */
+  font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.3px;
+  color: var(--ember-text);
 }
 
+/* Подсказка про Generate — тёплая плашка. */
 .settings__note {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
   line-height: 1.5;
-  padding: 10px 12px;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  background-color: var(--ember-surface);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
 }
 
 /* ---------- Группа выбора ---------- */
@@ -47,9 +61,13 @@
   gap: 10px;
 }
 
+/* Метки разделов — мелкой прописной, приглушённо. */
 .settings__group-title {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ember-text-muted);
 }
 
 .settings__options {
@@ -58,51 +76,127 @@
   gap: 8px;
 }
 
+/* Чип-плашка (тема/уровень). Выбранный — терракотовый. */
 .settings__chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   min-height: 44px;
   padding: 8px 14px;
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--ember-border);
   border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 600;
   transition:
     border-color 0.15s,
-    background-color 0.15s;
+    background-color 0.15s,
+    color 0.15s;
 }
 
-/* Широкий чип-тумблер (мультиязычный режим) */
-.settings__chip--wide {
-  width: 100%;
-  justify-content: center;
-  border-radius: var(--radius-sm);
+.settings__chip-icon {
+  flex: 0 0 auto;
+  color: var(--ember-text-muted);
 }
 
 .settings__chip.is-active {
-  border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.14);
+  border-color: var(--ember-accent);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
 }
 
-/* ---------- Кнопка «Готово» ---------- */
+.settings__chip.is-active .settings__chip-icon {
+  color: var(--ember-on-accent);
+}
+
+/* Широкий чип-кнопка (напр. смена пароля) */
+.settings__chip--wide {
+  width: 100%;
+  justify-content: center;
+  min-height: 50px;
+  border-radius: var(--ember-radius-sm);
+}
+
+/* ---------- Строка-ряд (Manage languages, Check my level again) ---------- */
+.settings__row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+  text-align: left;
+}
+
+.settings__row-icon {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--ember-text) 8%, transparent);
+  color: var(--ember-text);
+}
+
+.settings__row-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Круглые флаги активной пары справа — слегка внахлёст. */
+.settings__row-flags {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.settings__row-flags .flag + .flag {
+  margin-left: -6px;
+}
+
+.settings__row-now {
+  flex: 0 0 auto;
+  color: var(--ember-text-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.settings__row-go {
+  flex: 0 0 auto;
+  color: var(--ember-text-muted);
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* ---------- Кнопка «Готово» (терракота + тёплое свечение) ---------- */
 .settings__done {
   margin-top: auto;
   width: 100%;
   min-height: 52px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--accent);
-  color: #0b0d12;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
   font-size: 17px;
   font-weight: 700;
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--ember-accent) 40%, transparent);
 }
 
 /* ---------- Аккаунт ---------- */
 .settings__account-hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -113,9 +207,9 @@
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  background-color: var(--ember-surface);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
 }
 
 .settings__account-info {
@@ -126,7 +220,7 @@
 }
 
 .settings__account-label {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 12px;
 }
 
@@ -141,10 +235,10 @@
 .settings__signin {
   width: 100%;
   min-height: 48px;
-  border: 1.5px solid var(--accent);
-  border-radius: var(--radius-sm);
-  background-color: rgba(108, 140, 255, 0.14);
-  color: var(--text);
+  border: 1.5px solid var(--ember-accent);
+  border-radius: var(--ember-radius-sm);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-text);
   font-size: 15px;
   font-weight: 700;
 }
@@ -153,10 +247,10 @@
   flex: 0 0 auto;
   min-height: 40px;
   padding: 8px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
   background-color: transparent;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 14px;
   font-weight: 600;
 }
@@ -172,29 +266,29 @@
 }
 
 .settings__sync-text {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
 }
 
 .settings__sync.is-synced .settings__sync-text {
-  color: #35c88b;
+  color: var(--ember-learned);
 }
 
 .settings__sync.is-offline .settings__sync-text {
-  color: #e6b450;
+  color: #e0964a;
 }
 
 .settings__sync.is-error .settings__sync-text {
-  color: #ff6b6b;
+  color: #e0605a;
 }
 
 .settings__sync-retry {
   flex: 0 0 auto;
   min-height: 34px;
   padding: 6px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 13px;
   font-weight: 600;
 }
@@ -203,22 +297,22 @@
 .settings__secondary {
   width: 100%;
   min-height: 48px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
   background-color: transparent;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 600;
 }
 
-/* Удаление аккаунта — приглушённая «опасная» кнопка внутри секции аккаунта.
-   Само подтверждение (и красный акцент) — в модальном окне. */
+/* Удаление аккаунта — приглушённая «опасная» кнопка (подтверждение в модалке). */
 .settings__danger {
   width: 100%;
   min-height: 44px;
   margin-top: 4px;
-  border: 1px solid rgba(240, 60, 60, 0.4);
-  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, #e0605a 45%, transparent);
+  border-radius: var(--ember-radius-sm);
   background-color: transparent;
   color: #e0605a;
   font-size: 14px;

@@ -10,6 +10,8 @@ import TopicPicker from "../components/TopicPicker.jsx";
 import FeedbackModal from "../components/FeedbackModal.jsx";
 import DeleteAccountDialog from "../components/DeleteAccountDialog.jsx";
 import ChangePasswordModal from "../components/ChangePasswordModal.jsx";
+import Icon from "../components/icons/Icon.jsx";
+import Flag from "../components/icons/Flag.jsx";
 import "./SettingsScreen.css";
 
 /**
@@ -64,12 +66,23 @@ export default function SettingsScreen({
           смена пары, мультирежим, приоритет, дневные лимиты — всё там. */}
       <div className="settings__group">
         <h2 className="settings__group-title">{t("languages.title")}</h2>
-        <button
-          type="button"
-          className="settings__chip settings__chip--wide"
-          onClick={onOpenLanguages}
-        >
-          🌐 {t("languages.entry")}
+        <button type="button" className="settings__row" onClick={onOpenLanguages}>
+          <span className="settings__row-icon" aria-hidden="true">
+            <Icon name="languages" size={20} />
+          </span>
+          <span className="settings__row-label">{t("languages.entry")}</span>
+          {/* Круглые флаги активной пары справа (изучаемый + родной). */}
+          <span className="settings__row-flags" aria-hidden="true">
+            {settings.learnLang && (
+              <Flag lang={settings.learnLang} size={22} />
+            )}
+            {settings.nativeLang && (
+              <Flag lang={settings.nativeLang} size={22} />
+            )}
+          </span>
+          <span className="settings__row-go" aria-hidden="true">
+            ›
+          </span>
         </button>
       </div>
 
@@ -105,7 +118,7 @@ export default function SettingsScreen({
                     aria-pressed={active}
                     onClick={() => onChange(step.key, opt.id)}
                   >
-                    <span aria-hidden="true">{opt.emoji}</span>{" "}
+                    <Icon name="level" size={18} className="settings__chip-icon" />
                     {t(optionLabelKey(step.key, opt.id))}
                   </button>
                 );
@@ -119,18 +132,26 @@ export default function SettingsScreen({
             <>
               <button
                 type="button"
-                className="settings__chip settings__chip--wide"
+                className="settings__row"
                 onClick={onStartPlacement}
               >
-                🎯 {t("placement.retest")}
+                <span className="settings__row-icon" aria-hidden="true">
+                  <Icon name="target" size={20} />
+                </span>
+                <span className="settings__row-label">
+                  {t("placement.retest")}
+                </span>
+                {placementLevel && (
+                  <span className="settings__row-now">
+                    {placementLevel.toUpperCase()}
+                  </span>
+                )}
               </button>
-              <p className="settings__account-hint">
-                {placementLevel
-                  ? t("placement.currentResult", {
-                      level: placementLevel.toUpperCase(),
-                    })
-                  : t("placement.neverTested")}
-              </p>
+              {!placementLevel && (
+                <p className="settings__account-hint">
+                  {t("placement.neverTested")}
+                </p>
+              )}
             </>
           )}
         </div>

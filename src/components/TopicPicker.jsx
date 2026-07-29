@@ -6,10 +6,21 @@ import {
 } from "../../lib/topicSanitize.js";
 import { MAX_CUSTOM_TOPICS } from "../lib/userLanguages.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import Icon from "./icons/Icon.jsx";
 import "./TopicPicker.css";
 
 const PRESET_OPTIONS = ONBOARDING_STEPS.find((s) => s.key === "topic").options;
 const PRESET_IDS = new Set(PRESET_OPTIONS.map((o) => o.id));
+
+// Линейная иконка Ember по id темы-пресета (замена эмодзи).
+const TOPIC_ICON = {
+  work: "work",
+  housing: "housing",
+  doctor: "doctor",
+  travel: "travel",
+  daily: "daily",
+  restaurant: "restaurant",
+};
 
 /**
  * Выбор темы генерации: сверху неизменяемые пресеты (как раньше), ниже блок
@@ -68,7 +79,11 @@ export default function TopicPicker({
           chip(
             opt.id,
             <>
-              <span aria-hidden="true">{opt.emoji}</span>{" "}
+              <Icon
+                name={TOPIC_ICON[opt.id]}
+                size={18}
+                className="settings__chip-icon"
+              />
               {t(optionLabelKey("topic", opt.id))}
             </>,
             value === opt.id,

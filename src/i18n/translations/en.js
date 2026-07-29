@@ -581,6 +581,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberSettings: {
+        title: "A warmer settings screen",
+        desc: "Settings got the new look: topics and levels are chips with line icons, the selected one in terracotta; a “Manage languages” row with round flags; and a “My topics” block with its own input. Choosing a topic, adding your own topics, and picking a level all work as before.",
+      },
       emberSession: {
         title: "A warmer session screen",
         desc: "The “Today's session” screen got the new look: blocks are shown as a path — a status circle on the left of each block, connected by a line, so you can see where you are. Line icons for formats and a warm terracotta “Start” button. The session logic is unchanged: a block counts only after you actually complete it.",
