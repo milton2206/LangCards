@@ -345,6 +345,40 @@
   -webkit-hyphens: auto;
 }
 
+/* Множественное число: компактная строка под словом — маленький ярлык «мн. ч.»
+   + сама форма в Alegreya (три алфавита читаются ровно). У слов без мн. числа
+   блок не рендерится (см. JSX) — пустого места нет. */
+.cards__plural {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cards__plural-label {
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 2px 9px;
+  border: 1px solid var(--ember-border);
+  border-radius: 999px;
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cards__plural-form {
+  font-family: var(--font-word);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ember-text);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .cards__translit {
   color: var(--ember-accent);
   font-size: 16px;

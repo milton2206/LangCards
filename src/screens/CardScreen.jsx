@@ -598,6 +598,17 @@ export default function CardScreen({
               appearance="ember"
             />
           </div>
+          {/* Множественное число (существительные): показываем компактной строкой
+              рядом с основной формой. У слов без мн. числа (глаголы, выражения,
+              старые карточки без поля) — не показываем, без пустого места. */}
+          {card.plural && (
+            <p className="cards__plural">
+              <span className="cards__plural-label">{t("cards.plural")}</span>
+              <span className="cards__plural-form" lang={learnLang}>
+                {card.plural}
+              </span>
+            </p>
+          )}
           {card.translit && (
             <p className="cards__translit">{card.translit}</p>
           )}

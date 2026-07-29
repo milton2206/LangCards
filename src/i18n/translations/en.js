@@ -89,6 +89,7 @@ export default {
     surprise: "Surprise me",
     remaining: "Left in batch: {n}",
     countLabel: "Cards:",
+    plural: "pl.",
     example: "Example",
     // Content-type toggle and the "Native context" mode note.
     modeLabel: "Generate:",
@@ -592,6 +593,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      pluralForm: {
+        title: "Plural form on noun cards",
+        desc: "Noun cards now show the plural form next to the singular — handy for languages where the article and ending change (Greek: ο γιατρός → οι γιατροί, το νοσοκομείο → τα νοσοκομεία). It's generated together with the card, and words without a plural (verbs, expressions) simply don't show one.",
+      },
       emberOverscroll: {
         title: "Warm background even when you pull past the edge",
         desc: "The page background now matches the warm Ember background, so when you pull the screen past the top or bottom (the rubber-band scroll) you no longer see the old dark background peeking through — it stays warm everywhere.",
