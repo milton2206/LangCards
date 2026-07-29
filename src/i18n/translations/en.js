@@ -581,6 +581,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberLevelBars: {
+        title: "The level icon reads like a signal",
+        desc: "The little ladder next to a level now fills by how high the level is: the higher the CEFR level, the more steps light up. A1/A2 — one, B1/B2 — two, C1 — all three.",
+      },
       emberSettings: {
         title: "A warmer settings screen",
         desc: "Settings got the new look: topics and levels are chips with line icons, the selected one in terracotta; a “Manage languages” row with round flags; and a “My topics” block with its own input. Choosing a topic, adding your own topics, and picking a level all work as before.",

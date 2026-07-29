@@ -12,6 +12,7 @@ import DeleteAccountDialog from "../components/DeleteAccountDialog.jsx";
 import ChangePasswordModal from "../components/ChangePasswordModal.jsx";
 import Icon from "../components/icons/Icon.jsx";
 import Flag from "../components/icons/Flag.jsx";
+import LevelBars from "../components/icons/LevelBars.jsx";
 import "./SettingsScreen.css";
 
 /**
@@ -118,7 +119,12 @@ export default function SettingsScreen({
                     aria-pressed={active}
                     onClick={() => onChange(step.key, opt.id)}
                   >
-                    <Icon name="level" size={18} className="settings__chip-icon" />
+                    <LevelBars
+                      level={opt.id}
+                      active={active}
+                      size={18}
+                      className="settings__chip-icon"
+                    />
                     {t(optionLabelKey(step.key, opt.id))}
                   </button>
                 );
