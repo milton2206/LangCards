@@ -56,7 +56,9 @@ export default function LanguageSwitcher({
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        {flagFor(activeLanguage.learnLang)}
+        {/* В Ember флаг в свёрнутом чипе не показываем — только код языка (EL).
+            В прежнем виде (экран занятия) эмодзи-флаг остаётся как был. */}
+        {!ember && flagFor(activeLanguage.learnLang)}
         <span className="langswitch__code">
           {String(activeLanguage.learnLang).toUpperCase()}
         </span>

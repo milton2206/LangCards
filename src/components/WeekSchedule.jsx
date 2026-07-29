@@ -60,18 +60,14 @@ export default function WeekSchedule({
       aria-label={t("schedule.aria")}
     >
       <p className="week__today">
-        {todayPair &&
-          (ember ? (
-            <Flag
-              lang={todayPair.split("-")[0]}
-              size={18}
-              className="week__today-flag"
-            />
-          ) : (
-            <span aria-hidden="true">
-              {LANG_EMOJI[todayPair.split("-")[0]] || "🌐"}{" "}
-            </span>
-          ))}
+        {/* В Ember флаг у «Сегодня: …» не показываем (дублирует флаги в полосе
+            дней) — только текст. В прежнем виде (экран «Мои языки») эмодзи-флаг
+            остаётся как был. */}
+        {todayPair && !ember && (
+          <span aria-hidden="true">
+            {LANG_EMOJI[todayPair.split("-")[0]] || "🌐"}{" "}
+          </span>
+        )}
         {todayLabel}
       </p>
 

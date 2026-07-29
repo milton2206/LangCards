@@ -573,6 +573,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberHeaderFlags: {
+        title: "Fewer duplicate flags",
+        desc: "Removed duplicate flags in the card header: the “Today” label and the collapsed language chip now show just text and the code (the flag there repeated the flags in the week strip). The flags in the week strip stay put.",
+      },
       emberWeekStrip: {
         title: "A warm week strip",
         desc: "The schedule row on the word card got the new look: warm tiles instead of blue, round language flags instead of letter codes, today highlighted in terracotta, and a neutral marker for rest days. Looks only — the schedule works as before.",

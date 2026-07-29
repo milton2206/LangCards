@@ -90,7 +90,7 @@
 .langswitch--ember .langswitch__chip {
   height: 40px;
   min-height: 40px; /* перекрывает глобальный button min-height 44px — ровно по иконкам топбара */
-  padding: 0 11px 0 6px;
+  padding: 0 12px; /* симметрично: во свёрнутом чипе только код языка, без флага */
   gap: 7px;
   border-color: var(--ember-border);
   background-color: var(--ember-surface);
