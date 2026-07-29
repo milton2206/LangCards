@@ -34,13 +34,18 @@ html {
   -webkit-text-size-adjust: 100%;
   /* убираем серую вспышку при тапе по элементам (нативное ощущение) */
   -webkit-tap-highlight-color: transparent;
+  /* Фон страницы = тёплый фон Ember: overscroll/bounce-зона сверху и снизу
+     того же цвета, что экраны (не старый холодный --bg). Через токен --ember-bg,
+     поэтому при добавлении светлой темы (data-theme) фон страницы переключится
+     вместе с ней. */
+  background-color: var(--ember-bg);
 }
 
 body {
   min-height: 100dvh;
   overflow-x: hidden; /* никакого горизонтального скролла */
   overscroll-behavior-y: none; /* без «резинки»/pull-to-refresh с белым фоном */
-  background-color: var(--bg);
+  background-color: var(--ember-bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -81,4 +86,5 @@ a {
 
 #root {
   min-height: 100dvh;
+  background-color: var(--ember-bg);
 }

@@ -592,6 +592,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberOverscroll: {
+        title: "Warm background even when you pull past the edge",
+        desc: "The page background now matches the warm Ember background, so when you pull the screen past the top or bottom (the rubber-band scroll) you no longer see the old dark background peeking through — it stays warm everywhere.",
+      },
       emberNoFrame: {
         title: "No more dark edge around the screen",
         desc: "On the redesigned screens the app frame now shares the warm Ember background, so there's no cold dark border around the edges — the background runs evenly to full width and the screen no longer looks cropped.",
