@@ -151,6 +151,15 @@ export const PATHS = {
       <line x1="4" y1="18" x2="13" y2="18" />
     </>
   ),
+  // Плеер: play (треугольник) и pause (две полосы). Заливкой (fill=currentColor,
+  // stroke=none при рендере) — единый переключаемый элемент, в цвет кнопки.
+  play: <path d="M8 5.5 19.5 12 8 18.5z" />,
+  pause: (
+    <>
+      <rect x="7" y="5.5" width="3.5" height="13" rx="1.2" />
+      <rect x="13.5" y="5.5" width="3.5" height="13" rx="1.2" />
+    </>
+  ),
 };
 
 export const ICON_NAMES = Object.keys(PATHS);

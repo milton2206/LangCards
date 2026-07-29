@@ -388,7 +388,12 @@ export default function AudioPlayer({
         {busy ? (
           <span className="aplayer__spinner" aria-hidden="true" />
         ) : (
-          <span aria-hidden="true">{playing ? "⏸" : "▶"}</span>
+          <Icon
+            name={playing ? "pause" : "play"}
+            size={16}
+            fill="currentColor"
+            stroke="none"
+          />
         )}
       </button>
 
