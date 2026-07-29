@@ -495,6 +495,8 @@ export default {
     learned: "Learned",
     totalWords: "Total words",
     activeWords: "Active words",
+    activeHint:
+      "A comfortable ceiling — when it fills up, review comes before new words.",
   },
 
   words: {
@@ -581,6 +583,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberStats: {
+        title: "A warmer statistics screen",
+        desc: "Statistics got the new look: a big progress ring in olive (learned), counter tiles (learning in terracotta, learned in olive), and a terracotta active-words bar. The numbers are counted just as before.",
+      },
       emberLevelBars: {
         title: "The level icon reads like a signal",
         desc: "The little ladder next to a level now fills by how high the level is: the higher the CEFR level, the more steps light up. A1/A2 — one, B1/B2 — two, C1 — all three.",

@@ -1,5 +1,6 @@
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import Flag from "../components/icons/Flag.jsx";
 import "./StatsScreen.css";
 
 // Донат-диаграмма прогресса через приём stroke-dasharray (без библиотек).
@@ -45,7 +46,18 @@ export default function StatsScreen({
         </button>
         <div className="stats__header-text">
           <h1 className="stats__title">{t("stats.title")}</h1>
-          {pairLabel && <p className="stats__subtitle">{pairLabel}</p>}
+          {pairLabel && (
+            <p className="stats__subtitle">
+              {learnLang && (
+                <Flag
+                  lang={learnLang}
+                  size={20}
+                  className="stats__subtitle-flag"
+                />
+              )}
+              {pairLabel}
+            </p>
+          )}
         </div>
       </header>
 
@@ -93,11 +105,15 @@ export default function StatsScreen({
 
           <div className="stats__tiles">
             <div className="stats__tile">
-              <span className="stats__tile-value">{takenCount}</span>
+              <span className="stats__tile-value stats__tile-value--learning">
+                {takenCount}
+              </span>
               <span className="stats__tile-label">{t("stats.learning")}</span>
             </div>
             <div className="stats__tile">
-              <span className="stats__tile-value">{knownCount}</span>
+              <span className="stats__tile-value stats__tile-value--learned">
+                {knownCount}
+              </span>
               <span className="stats__tile-label">{t("stats.learned")}</span>
             </div>
             <div className="stats__tile">
@@ -119,6 +135,7 @@ export default function StatsScreen({
                 style={{ width: `${activeFraction * 100}%` }}
               />
             </div>
+            <p className="stats__limit-hint">{t("stats.activeHint")}</p>
           </div>
         </>
       )}
