@@ -1,10 +1,8 @@
 import { useState } from "react";
-import {
-  ONBOARDING_STEPS,
-  LANG_EMOJI,
-  optionLabelKey,
-} from "../data/onboarding.js";
+import { ONBOARDING_STEPS, optionLabelKey } from "../data/onboarding.js";
 import WeekSchedule from "../components/WeekSchedule.jsx";
+import Icon from "../components/icons/Icon.jsx";
+import Flag from "../components/icons/Flag.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 // Переиспользуем стиль чипов настроек (settings__chip и т.д.) — без дублей.
 import "./SettingsScreen.css";
@@ -39,7 +37,7 @@ function PairPicker({ initialLearn, initialNative, submitLabel, onSubmit, onCanc
         aria-pressed={value === opt.id}
         onClick={() => setValue(opt.id)}
       >
-        <span aria-hidden="true">{opt.emoji}</span>{" "}
+        <Flag lang={opt.id} size={18} className="langs__chip-flag" />
         {t(optionLabelKey(stepKey, opt.id))}
       </button>
     ));
@@ -162,19 +160,25 @@ export default function LanguagesScreen({
     <div className="settings__options">
       <button
         type="button"
-        className={"settings__chip" + (value === "by_day" ? " is-active" : "")}
+        className={
+          "settings__chip langs__seg" + (value === "by_day" ? " is-active" : "")
+        }
         aria-pressed={value === "by_day"}
         onClick={() => onPick("by_day")}
       >
-        📅 {t("schedule.modeByDay")}
+        <Icon name="calendar" size={18} className="settings__chip-icon" />
+        {t("schedule.modeByDay")}
       </button>
       <button
         type="button"
-        className={"settings__chip" + (value === "mixed" ? " is-active" : "")}
+        className={
+          "settings__chip langs__seg" + (value === "mixed" ? " is-active" : "")
+        }
         aria-pressed={value === "mixed"}
         onClick={() => onPick("mixed")}
       >
-        🔀 {t("schedule.modeMixed")}
+        <Icon name="shuffle" size={18} className="settings__chip-icon" />
+        {t("schedule.modeMixed")}
       </button>
     </div>
   );
@@ -187,7 +191,7 @@ export default function LanguagesScreen({
 
   const pairName = (l) => (
     <>
-      <span aria-hidden="true">{LANG_EMOJI[l.learnLang] || "🌐"}</span>{" "}
+      <Flag lang={l.learnLang} size={22} className="langs__pair-flag" />
       {t(`lang.${l.learnLang}`)} → {t(`lang.${l.nativeLang}`)}
     </>
   );
@@ -212,7 +216,8 @@ export default function LanguagesScreen({
             onStartPlacement(pair);
           }}
         >
-          🎯 {t("placement.entry")}
+          <Icon name="target" size={18} className="langs__btn-icon" />
+          {t("placement.entry")}
         </button>
         <button
           type="button"
@@ -234,7 +239,7 @@ export default function LanguagesScreen({
         className="langs__mini"
         onClick={() => onStartPlacement(l)}
       >
-        🎯{" "}
+        <Icon name="target" size={16} className="langs__mini-icon" />
         {l.placementLevel
           ? t("placement.retestWithLevel", {
               level: l.placementLevel.toUpperCase(),
@@ -259,23 +264,33 @@ export default function LanguagesScreen({
 
       {/* Тумблер мультирежима — единственная точка его включения в приложении */}
       <div className="langs__group">
-        <h2 className="langs__group-title">{t("languages.multiToggle")}</h2>
+        <button
+          type="button"
+          className="langs__toggle-card"
+          role="switch"
+          aria-checked={multiLangMode}
+          onClick={handleToggle}
+        >
+          <span className="langs__toggle-text">
+            <span className="langs__toggle-title">
+              {t("languages.multiTitle")}
+            </span>
+            <span className="langs__toggle-sub">
+              {t("languages.multiSubtitle")}
+            </span>
+          </span>
+          <span
+            className={
+              "langs__switch" + (multiLangMode ? " is-on" : "")
+            }
+            aria-hidden="true"
+          >
+            <span className="langs__switch-knob" />
+          </span>
+        </button>
         {!multiLangMode && (
           <p className="langs__hint">{t("settings.multiLangHint")}</p>
         )}
-        <button
-          type="button"
-          className={
-            "settings__chip settings__chip--wide" +
-            (multiLangMode ? " is-active" : "")
-          }
-          aria-pressed={multiLangMode}
-          onClick={handleToggle}
-        >
-          {multiLangMode
-            ? t("settings.multiLangOn")
-            : t("settings.multiLangOff")}
-        </button>
 
         {/* Вопрос перед включением: сколько дней в неделю и какой режим */}
         {setupOpen && (
@@ -399,6 +414,7 @@ export default function LanguagesScreen({
             <WeekSchedule
               schedule={weeklySchedule}
               editable
+              appearance="ember"
               languages={languages}
               onChangeDay={(day, pairKey) =>
                 onUpdateSchedule({
@@ -420,12 +436,18 @@ export default function LanguagesScreen({
           {languages.map((l) => {
             const key = keyOf(l);
             return (
-              <div className="langs__item" key={key}>
+              <div
+                className={
+                  "langs__item" + (l.isPriority ? " langs__item--priority" : "")
+                }
+                key={key}
+              >
                 <div className="langs__item-head">
                   <span className="langs__item-name">{pairName(l)}</span>
                   {l.isPriority ? (
                     <span className="langs__badge">
-                      ★ {t("languages.priorityBadge")}
+                      <Icon name="spark" size={14} className="langs__badge-icon" />
+                      {t("languages.priorityBadge")}
                     </span>
                   ) : (
                     <button
@@ -522,10 +544,11 @@ export default function LanguagesScreen({
           ) : (
             <button
               type="button"
-              className="langs__ghost langs__ghost--wide"
+              className="langs__ghost langs__ghost--wide langs__add"
               onClick={() => setShowPicker(true)}
             >
-              ➕ {t("languages.addPair")}
+              <Icon name="plus" size={18} className="langs__btn-icon" />
+              {t("languages.addPair")}
             </button>
           )}
         </div>

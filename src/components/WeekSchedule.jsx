@@ -60,13 +60,20 @@ export default function WeekSchedule({
       aria-label={t("schedule.aria")}
     >
       <p className="week__today">
-        {/* В Ember флаг у «Сегодня: …» не показываем (дублирует флаги в полосе
-            дней) — только текст. В прежнем виде (экран «Мои языки») эмодзи-флаг
-            остаётся как был. */}
+        {/* Ember read-only полоса (экран карточки): флаг у «Сегодня» не дублируем
+            (флаги уже в полосе дней). Ember редактируемый режим («Мои языки»):
+            показываем круглый флаг у «Сегодня». Прежний вид — эмодзи-флаг. */}
         {todayPair && !ember && (
           <span aria-hidden="true">
             {LANG_EMOJI[todayPair.split("-")[0]] || "🌐"}{" "}
           </span>
+        )}
+        {todayPair && ember && editable && (
+          <Flag
+            lang={todayPair.split("-")[0]}
+            size={20}
+            className="week__today-flag"
+          />
         )}
         {todayLabel}
       </p>
@@ -138,7 +145,13 @@ export default function WeekSchedule({
                   aria-pressed={active}
                   onClick={() => choose(editingDay, key)}
                 >
-                  <span aria-hidden="true">{LANG_EMOJI[l.learnLang] || "🌐"} </span>
+                  {ember ? (
+                    <Flag lang={l.learnLang} size={18} className="week__opt-flag" />
+                  ) : (
+                    <span aria-hidden="true">
+                      {LANG_EMOJI[l.learnLang] || "🌐"}{" "}
+                    </span>
+                  )}
                   {t(`lang.${l.learnLang}`)}
                 </button>
               );

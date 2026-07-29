@@ -140,6 +140,8 @@ export default {
     title: "My languages",
     entry: "Manage languages",
     multiToggle: "I'm learning several languages",
+    multiTitle: "Several languages",
+    multiSubtitle: "a week plan picks the language",
     addFirstHint:
       "Mode is on. Add a second pair whenever you're ready — no rush.",
     activePair: "Active pair",
@@ -150,7 +152,7 @@ export default {
     submitChange: "Change",
     priorityBadge: "priority",
     makePriority: "Make priority",
-    limitLabel: "New words per day:",
+    limitLabel: "New per day",
     remove: "Remove",
     removeConfirmText:
       "The pair will be hidden and all progress kept — bring the language back anytime by adding it again.",
@@ -590,6 +592,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberLanguages: {
+        title: "My languages got the warm look — and the redesign is complete",
+        desc: "The last screen, “My languages”, moved to the Ember design: a terracotta multi-language toggle, Study days and By day / All at once as warm tiles, the week as a row of round language flags (no more blue blocks) with today ringed in terracotta, and each pair as a warm card with a round flag, a terracotta “priority” badge, New-per-day tiles and a red-tinted Remove. Everything works exactly as before. With this the whole app is on Ember.",
+      },
       emberListening: {
         title: "Listening got the warm look",
         desc: "The Listening screen moved to the Ember design: the “Comprehension” and “Words” tabs with the active one in terracotta, a warm hint plate, a round language flag, a terracotta audio player, neutral True/False buttons before you answer, and speed as a segmented control. Everything works exactly as before — dialogues with questions, the older word formats, speed, replay and new dialogue.",

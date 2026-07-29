@@ -1,8 +1,23 @@
+/* ============================================================================
+ * Экран «Мои языки» — оформление Ember (шаг 9/N, последний).
+ * ----------------------------------------------------------------------------
+ * Все цвета через `--ember-*`. Мультирежим — карточка-строка с тумблером
+ * (терракота), Study days и By day/All at once плашками, неделя круглыми
+ * флагами (см. WeekSchedule), активные пары — тёплые карточки с круглым флагом,
+ * меткой priority (терракота+искра) и плашками New per day, Remove красноватым,
+ * «Add a pair» пунктиром. Пикер пары — плашки с круглыми флагами. Логика
+ * (тумблер, дни, режим, тап по дню, приоритет, лимит, тест, удаление, добавление)
+ * не менялась — только представление.
+ * ========================================================================== */
+
 .langs {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 18px;
+  background-color: var(--ember-bg);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
 }
 
 .langs__header {
@@ -16,54 +31,125 @@
   width: 44px;
   height: 44px;
   min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: 12px;
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 20px;
   line-height: 1;
 }
 
 .langs__title {
-  font-size: 22px;
+  font-family: var(--font-word); /* Alegreya — заголовок */
+  font-size: 24px;
   font-weight: 700;
+  color: var(--ember-text);
 }
 
 .langs__group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
+/* Метка раздела — мелкой прописной, приглушённо (как на прочих экранах Ember). */
 .langs__group-title {
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ember-text-muted);
 }
 
 .langs__hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 14px;
   line-height: 1.45;
 }
 
-/* Подсказка после включения режима — спокойный зелёный тон */
+/* Подсказка после включения режима — спокойный оливковый тон. */
 .langs__hint--ok {
   padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(53, 200, 139, 0.35);
-  background-color: rgba(53, 200, 139, 0.08);
-  color: #35c88b;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid color-mix(in srgb, var(--ember-learned) 35%, transparent);
+  background-color: color-mix(in srgb, var(--ember-learned) 10%, transparent);
+  color: var(--ember-learned);
 }
 
-/* ---------- Карточка языковой пары в списке ---------- */
+/* ---------- Мультирежим: карточка-строка с тумблером ---------- */
+.langs__toggle-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius);
+  background-color: var(--ember-surface);
+  text-align: left;
+}
+
+.langs__toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.langs__toggle-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ember-text);
+}
+
+.langs__toggle-sub {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ember-text-muted);
+}
+
+/* Тумблер: серый трек → терракотовый при включении, светлая ручка едет вправо. */
+.langs__switch {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  width: 52px;
+  height: 30px;
+  padding: 3px;
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--ember-text) 22%, transparent);
+  transition: background-color 0.2s;
+}
+
+.langs__switch.is-on {
+  background-color: var(--ember-accent);
+  justify-content: flex-end;
+}
+
+.langs__switch-knob {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--ember-cream);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- Карточка языковой пары ---------- */
 .langs__item {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius);
+  background-color: var(--ember-surface);
+}
+
+/* Приоритетная пара — тёплая терракотовая подсветка. */
+.langs__item--priority {
+  border-color: color-mix(in srgb, var(--ember-accent) 45%, var(--ember-border));
+  background-color: color-mix(in srgb, var(--ember-accent) 6%, var(--ember-surface));
 }
 
 .langs__item-head {
@@ -75,48 +161,79 @@
 }
 
 .langs__item-name {
-  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-word); /* Alegreya — название пары (3 алфавита) */
+  font-size: 18px;
   font-weight: 700;
+  color: var(--ember-text);
+  overflow-wrap: anywhere;
 }
 
+.langs__pair-flag {
+  flex: 0 0 auto;
+}
+
+/* Метка приоритета — терракота + искра. */
 .langs__badge {
-  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 176, 32, 0.45);
-  background-color: rgba(255, 176, 32, 0.12);
-  color: #ffb020;
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 45%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
+  color: var(--ember-accent);
   font-size: 12px;
   font-weight: 700;
 }
 
-/* Малые действия внутри карточки пары */
+.langs__badge-icon {
+  flex: 0 0 auto;
+}
+
+/* Малые действия внутри карточки (Make priority, Test again). */
 .langs__mini {
   align-self: flex-start;
-  min-height: 36px;
-  padding: 6px 12px;
-  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--ember-border);
   border-radius: 999px;
-  background-color: var(--bg-elevated);
-  color: var(--text-muted);
+  background-color: var(--ember-card);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
+.langs__mini-icon {
+  flex: 0 0 auto;
+  color: var(--ember-text-muted);
+}
+
+/* Remove — красноватый текст без плашки. */
 .langs__mini--danger {
-  border-color: rgba(255, 107, 107, 0.4);
-  color: #ff8a8a;
+  border-color: transparent;
+  background-color: transparent;
+  color: #e0605a;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
-/* ---------- Дневной лимит ---------- */
+/* ---------- Дни в неделю / дневной лимит (плашки) ---------- */
 .langs__limit {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .langs__limit-label {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
 }
 
@@ -126,47 +243,57 @@
 }
 
 .langs__limit-chip {
-  min-width: 38px;
-  min-height: 32px;
-  padding: 4px 10px;
-  border: 1.5px solid var(--border);
-  border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text);
-  font-size: 13px;
+  min-width: 42px;
+  min-height: 38px;
+  padding: 6px 12px;
+  border: 1px solid var(--ember-border);
+  border-radius: 10px;
+  background-color: var(--ember-card);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+  font-size: 14px;
   font-weight: 700;
   transition:
     border-color 0.15s,
-    background-color 0.15s;
+    background-color 0.15s,
+    color 0.15s;
 }
 
 .langs__limit-chip.is-active {
-  border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.14);
-  color: var(--accent);
+  border-color: var(--ember-accent);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
 }
 
-/* ---------- Подтверждения (выключение режима / удаление пары) ---------- */
+/* By day / All at once — сегменты во всю ширину (плашки из settings__chip). */
+.langs__seg {
+  flex: 1;
+  justify-content: center;
+  border-radius: var(--ember-radius-sm);
+}
+
+/* ---------- Подтверждения (включение/выключение, удаление) ---------- */
 .langs__confirm {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 176, 32, 0.4);
-  background-color: rgba(255, 176, 32, 0.1);
+  padding: 14px 16px;
+  border-radius: var(--ember-radius);
+  border: 1px solid var(--ember-border);
+  background-color: var(--ember-surface);
 }
 
 .langs__confirm-title {
+  font-family: var(--font-word);
   font-size: 15px;
   font-weight: 700;
-  color: #ffb020;
+  color: var(--ember-text);
 }
 
 .langs__confirm-text {
   font-size: 14px;
   line-height: 1.45;
-  color: var(--text);
+  color: var(--ember-text-muted);
 }
 
 .langs__confirm-actions {
@@ -175,20 +302,26 @@
 }
 
 .langs__note {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
+  line-height: 1.45;
 }
 
 /* ---------- Кнопки ---------- */
 .langs__primary {
   flex: 1;
-  min-height: 44px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 10px 16px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--accent);
-  color: #0b0d12;
-  font-size: 14px;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
+  font-size: 15px;
   font-weight: 700;
 }
 
@@ -197,20 +330,25 @@
 }
 
 .langs__primary--danger {
-  background-color: #ff6b6b;
-  color: #1a0505;
+  background-color: #e0605a;
+  color: #fff;
 }
 
 .langs__ghost {
   flex: 1;
-  min-height: 44px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 10px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 600;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .langs__ghost--wide {
@@ -218,25 +356,40 @@
   flex: none;
 }
 
-/* ---------- Пикер пары (реюз чипов настроек) ---------- */
+/* Add a pair — пунктирная нейтральная кнопка. */
+.langs__add {
+  border-style: dashed;
+  background-color: transparent;
+  color: var(--ember-text-muted);
+}
+
+.langs__btn-icon {
+  flex: 0 0 auto;
+}
+
+/* ---------- Пикер пары (плашки настроек + круглые флаги) ---------- */
 .langs__picker {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--bg-elevated);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius);
+  background-color: var(--ember-surface);
 }
 
 .langs__picker-title {
   font-size: 14px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
 }
 
 .langs__picker-actions {
   display: flex;
   gap: 8px;
   margin-top: 4px;
+}
+
+.langs__chip-flag {
+  flex: 0 0 auto;
 }

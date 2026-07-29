@@ -105,11 +105,72 @@
   font-weight: 700;
 }
 
+/* Ember: круглый флаг у «Сегодня: …» (редактируемый режим «Мои языки»). */
+.week--ember .week__today-flag {
+  flex: 0 0 auto;
+}
+
 /* ---------- Редактируемый режим: тап по дню меняет язык ---------- */
 .week__dot--edit {
   cursor: pointer;
   color: var(--text);
   min-height: 48px;
+}
+
+/* ---------- Редактируемый режим в виде Ember (экран «Мои языки») ---------- */
+/* День — круглая плашка с кодом дня и круглым флагом; сегодня — терракотовая
+   рамка, выбранный для правки — тоже. Семь помещаются в строку (flex:1). */
+.week--ember .week__dot--edit {
+  aspect-ratio: 1;
+  min-height: 0;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px 2px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.week--ember .week__dot--edit.is-editing {
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 20%, transparent);
+  opacity: 1;
+}
+
+.week--ember .week__picker {
+  border-radius: var(--ember-radius);
+  border-color: var(--ember-border);
+  background-color: var(--ember-surface);
+}
+
+.week--ember .week__picker-title {
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
+}
+
+.week--ember .week__opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--ember-border);
+  border-radius: 999px;
+  background-color: var(--ember-card);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+}
+
+.week--ember .week__opt-flag {
+  flex: 0 0 auto;
+}
+
+.week--ember .week__opt.is-active {
+  border-color: var(--ember-accent);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+}
+
+.week--ember .week__hint {
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
 }
 
 /* Выбранный для редактирования день — акцентная рамка (важнее приглушения off) */
