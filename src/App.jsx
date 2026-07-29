@@ -1416,7 +1416,18 @@ export default function App() {
   return (
     <I18nProvider lang={nativeLang}>
       <Analytics />
-      <AppShell>
+      <AppShell
+        ember={[
+          "cards",
+          "session",
+          "settings",
+          "stats",
+          "mywords",
+          "reading",
+          "listening",
+          "languages",
+        ].includes(screen)}
+      >
         {content}
         {/* Туториал — после входа (гостям на экране регистрации он не нужен) */}
         {showTutorial && (!authRequired || auth.user) && (

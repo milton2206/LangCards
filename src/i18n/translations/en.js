@@ -592,6 +592,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberNoFrame: {
+        title: "No more dark edge around the screen",
+        desc: "On the redesigned screens the app frame now shares the warm Ember background, so there's no cold dark border around the edges — the background runs evenly to full width and the screen no longer looks cropped.",
+      },
       emberLanguages: {
         title: "My languages got the warm look — and the redesign is complete",
         desc: "The last screen, “My languages”, moved to the Ember design: a terracotta multi-language toggle, Study days and By day / All at once as warm tiles, the week as a row of round language flags (no more blue blocks) with today ringed in terracotta, and each pair as a warm card with a round flag, a terracotta “priority” badge, New-per-day tiles and a red-tinted Remove. Everything works exactly as before. With this the whole app is on Ember.",
