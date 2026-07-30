@@ -12,8 +12,10 @@ import {
   estimateLevel,
   pickItem,
 } from "../lib/placementAlgorithm.js";
-import { LANG_EMOJI } from "../data/onboarding.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import Icon from "../components/icons/Icon.jsx";
+import LevelBars from "../components/icons/LevelBars.jsx";
+import Flag from "../components/icons/Flag.jsx";
 import "./PlacementScreen.css";
 
 /**
@@ -24,6 +26,13 @@ import "./PlacementScreen.css";
  * Задания берутся из ОБЩЕГО банка (placement_items) — под пользователя ничего
  * не генерируется. Адаптивность и подсчёт живут в placementAlgorithm.js, здесь
  * только состояние прохождения и экран.
+ *
+ * Оформление Ember: тёплый фон, терракота-акцент, вопрос — Alegreya, варианты —
+ * плашки. ДО ответа варианты нейтральны и одинаковы (правильный не подсказан);
+ * ПОСЛЕ — правильный оливковым, ошибочный красноватым (тот же приём, что в
+ * вопросах чтения/аудирования). Показ результата НЕ меняет алгоритм: подсчёт,
+ * адаптивный подбор и правило остановки те же — переход к следующему заданию
+ * просто ждёт кнопки «Дальше».
  *
  * Без сети тест недоступен — карточки, повторение и настройки работают.
  */
@@ -43,6 +52,10 @@ export default function PlacementScreen({
   const [item, setItem] = useState(null);
   const [history, setHistory] = useState([]);
   const [finished, setFinished] = useState(false);
+  // Показ результата ответа (зелёный/красный) до перехода к следующему заданию.
+  // chosen — выбранный вариант (строка) или null («не знаю»); answered — ответ дан.
+  const [chosen, setChosen] = useState(null);
+  const [answered, setAnswered] = useState(false);
   // Ручная правка результата на финальном экране.
   const [manualOpen, setManualOpen] = useState(false);
   const [manualLevel, setManualLevel] = useState(null);
@@ -79,6 +92,8 @@ export default function PlacementScreen({
         usedIds.current = new Set();
         setHistory([]);
         setFinished(false);
+        setChosen(null);
+        setAnswered(false);
         setItem(pickItem(byLevel, START_LEVEL_INDEX, usedIds.current));
       } catch (err) {
         if (!active) return;
@@ -106,20 +121,29 @@ export default function PlacementScreen({
     [finished, history],
   );
 
+  // Ответ дан — только фиксируем его в истории и раскрываем зелёный/красный.
+  // Сам переход (правило остановки, адаптивный подбор) — в handleNext, чтобы
+  // человек успел увидеть, где правильный вариант. Алгоритм при этом тот же.
   function handleAnswer(option) {
-    if (!item) return;
+    if (!item || answered) return;
     const correct = option === item.correctAnswer;
-    const nextHistory = [...history, { levelIndex: item.levelIndex, correct }];
     usedIds.current.add(item.id);
-    setHistory(nextHistory);
+    setHistory((h) => [...h, { levelIndex: item.levelIndex, correct }]);
+    setChosen(option);
+    setAnswered(true);
+  }
 
-    if (shouldStop(nextHistory)) {
+  // Переход к следующему заданию (или к финалу) — прежняя логика подбора без
+  // изменений: правило остановки → адаптивный уровень → следующее задание.
+  function handleNext() {
+    if (!item) return;
+    if (shouldStop(history)) {
       setItem(null);
       setFinished(true);
       return;
     }
-
-    const target = nextLevelIndex(item.levelIndex, correct);
+    const last = history[history.length - 1];
+    const target = nextLevelIndex(item.levelIndex, last.correct);
     const next = pickItem(bank, target, usedIds.current);
     if (!next) {
       // Банк неожиданно кончился — честно заканчиваем на том, что есть.
@@ -127,6 +151,8 @@ export default function PlacementScreen({
       setFinished(true);
       return;
     }
+    setChosen(null);
+    setAnswered(false);
     setItem(next);
   }
 
@@ -134,7 +160,12 @@ export default function PlacementScreen({
   // переобуться на 18, нельзя: полоса поехала бы назад. Устоявшаяся лестница
   // просто заканчивает тест раньше, чем полоса дойдёт до конца.
   const total = MAX_ITEMS;
-  const current = history.length + 1;
+  const answeredCount = history.length;
+  // На раскрытии ответа (answered) номер не прыгает вперёд — мы всё ещё на этом
+  // задании; полоса заполнения при этом уже учитывает выполненное.
+  const current = Math.min(answered ? answeredCount : answeredCount + 1, total);
+  // Предпросмотр: этот ответ завершит тест? (чистая функция, алгоритм не трогаем)
+  const willFinish = answered && shouldStop(history);
 
   // ---------- Состояния экрана ----------
   const header = (
@@ -148,9 +179,7 @@ export default function PlacementScreen({
         ←
       </button>
       <h1 className="placement__title">{t("placement.title")}</h1>
-      <span className="placement__lang" aria-hidden="true">
-        {LANG_EMOJI[learnLang] || "🌐"}
-      </span>
+      <Flag lang={learnLang} size={26} className="placement__lang" />
     </header>
   );
 
@@ -159,10 +188,7 @@ export default function PlacementScreen({
       <section className="placement">
         {header}
         <div className="placement__center">
-          <div className="placement__emoji" aria-hidden="true">
-            📡
-          </div>
-          <p className="placement__notice">
+          <p className="placement__error">
             {offline ? t("placement.offline") : error}
           </p>
           <button
@@ -197,8 +223,10 @@ export default function PlacementScreen({
       <section className="placement">
         {header}
         <div className="placement__center">
-          <div className="placement__emoji" aria-hidden="true">
-            🎯
+          {/* Значок уровня — лесенка-сигнал (как в настройках), заполняется по
+              измеренному уровню. Не эмодзи. */}
+          <div className="placement__result-badge" aria-hidden="true">
+            <LevelBars level={result.levelId} size={40} />
           </div>
           <h2 className="placement__result">
             {t("placement.resultTitle", {
@@ -218,20 +246,28 @@ export default function PlacementScreen({
                 {t("placement.manualTitle")}
               </p>
               <div className="placement__manual-chips">
-                {PLACEMENT_LEVELS.map((id) => (
-                  <button
-                    key={id}
-                    type="button"
-                    className={
-                      "placement__manual-chip" +
-                      (suggested === id ? " is-active" : "")
-                    }
-                    aria-pressed={suggested === id}
-                    onClick={() => setManualLevel(id)}
-                  >
-                    {id.toUpperCase()}
-                  </button>
-                ))}
+                {PLACEMENT_LEVELS.map((id) => {
+                  const active = suggested === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      className={
+                        "placement__manual-chip" + (active ? " is-active" : "")
+                      }
+                      aria-pressed={active}
+                      onClick={() => setManualLevel(id)}
+                    >
+                      <LevelBars
+                        level={id}
+                        active={active}
+                        size={16}
+                        className="placement__manual-chip-icon"
+                      />
+                      {id.toUpperCase()}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -271,7 +307,7 @@ export default function PlacementScreen({
         <div className="placement__progress-bar" aria-hidden="true">
           <span
             className="placement__progress-fill"
-            style={{ width: `${(history.length / total) * 100}%` }}
+            style={{ width: `${(answeredCount / total) * 100}%` }}
           />
         </div>
         <span className="placement__progress-label">
@@ -292,28 +328,65 @@ export default function PlacementScreen({
           </p>
 
           <div className="placement__options">
-            {item.options.map((option, i) => (
-              <button
-                key={i}
-                type="button"
-                className="placement__option"
-                lang={learnLang}
-                onClick={() => handleAnswer(option)}
-              >
-                {option}
-              </button>
-            ))}
+            {item.options.map((option, i) => {
+              // Раскрытие результата: правильный — оливковым, ошибочный выбор —
+              // красноватым. ДО ответа классов нет: все варианты одинаковы и
+              // нейтральны, правильный не подсказан.
+              let mark = "";
+              if (answered) {
+                if (option === item.correctAnswer) mark = " is-correct";
+                else if (option === chosen) mark = " is-wrong";
+              }
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  className={"placement__option" + mark}
+                  lang={learnLang}
+                  disabled={answered}
+                  onClick={() => handleAnswer(option)}
+                >
+                  {/* Иконка — только как РЕЗУЛЬТАТ: галочка у правильного,
+                      крестик у ошибочного выбора. До ответа иконок нет. */}
+                  {mark === " is-correct" && (
+                    <Icon
+                      name="check"
+                      size={18}
+                      className="placement__option-icon"
+                    />
+                  )}
+                  {mark === " is-wrong" && (
+                    <Icon
+                      name="close"
+                      size={18}
+                      className="placement__option-icon"
+                    />
+                  )}
+                  <span className="placement__option-text">{option}</span>
+                </button>
+              );
+            })}
           </div>
 
-          {/* Не знаю — тоже ответ: засчитывается как ошибка, но человек не
-              вынужден гадать и застревать на задании. */}
-          <button
-            type="button"
-            className="placement__skip"
-            onClick={() => handleAnswer(null)}
-          >
-            {t("placement.dontKnow")}
-          </button>
+          {!answered ? (
+            /* Не знаю — тоже ответ: засчитывается как ошибка, но человек не
+               вынужден гадать и застревать на задании. */
+            <button
+              type="button"
+              className="placement__skip"
+              onClick={() => handleAnswer(null)}
+            >
+              {t("placement.dontKnow")}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="placement__next"
+              onClick={handleNext}
+            >
+              {willFinish ? t("placement.finish") : t("placement.next")}
+            </button>
+          )}
         </div>
       )}
 

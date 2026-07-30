@@ -241,6 +241,8 @@ export default {
     promptVocab: "Which word fits the meaning?",
     promptCloze: "Which word is missing?",
     dontKnow: "I don't know",
+    next: "Next",
+    finish: "See result",
     noTimer: "No timer — take your time. \"I don't know\" is a fine answer too.",
     resultTitle: "Looks like {level}",
     resultHint: "Correct answers: {n} of {total}.",
@@ -607,6 +609,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberPlacement: {
+        title: "Level test restyled",
+        desc: "The placement test now uses the warm Ember look like the rest of the app: a soft background with no blue and no black frame, the question shown large in Alegreya, and a “5 of 18” progress with a terracotta bar. Answer options are plates: before you answer they all look the same (the correct one isn't hinted), and after answering the right one turns olive, a wrong pick turns reddish, and a “Next” button appears. The “Looks like B1” result shows with a level-ladder badge. The test logic itself — adaptive difficulty, stop rule, scoring and saving your level — works exactly as before.",
+      },
       emberReview: {
         title: "Word review screen restyled",
         desc: "Reviewing due words now uses the warm Ember look like the rest of the app: a soft background with no blue and no black frame at the edges, and the word shown large in Alegreya. The self-rating buttons use meaningful colors — “Forgot” terracotta (repeat now), “Hard” amber, “Good” neutral, “Easy” olive (learned). The review logic, intervals, swipes, and audio all work exactly as before.",

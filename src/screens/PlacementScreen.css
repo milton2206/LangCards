@@ -1,8 +1,23 @@
+/* ============================================================================
+ * Экран теста определения уровня — оформление Ember.
+ * ----------------------------------------------------------------------------
+ * Токены `--ember-*`, шрифты (Alegreya Sans — заголовок и вопрос, Fira Sans —
+ * интерфейс). Тёплый фон, терракотовый акцент, синего дизайна больше нет.
+ * Варианты ответа — плашки: ДО ответа нейтральные и одинаковые (правильный не
+ * подсказан), ПОСЛЕ — правильный оливковым, ошибочный красноватым (тот же приём,
+ * что в вопросах чтения/аудирования). Активна ТЁМНАЯ тема, светлые токены
+ * заложены. Логику теста CSS не затрагивает.
+ * ========================================================================== */
+
 .placement {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  /* Тёплый фон — совпадает с Ember, ровный по краям и в overscroll-зоне. */
+  background-color: var(--ember-bg);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
 }
 
 .placement__header {
@@ -16,10 +31,10 @@
   width: 44px;
   height: 44px;
   min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 20px;
   line-height: 1;
 }
@@ -27,14 +42,15 @@
 .placement__title {
   flex: 1;
   min-width: 0;
+  font-family: var(--font-word); /* Alegreya — заголовок */
   font-size: 22px;
   font-weight: 700;
+  color: var(--ember-text);
 }
 
+/* Круглый флаг изучаемого языка (набор Ember). */
 .placement__lang {
   flex: 0 0 auto;
-  font-size: 22px;
-  line-height: 1;
 }
 
 /* ---------- Служебные состояния ---------- */
@@ -44,33 +60,40 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 14px;
   text-align: center;
 }
 
-.placement__emoji {
-  font-size: 52px;
-  line-height: 1;
-}
-
 .placement__notice {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 15px;
   line-height: 1.5;
 }
 
 .placement__hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
   line-height: 1.45;
+}
+
+/* Недоступность/ошибка — тёплая янтарная плашка (как на других экранах Ember). */
+.placement__error {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid rgba(224, 158, 74, 0.4);
+  background-color: rgba(224, 158, 74, 0.12);
+  color: #e0964a;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .placement__spinner {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 4px solid var(--border);
-  border-top-color: var(--accent);
+  border: 4px solid var(--ember-border);
+  border-top-color: var(--ember-accent);
   animation: placement-spin 0.9s linear infinite;
 }
 
@@ -96,7 +119,7 @@
 .placement__progress-bar {
   height: 6px;
   border-radius: 999px;
-  background-color: var(--border);
+  background-color: var(--ember-border);
   overflow: hidden;
 }
 
@@ -104,14 +127,15 @@
   display: block;
   height: 100%;
   border-radius: 999px;
-  background-color: var(--accent);
+  background-color: var(--ember-accent);
   transition: width 0.25s ease;
 }
 
 .placement__progress-label {
   align-self: flex-end;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
+  font-weight: 600;
 }
 
 /* ---------- Задание ---------- */
@@ -121,22 +145,29 @@
   gap: 12px;
 }
 
-/* Что делать — на родном языке пользователя */
+/* Что делать — на родном языке пользователя (интерфейс, Fira) */
 .placement__prompt {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
   line-height: 1.45;
 }
 
-/* Сам материал задания — на изучаемом языке, крупно */
+/* Сам материал задания — на изучаемом языке, крупно, Alegreya (три алфавита
+   читаются ровно), в тёплой карточке. */
 .placement__text {
+  font-family: var(--font-word);
   padding: 18px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background-color: var(--surface);
-  font-size: 19px;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius);
+  background-color: var(--ember-card);
+  color: var(--ember-text);
+  font-size: 20px;
+  font-weight: 600;
   line-height: 1.6;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
 }
 
 .placement__options {
@@ -145,50 +176,115 @@
   gap: 8px;
 }
 
+/* Плашка варианта. ДО ответа все одинаковы и нейтральны — правильный не
+   подсказан. Зелёный/красный ниже — только состояния РЕЗУЛЬТАТА. */
 .placement__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
   min-height: 52px;
   padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
   font-size: 16px;
   line-height: 1.45;
   text-align: left;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.placement__option-icon {
+  flex: 0 0 auto;
+}
+
+.placement__option-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .placement__option:active {
-  border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.12);
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
 }
 
+/* После ответа кнопки неактивны; невыбранные слегка приглушаются. */
+.placement__option:disabled {
+  opacity: 0.6;
+}
+
+/* Правильный вариант — оливковый (выучено). */
+.placement__option.is-correct {
+  border-color: var(--ember-learned);
+  background-color: color-mix(in srgb, var(--ember-learned) 18%, transparent);
+  color: var(--ember-learned);
+  opacity: 1;
+}
+
+/* Ошибочный выбор — красноватый (тёплый, в тон палитре, не «холодный» красный). */
+.placement__option.is-wrong {
+  border-color: #e0605a;
+  background-color: color-mix(in srgb, #e0605a 16%, transparent);
+  color: #e0605a;
+  opacity: 1;
+}
+
+/* «Не знаю» — тихая текстовая кнопка. */
 .placement__skip {
   align-self: center;
   min-height: 40px;
   padding: 8px 16px;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--ember-radius-sm);
   background: none;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
   font-size: 14px;
   text-decoration: underline;
+}
+
+/* «Дальше»/«Готово» — акцентная кнопка перехода к следующему заданию. */
+.placement__next {
+  min-height: 48px;
+  border: none;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .placement__footnote {
   margin-top: auto;
   padding-bottom: calc(4px + env(safe-area-inset-bottom));
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 12px;
   line-height: 1.45;
   text-align: center;
 }
 
 /* ---------- Результат ---------- */
+/* Значок уровня — лесенка в тёплом круге (терракота на приглушённом фоне). */
+.placement__result-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 40%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+}
+
 .placement__result {
+  font-family: var(--font-word); /* Alegreya — итог */
   font-size: 24px;
   font-weight: 700;
+  color: var(--ember-text);
 }
 
 .placement__manual {
@@ -197,13 +293,13 @@
   gap: 8px;
   width: 100%;
   padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(108, 140, 255, 0.25);
-  background-color: rgba(108, 140, 255, 0.08);
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 25%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 8%, transparent);
 }
 
 .placement__manual-title {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
 }
 
@@ -215,21 +311,28 @@
 }
 
 .placement__manual-chip {
-  min-width: 52px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-height: 40px;
-  padding: 6px 12px;
-  border: 1.5px solid var(--border);
+  padding: 6px 14px;
+  border: 1.5px solid var(--ember-border);
   border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 700;
 }
 
+.placement__manual-chip-icon {
+  flex: 0 0 auto;
+}
+
 .placement__manual-chip.is-active {
-  border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.14);
-  color: var(--accent);
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
 }
 
 .placement__actions {
@@ -243,9 +346,10 @@
   width: 100%;
   min-height: 48px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--accent);
-  color: #0b0d12;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
   font-size: 15px;
   font-weight: 700;
 }
@@ -253,9 +357,10 @@
 .placement__ghost {
   width: 100%;
   min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
   font-size: 15px;
 }
