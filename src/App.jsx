@@ -1481,11 +1481,7 @@ export default function App() {
         {/* «Что нового» — в основном приложении и не поверх туториала (чтобы два
             окна не стакались у новичка). Один раз за заход; закрытие → null. */}
         {whatsNew && inMainApp && !tutorial && (
-          <WhatsNew
-            mode={whatsNew.mode}
-            entries={whatsNew.entries}
-            onClose={() => setWhatsNew(null)}
-          />
+          <WhatsNew mode={whatsNew.mode} onClose={() => setWhatsNew(null)} />
         )}
       </AppShell>
     </I18nProvider>

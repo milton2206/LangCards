@@ -1,32 +1,92 @@
-/* Список изменений в окне «Что нового» (режим list) — оформление Ember. Базовые
-   стили окна и тёплый вид — в Modal.css через `.modal__box--ember`; здесь только
-   список записей тёплыми плашками с терракотовым акцентом. */
-.whatsnew__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/* ============================================================================
+ * «Что нового» — сессии обновлений аккордеоном (режим list). Оформление Ember.
+ * ----------------------------------------------------------------------------
+ * Базовый вид окна — в Modal.css через `.modal__box--ember`. Здесь: список
+ * сессий по датам, каждая — сворачиваемая тёплая плашка (изначально свёрнута),
+ * со стрелкой-индикатором. Токены `--ember-*` → работает в тёмной и светлой теме.
+ * ========================================================================== */
+.whatsnew__sessions {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
-/* Запись — тёплая плашка с тонкой терракотовой полосой слева (акцент). */
+/* Сессия — тёплая плашка-аккордеон. */
+.whatsnew__session {
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  overflow: hidden;
+}
+
+/* Заголовок сессии (кнопка-тап): дата + счётчик + стрелка. */
+.whatsnew__session-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: none;
+  background: none;
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+  text-align: left;
+}
+
+.whatsnew__session-date {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-word); /* Alegreya — дата сессии */
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ember-text);
+}
+
+/* Счётчик изменений в сессии — язык-нейтральная плашка-число (терракота). */
+.whatsnew__session-count {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--ember-accent) 16%, transparent);
+  color: var(--ember-accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Стрелка-индикатор: вниз = свёрнуто, вверх = развёрнуто. */
+.whatsnew__session-chevron {
+  flex: 0 0 auto;
+  color: var(--ember-text-muted);
+  transition: transform 0.2s ease;
+}
+
+.whatsnew__session-head.is-open .whatsnew__session-chevron {
+  transform: rotate(180deg);
+  color: var(--ember-accent);
+}
+
+/* Раскрытое содержимое сессии — записи этой даты. */
+.whatsnew__session-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 2px 14px 14px;
+}
+
+/* Запись внутри сессии — тонкая терракотовая полоса слева (акцент), без своей
+   плашки: контейнер сессии уже выделяет группу. */
 .whatsnew__item {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 12px 14px;
-  background-color: var(--ember-surface);
-  border: 1px solid var(--ember-border);
-  border-left: 3px solid var(--ember-accent);
-  border-radius: var(--ember-radius-sm);
-}
-
-.whatsnew__row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
+  padding-left: 12px;
+  border-left: 2px solid color-mix(in srgb, var(--ember-accent) 45%, transparent);
 }
 
 .whatsnew__item-title {
@@ -44,12 +104,6 @@
   flex: 0 0 auto;
   align-self: center;
   color: var(--ember-accent);
-}
-
-.whatsnew__date {
-  flex: 0 0 auto;
-  font-size: 12px;
-  color: var(--ember-text-muted);
 }
 
 .whatsnew__desc {

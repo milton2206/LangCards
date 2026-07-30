@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import { CHANGELOG } from "../data/changelog.js";
 import Icon from "./icons/Icon.jsx";
 import "./Modal.css";
 import "./WhatsNew.css";
@@ -7,14 +8,38 @@ import "./WhatsNew.css";
 /**
  * Окно «Что нового» при заходе. Два режима (см. resolveWhatsNew):
  *   greeting — короткое приветствие новичку (без списка изменений);
- *   list     — записи новее прошлого захода (новые сверху).
+ *   list     — ВСЯ история обновлений, сгруппированная по датам (сессиям).
  * Показывается один раз за заход, закрывается, переходам по экранам не мешает.
  *
- * entries — массив { id, date }; заголовок/описание берём из i18n по
- * whatsnew.entries.<id>.title / .desc. Дата форматируется на языке интерфейса.
+ * В режиме list рисуем ВСЕ сессии из CHANGELOG (сегодняшняя сверху, дальше в
+ * глубь истории). Каждая сессия — сворачиваемый блок (аккордеон), ИЗНАЧАЛЬНО все
+ * свёрнуты: виден компактный список дат, тап раскрывает содержимое. Что и когда
+ * ПОКАЗЫВАТЬ решает resolveWhatsNew (greeting/list/ничего) — эту логику не трогаем,
+ * меняется только вид: аккордеон по сессиям вместо плоского списка записей.
  */
-export default function WhatsNew({ mode, entries = [], onClose }) {
+export default function WhatsNew({ mode, onClose }) {
   const { t, lang } = useI18n();
+  const isGreeting = mode === "greeting";
+
+  // Изначально все сессии свёрнуты — храним набор раскрытых ключей-дней.
+  const [expanded, setExpanded] = useState(() => new Set());
+
+  // Группируем записи по дню (сессии). CHANGELOG — от новых к старым; дополнительно
+  // сортируем сессии и записи внутри по дате (устойчиво к случайному непорядку).
+  const sessions = useMemo(() => {
+    const byDay = new Map();
+    for (const entry of CHANGELOG) {
+      const day = String(entry.date).slice(0, 10); // YYYY-MM-DD
+      if (!byDay.has(day)) byDay.set(day, { day, date: entry.date, items: [] });
+      byDay.get(day).items.push(entry);
+    }
+    const list = [...byDay.values()];
+    for (const s of list) {
+      s.items.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+    list.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return list;
+  }, []);
 
   // Закрытие по Escape + блокировка прокрутки фона (как в остальных окнах).
   useEffect(() => {
@@ -30,18 +55,29 @@ export default function WhatsNew({ mode, entries = [], onClose }) {
     };
   }, [onClose]);
 
+  function toggle(day) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(day)) next.delete(day);
+      else next.add(day);
+      return next;
+    });
+  }
+
+  // Форматируем дату сессии в UTC — так подпись совпадает с ключом группировки
+  // (день по UTC, см. sessions). Иначе вечерние по UTC записи в часовых поясах
+  // впереди «переезжали» бы на следующий день и раздваивали сессию в подписи.
   function formatDate(iso) {
     try {
       return new Date(iso).toLocaleDateString(lang, {
         day: "numeric",
         month: "long",
+        timeZone: "UTC",
       });
     } catch {
       return iso;
     }
   }
-
-  const isGreeting = mode === "greeting";
 
   return (
     <div
@@ -77,26 +113,58 @@ export default function WhatsNew({ mode, entries = [], onClose }) {
         {isGreeting ? (
           <p className="modal__text">{t("whatsnew.greeting")}</p>
         ) : (
-          <ul className="whatsnew__list">
-            {entries.map((e) => (
-              <li className="whatsnew__item" key={e.id}>
-                <div className="whatsnew__row">
-                  <span className="whatsnew__item-title">
+          <div className="whatsnew__sessions">
+            {sessions.map((s) => {
+              const open = expanded.has(s.day);
+              const bodyId = `whatsnew-session-${s.day}`;
+              return (
+                <div className="whatsnew__session" key={s.day}>
+                  {/* Заголовок сессии — тап сворачивает/разворачивает. */}
+                  <button
+                    type="button"
+                    className={
+                      "whatsnew__session-head" + (open ? " is-open" : "")
+                    }
+                    aria-expanded={open}
+                    aria-controls={bodyId}
+                    onClick={() => toggle(s.day)}
+                  >
+                    <span className="whatsnew__session-date">
+                      {formatDate(s.date)}
+                    </span>
+                    <span className="whatsnew__session-count">
+                      {s.items.length}
+                    </span>
                     <Icon
-                      name="spark"
-                      size={15}
-                      className="whatsnew__item-icon"
+                      name="chevron"
+                      size={18}
+                      className="whatsnew__session-chevron"
                     />
-                    {t(`whatsnew.entries.${e.id}.title`)}
-                  </span>
-                  <span className="whatsnew__date">{formatDate(e.date)}</span>
+                  </button>
+
+                  {open && (
+                    <div id={bodyId} className="whatsnew__session-body">
+                      {s.items.map((e) => (
+                        <div className="whatsnew__item" key={e.id}>
+                          <span className="whatsnew__item-title">
+                            <Icon
+                              name="spark"
+                              size={15}
+                              className="whatsnew__item-icon"
+                            />
+                            {t(`whatsnew.entries.${e.id}.title`)}
+                          </span>
+                          <p className="whatsnew__desc">
+                            {t(`whatsnew.entries.${e.id}.desc`)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <p className="whatsnew__desc">
-                  {t(`whatsnew.entries.${e.id}.desc`)}
-                </p>
-              </li>
-            ))}
-          </ul>
+              );
+            })}
+          </div>
         )}
 
         <div className="modal__actions">

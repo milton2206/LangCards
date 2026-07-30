@@ -615,6 +615,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      whatsNewSessions: {
+        title: "Update history collapses",
+        desc: "The “What's new” window now shows the whole update history grouped by date: the latest session on top, older ones below. Each date is a collapsible block — everything starts collapsed, so you see a compact list of dates, and a tap expands the session you want (and collapses it again). A quick, tidy way to look back at what changed.",
+      },
       themeToggle: {
         title: "Light and dark theme",
         desc: "Settings now has an “Appearance” switch: dark (warm charcoal), light (warm clay), or “System”. Switching recolors the whole app at once — background, cards, text, buttons and statuses, along with the page background, with no dark edges in the light theme. The meaningful colors stay the same on either background: “Know” terracotta, “Take”/learned olive, errors reddish. Your choice is remembered between visits.",
