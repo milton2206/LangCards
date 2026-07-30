@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { authErrorKey } from "../lib/authErrors.js";
 import { passwordError } from "../lib/passwordValidation.js";
+import Icon from "./icons/Icon.jsx";
 import "./Modal.css";
 
 /**
@@ -60,11 +61,19 @@ export default function ChangePasswordModal({ onClose, onChange }) {
       aria-labelledby="pw-title"
       onClick={onClose}
     >
-      <div className="modal__box" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal__box modal__box--ember"
+        onClick={(e) => e.stopPropagation()}
+      >
         <header className="modal__header">
-          <h2 id="pw-title" className="modal__title">
-            {t("password.title")}
-          </h2>
+          <span className="modal__title-group">
+            <span className="modal__title-icon" aria-hidden="true">
+              <Icon name="lock" size={20} />
+            </span>
+            <h2 id="pw-title" className="modal__title">
+              {t("password.title")}
+            </h2>
+          </span>
           <button
             type="button"
             className="modal__close"
@@ -77,7 +86,9 @@ export default function ChangePasswordModal({ onClose, onChange }) {
 
         {status === "saved" ? (
           <>
-            <p className="modal__text">{t("password.saved")}</p>
+            <p className="modal__success" role="status">
+              {t("password.saved")}
+            </p>
             <div className="modal__actions">
               <button
                 type="button"

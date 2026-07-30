@@ -138,3 +138,97 @@
   color: var(--text);
   border: 1px solid var(--border);
 }
+
+/* ============================================================================
+ * Вид Ember (модификатор `modal__box--ember` — сейчас его использует только
+ * смена пароля). Общий базовый вид выше не трогаем: отзыв и удаление аккаунта
+ * остаются как есть. Токены `--ember-*`, шрифты Alegreya (заголовок) / Fira
+ * (интерфейс и поля), тёплые плашки, терракотовый акцент/фокус, ошибка —
+ * красноватым, успех — оливковым.
+ * ========================================================================== */
+.modal__box--ember {
+  background-color: var(--ember-card);
+  border-color: var(--ember-border);
+  border-radius: var(--ember-radius);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+}
+
+/* Заголовок + значок-замок в одну строку. */
+.modal__box--ember .modal__title-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.modal__box--ember .modal__title-icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 35%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
+}
+
+.modal__box--ember .modal__title {
+  font-family: var(--font-word); /* Alegreya — заголовок */
+  color: var(--ember-text);
+}
+
+.modal__box--ember .modal__close {
+  border-color: var(--ember-border);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+}
+
+.modal__box--ember .modal__text {
+  color: var(--ember-text-muted);
+}
+
+/* Поля пароля — тёплая плашка, терракотовый фокус (шрифт Fira). */
+.modal__box--ember .modal__input {
+  background-color: var(--ember-surface);
+  border-color: var(--ember-border);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+}
+
+.modal__box--ember .modal__input::placeholder {
+  color: color-mix(in srgb, var(--ember-text-muted) 75%, transparent);
+}
+
+.modal__box--ember .modal__input:focus {
+  border-color: var(--ember-accent);
+}
+
+/* Ошибка — красноватым (тёплый, в тон палитре). */
+.modal__box--ember .modal__error {
+  color: #e0605a;
+}
+
+/* Успех «пароль изменён» — оливковым. */
+.modal__box--ember .modal__success {
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--ember-learned);
+}
+
+/* Кнопки: основное действие — терракотовым акцентом, вторичная — тёплый ghost. */
+.modal__box--ember .modal__btn--primary {
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
+}
+
+.modal__box--ember .modal__btn--ghost {
+  background-color: var(--ember-surface);
+  border-color: var(--ember-border);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+}

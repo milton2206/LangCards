@@ -1,8 +1,23 @@
+/* ============================================================================
+ * Экран входа/регистрации + «забыл пароль» (сброс) и экран нового пароля по
+ * ссылке (ResetPasswordScreen) — оформление Ember.
+ * ----------------------------------------------------------------------------
+ * Токены `--ember-*`, шрифты (Alegreya Sans — заголовки, Fira Sans — интерфейс
+ * и поля). Тёплый фон, терракотовый акцент/фокус, синего дизайна больше нет.
+ * Ошибка — красноватым, успех/«письмо отправлено» — оливковым. Все три режима
+ * (signin/signup/reset) и экран нового пароля используют одни и те же `.auth*`
+ * классы, поэтому оформление у них единое. Логику экранов CSS не затрагивает.
+ * ========================================================================== */
+
 .auth {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 18px;
+  /* Тёплый фон — совпадает с Ember, ровный по краям и в overscroll-зоне. */
+  background-color: var(--ember-bg);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
 }
 
 .auth__header {
@@ -16,28 +31,44 @@
   width: 44px;
   height: 44px;
   min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 20px;
   line-height: 1;
 }
 
 .auth__title {
+  font-family: var(--font-word); /* Alegreya — заголовок */
   font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.3px;
+  color: var(--ember-text);
+}
+
+/* Значок-замок над экраном нового пароля (тёплый круг с линейной иконкой). */
+.auth__badge {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 40%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
 }
 
 .auth__note {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
   line-height: 1.5;
   padding: 10px 12px;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  background-color: var(--ember-surface);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
 }
 
 /* ---------- Переключатель Вход / Регистрация ---------- */
@@ -45,8 +76,8 @@
   display: flex;
   gap: 6px;
   padding: 4px;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
+  background-color: var(--ember-surface);
+  border: 1px solid var(--ember-border);
   border-radius: 999px;
 }
 
@@ -56,14 +87,15 @@
   border: none;
   border-radius: 999px;
   background-color: transparent;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 600;
 }
 
 .auth__tab.is-active {
-  background-color: var(--accent);
-  color: #0b0d12;
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
 }
 
 /* ---------- Форма ---------- */
@@ -79,44 +111,54 @@
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
 }
 
+/* Поля ввода — тёплая плашка, терракотовый фокус (шрифт Fira). */
 .auth__input {
   min-height: 48px;
   padding: 10px 14px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--bg-elevated);
-  color: var(--text);
+  border: 1.5px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
   font-size: 16px;
+}
+
+.auth__input::placeholder {
+  color: color-mix(in srgb, var(--ember-text-muted) 75%, transparent);
 }
 
 .auth__input:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--ember-accent);
 }
 
+/* Ошибка — красноватым (тёплый, в тон палитре). */
 .auth__error {
-  color: #ff6b6b;
+  color: #e0605a;
   font-size: 14px;
   line-height: 1.4;
 }
 
+/* Успех / «письмо отправлено» — оливковым (спокойный положительный тон). */
 .auth__notice {
-  color: #35c88b;
+  color: var(--ember-learned);
   font-size: 14px;
   line-height: 1.45;
 }
 
+/* Основное действие — терракотовым акцентом. */
 .auth__submit {
   margin-top: 4px;
   width: 100%;
   min-height: 52px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--accent);
-  color: #0b0d12;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
   font-size: 17px;
   font-weight: 700;
 }
@@ -132,7 +174,8 @@
   padding: 6px 8px;
   border: none;
   background: none;
-  color: var(--accent);
+  color: var(--ember-accent);
+  font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 600;
 }

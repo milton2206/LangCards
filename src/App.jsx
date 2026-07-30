@@ -1417,16 +1417,22 @@ export default function App() {
     <I18nProvider lang={nativeLang}>
       <Analytics />
       <AppShell
-        ember={[
-          "cards",
-          "session",
-          "settings",
-          "stats",
-          "mywords",
-          "reading",
-          "listening",
-          "languages",
-        ].includes(screen)}
+        ember={
+          // Экран восстановления пароля (по ссылке) и экран входа/сброса —
+          // тоже Ember: каркас тёплый, без холодной каймы вокруг.
+          auth.recovery ||
+          [
+            "cards",
+            "session",
+            "settings",
+            "stats",
+            "mywords",
+            "reading",
+            "listening",
+            "languages",
+            "auth",
+          ].includes(screen)
+        }
       >
         {content}
         {/* Туториал — после входа (гостям на экране регистрации он не нужен) */}

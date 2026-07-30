@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { authErrorKey } from "../lib/authErrors.js";
 import { passwordError } from "../lib/passwordValidation.js";
+import Icon from "../components/icons/Icon.jsx";
 import "./AuthScreen.css";
 
 /**
@@ -45,6 +46,9 @@ export default function ResetPasswordScreen({ onSubmit, onDone }) {
   if (done) {
     return (
       <section className="auth">
+        <div className="auth__badge" aria-hidden="true">
+          <Icon name="lock" size={26} />
+        </div>
         <h1 className="auth__title">{t("auth.reset.newTitle")}</h1>
         <p className="auth__notice">{t("auth.reset.saved")}</p>
         <button
@@ -60,6 +64,9 @@ export default function ResetPasswordScreen({ onSubmit, onDone }) {
 
   return (
     <section className="auth">
+      <div className="auth__badge" aria-hidden="true">
+        <Icon name="lock" size={26} />
+      </div>
       <h1 className="auth__title">{t("auth.reset.newTitle")}</h1>
       <p className="auth__note">{t("auth.reset.newLead")}</p>
 

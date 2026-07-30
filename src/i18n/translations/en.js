@@ -609,6 +609,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberPassword: {
+        title: "Password screens restyled",
+        desc: "Changing your password in settings and resetting a forgotten one (requesting the link on the sign-in screen and setting a new password from the email link) now use the warm Ember look like the rest of the app: a soft background with no blue, headings in Alegreya, input fields as warm plates with a terracotta focus, and a line-drawn lock icon. Action buttons are terracotta, errors show in reddish and success or the “email sent” message in olive. The logic itself — the neutral reset message, the recovery link, and entering and saving the new password — works exactly as before.",
+      },
       emberPlacement: {
         title: "Level test restyled",
         desc: "The placement test now uses the warm Ember look like the rest of the app: a soft background with no blue and no black frame, the question shown large in Alegreya, and a “5 of 18” progress with a terracotta bar. Answer options are plates: before you answer they all look the same (the correct one isn't hinted), and after answering the right one turns olive, a wrong pick turns reddish, and a “Next” button appears. The “Looks like B1” result shows with a level-ladder badge. The test logic itself — adaptive difficulty, stop rule, scoring and saving your level — works exactly as before.",
