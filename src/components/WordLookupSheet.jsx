@@ -38,7 +38,12 @@ export default function WordLookupSheet({
           </span>
           <div className="lookup__head-actions">
             {card && (
-              <PlayButton text={card.word} learnLang={learnLang} kind="word" />
+              <PlayButton
+                text={card.word}
+                learnLang={learnLang}
+                kind="word"
+                appearance="ember"
+              />
             )}
             <button
               type="button"
@@ -77,6 +82,7 @@ export default function WordLookupSheet({
                     text={card.example}
                     learnLang={learnLang}
                     kind="example"
+                    appearance="ember"
                   />
                 </div>
                 {card.exampleTranslation && (

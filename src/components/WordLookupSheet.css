@@ -1,4 +1,10 @@
-/* Шторка просмотра слова (общая: пример на карточке + текст в режиме чтения) */
+/* ============================================================================
+ * Шторка просмотра слова (общая: пример на карточке + текст в режиме чтения +
+ * демо туториала) — оформление Ember.
+ * ----------------------------------------------------------------------------
+ * Токены `--ember-*`, шрифты (Alegreya — слово, Fira — интерфейс). Тёплая
+ * плашка снизу, терракотовый акцент, ошибка янтарём, «добавлено» оливой.
+ * ========================================================================== */
 .lookup-overlay {
   position: fixed;
   inset: 0;
@@ -16,10 +22,12 @@
   flex-direction: column;
   gap: 12px;
   padding: 18px 20px calc(18px + env(safe-area-inset-bottom));
-  border-radius: var(--radius) var(--radius) 0 0;
-  border: 1px solid var(--border);
+  border-radius: var(--ember-radius) var(--ember-radius) 0 0;
+  border: 1px solid var(--ember-border);
   border-bottom: none;
-  background-color: var(--bg-elevated);
+  background-color: var(--ember-card);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
   /* длинный разбор не должен выталкивать кнопку «Взять» за экран */
   max-height: 80vh;
   overflow-y: auto;
@@ -33,8 +41,10 @@
 }
 
 .lookup__word {
+  font-family: var(--font-word); /* Alegreya — слово (три алфавита ровно) */
   font-size: 22px;
   font-weight: 700;
+  color: var(--ember-text);
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -51,25 +61,25 @@
   width: 36px;
   height: 36px;
   min-height: 36px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ember-border);
   border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text-muted);
+  background-color: var(--ember-surface);
+  color: var(--ember-text-muted);
   font-size: 14px;
   line-height: 1;
 }
 
 .lookup__hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 14px;
 }
 
 .lookup__error {
   padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 176, 32, 0.4);
-  background-color: rgba(255, 176, 32, 0.12);
-  color: #ffb020;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid rgba(224, 158, 74, 0.4);
+  background-color: rgba(224, 158, 74, 0.12);
+  color: #e0964a;
   font-size: 14px;
   line-height: 1.45;
 }
@@ -81,7 +91,7 @@
 }
 
 .lookup__translit {
-  color: var(--accent);
+  color: var(--ember-accent);
   font-size: 14px;
   letter-spacing: 0.5px;
 }
@@ -89,6 +99,7 @@
 .lookup__translation {
   font-size: 18px;
   font-weight: 500;
+  color: var(--ember-text);
 }
 
 /* Короткий пример внутри шторки */
@@ -98,7 +109,7 @@
   flex-direction: column;
   gap: 6px;
   padding-left: 12px;
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--ember-accent);
 }
 
 .lookup__example-row {
@@ -110,8 +121,10 @@
 .lookup__example-text {
   flex: 1;
   min-width: 0;
+  font-family: var(--font-word); /* пример на изучаемом языке — Alegreya */
   font-size: 15px;
   line-height: 1.5;
+  color: var(--ember-text);
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -119,25 +132,46 @@
 .lookup__example-translation {
   font-size: 14px;
   line-height: 1.5;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
+}
+
+/* Кнопки озвучки в шторке — тёплый терракотовый вид (линейная иконка). */
+.lookup .playbtn--ember {
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  border: none;
+  border-radius: 11px;
+  background-color: color-mix(in srgb, var(--ember-accent) 18%, transparent);
+  color: var(--ember-accent);
+}
+
+.lookup .playbtn--ember.playbtn--playing {
+  background-color: color-mix(in srgb, var(--ember-accent) 30%, transparent);
+}
+
+.lookup .playbtn--ember .playbtn__spinner {
+  border-color: color-mix(in srgb, var(--ember-accent) 30%, transparent);
+  border-top-color: var(--ember-accent);
 }
 
 .lookup__add {
   min-height: 48px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--accent);
-  color: #0b0d12;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
   font-size: 15px;
   font-weight: 700;
 }
 
 .lookup__added {
   padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(53, 200, 139, 0.4);
-  background-color: rgba(53, 200, 139, 0.1);
-  color: #35c88b;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid color-mix(in srgb, var(--ember-learned) 40%, transparent);
+  background-color: color-mix(in srgb, var(--ember-learned) 12%, transparent);
+  color: var(--ember-learned);
   font-size: 14px;
   font-weight: 600;
 }

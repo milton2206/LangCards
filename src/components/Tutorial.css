@@ -1,292 +1,458 @@
-.tutorial {
+/* ============================================================================
+ * Туториал (короткий онбординг + подробный разбор) — оформление Ember.
+ * ----------------------------------------------------------------------------
+ * Полноэкранное окно на тёплом фоне (без холодной каймы), заголовки Alegreya,
+ * интерфейс Fira, терракотовый акцент, линейные иконки. Демо-компоненты внутри
+ * (карточка/пример/всплывашка) — реальные, стили берут из своих файлов.
+ * ========================================================================== */
+.tut {
   position: fixed;
   inset: 0;
   z-index: 200;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 20px;
-  background-color: rgba(15, 17, 21, 0.96);
+  background-color: var(--ember-bg);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
-.tutorial__box {
+.tut__panel {
   width: 100%;
-  max-width: 420px;
-  max-height: 90dvh;
-  overflow-y: auto;
+  max-width: var(--maxw);
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 20px;
-  background-color: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  gap: 16px;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
 }
 
-.tutorial__top {
+/* ---------- Верх: точки прогресса + «Пропустить» ---------- */
+.tut__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.tutorial__step {
-  color: var(--text-muted);
-  font-size: 13px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+.tut__dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.tutorial__skip {
+.tut__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--ember-text) 20%, transparent);
+  transition:
+    width 0.2s,
+    background-color 0.2s;
+}
+
+.tut__dot.is-active {
+  width: 20px;
+  background-color: var(--ember-accent);
+}
+
+.tut__skip {
   min-height: 36px;
   padding: 6px 12px;
   border: none;
   border-radius: 8px;
   background-color: transparent;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 600;
 }
 
-/* ---------- Слайд ---------- */
-.tutorial__slide {
+/* ---------- Тело шага ---------- */
+.tut__body {
   flex: 1;
-  min-height: 260px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 14px;
+  gap: 12px;
 }
 
-.tutorial__emoji {
-  font-size: 56px;
-  line-height: 1;
+.tut__label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ember-accent);
 }
 
-.tutorial__title {
-  font-size: 24px;
+.tut__title {
+  font-family: var(--font-word); /* Alegreya — заголовок */
+  font-size: clamp(24px, 7vw, 30px);
+  line-height: 1.2;
   font-weight: 700;
   letter-spacing: -0.3px;
+  color: var(--ember-text);
+  overflow-wrap: break-word;
 }
 
-.tutorial__text {
-  color: var(--text-muted);
+.tut__text {
+  color: var(--ember-text-muted);
   font-size: 16px;
+  line-height: 1.55;
+  max-width: 42ch;
+}
+
+/* ---------- Вступление ---------- */
+.tut__welcome-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  margin-top: 8px;
+  border-radius: 28px;
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 35%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
+}
+
+.tut__welcome-lead {
+  margin-top: 4px;
+  padding: 14px 16px;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid var(--ember-border);
+  background-color: var(--ember-surface);
+  color: var(--ember-text-muted);
+  font-size: 14px;
   line-height: 1.5;
-  max-width: 32ch;
 }
 
-/* ---------- Подписи действий (используются в слайде со свайпами) ---------- */
-.tutorial__act-label {
-  flex: 0 0 auto;
-  min-width: 108px;
-  text-align: center;
-  padding: 8px 10px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-/* Цвета — ТОЧНО как в приложении (CardScreen): «Взять» зеленеет (свайп вправо,
-   кнопка --take), «Знаю» синеет (свайп влево, кнопка --know). */
-.tutorial__act-label--take {
-  background-color: rgba(53, 200, 139, 0.14);
-  border-color: rgba(53, 200, 139, 0.5);
-  color: #35c88b; /* зелёный */
-}
-
-.tutorial__act-label--skip {
-  background-color: var(--surface);
-  border-color: var(--border);
-  color: var(--text);
-}
-
-.tutorial__act-label--known {
-  background-color: rgba(108, 140, 255, 0.14);
-  border-color: rgba(108, 140, 255, 0.5);
-  color: #6c8cff; /* синий */
-}
-
-.tutorial__act-desc {
-  color: var(--text-muted);
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-/* ---------- Слайд со свайпами ---------- */
-.tutorial__swipe {
-  width: 100%;
+.tut__demo {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   margin-top: 4px;
 }
 
-.tutorial__swipe-row {
+/* Демо-карточки не растягиваются на всю высоту, как на экране карточек. */
+.tut .cards__card {
+  flex: 0 0 auto;
+}
+
+.tut__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ember-text-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.tut__hint-icon {
+  flex: 0 0 auto;
+  color: var(--ember-accent);
+}
+
+/* ---------- Свайп-демо ---------- */
+.tut__pills {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.tutorial__swipe-side {
-  flex: 1 1 0;
+.tut__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tut__pill--know {
+  background-color: color-mix(in srgb, var(--ember-know) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ember-know) 45%, transparent);
+  color: var(--ember-know);
+}
+
+.tut__pill--take {
+  background-color: color-mix(in srgb, var(--ember-take) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ember-take) 45%, transparent);
+  color: var(--ember-take);
+}
+
+.tut__swipe-result {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tut__swipe-result--know {
+  color: var(--ember-know);
+}
+
+.tut__swipe-result--take {
+  color: var(--ember-take);
+}
+
+.tut__swipe-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.tut__swipe-btn {
+  flex: 1;
+  min-height: 48px;
+  border: 1px solid transparent;
+  border-radius: var(--ember-radius-sm);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.tut__swipe-btn--know {
+  background-color: var(--ember-know);
+  color: var(--ember-on-accent);
+}
+
+.tut__swipe-btn--take {
+  background-color: var(--ember-take);
+  color: var(--ember-on-accent);
+}
+
+/* ---------- Занятие дня (превью) ---------- */
+.tut__session {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--ember-radius);
+  border: 1px solid var(--ember-border);
+  background-color: var(--ember-card);
+}
+
+.tut__session-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tut__session-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.tut__session-mins {
+  flex: 0 0 auto;
+  color: var(--ember-text-muted);
+  font-size: 13px;
+}
+
+.tut__session-tiles {
+  display: flex;
+  gap: 8px;
+}
+
+.tut__tile {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  padding: 12px 6px;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid var(--ember-border);
+  background-color: var(--ember-surface);
+  color: var(--ember-accent);
   text-align: center;
 }
 
-.tutorial__swipe-arrow {
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--text-muted);
+.tut__tile span {
+  color: var(--ember-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
 }
 
-/* Слева — «Знаю» (синий), справа — «Взять» (зелёный) — как в приложении. */
-.tutorial__swipe-side--left .tutorial__swipe-arrow {
-  color: #6c8cff;
-}
-
-.tutorial__swipe-side--right .tutorial__swipe-arrow {
-  color: #35c88b;
-}
-
-.tutorial__swipe-card {
-  flex: 0 0 auto;
-  width: 52px;
-  height: 68px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 30px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background-color: var(--surface);
-}
-
-.tutorial__swipe-desc {
-  color: var(--text-muted);
-  font-size: 13px;
-  line-height: 1.35;
-  max-width: 15ch;
-}
-
-.tutorial__swipe-skip {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-  text-align: left;
-}
-
-/* ---------- Слайд с самооценкой повторения ---------- */
-.tutorial__grades {
-  width: 100%;
+.tut__core {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 4px;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: var(--ember-radius);
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 25%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 8%, transparent);
 }
 
-.tutorial__grades-row {
+.tut__core-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tut__core-icon {
+  flex: 0 0 auto;
+  color: var(--ember-accent);
+}
+
+.tut__core-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ember-text);
+}
+
+.tut__core-text {
+  color: var(--ember-text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---------- Оценки повторения ---------- */
+.tut__grades {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 
-.tutorial__grade-pill {
-  min-height: 40px;
+.tut__grade {
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: var(--ember-radius-sm);
   border: 1.5px solid transparent;
   font-size: 14px;
   font-weight: 700;
 }
 
-/* Цвета — ТОЧНО как на экране повторения (ReviewScreen: .review__grade--*). */
-.tutorial__grade-pill--again {
-  background-color: rgba(255, 107, 107, 0.14);
-  border-color: rgba(255, 107, 107, 0.5);
-  color: #ff8a8a;
+.tut__grade--again {
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ember-accent) 50%, transparent);
+  color: var(--ember-accent);
 }
 
-.tutorial__grade-pill--hard {
-  background-color: rgba(255, 176, 32, 0.14);
-  border-color: rgba(255, 176, 32, 0.5);
-  color: #ffb020;
+.tut__grade--hard {
+  background-color: rgba(224, 158, 74, 0.14);
+  border-color: rgba(224, 158, 74, 0.5);
+  color: #e0964a;
 }
 
-.tutorial__grade-pill--good {
-  background-color: rgba(108, 140, 255, 0.14);
-  border-color: rgba(108, 140, 255, 0.5);
-  color: #6c8cff;
+.tut__grade--good {
+  background-color: var(--ember-surface);
+  border-color: var(--ember-border);
+  color: var(--ember-text-muted);
 }
 
-.tutorial__grade-pill--easy {
-  background-color: rgba(53, 200, 139, 0.14);
-  border-color: rgba(53, 200, 139, 0.5);
-  color: #35c88b;
+.tut__grade--easy {
+  background-color: color-mix(in srgb, var(--ember-learned) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ember-learned) 50%, transparent);
+  color: var(--ember-learned);
 }
 
-.tutorial__grades-hint {
-  color: var(--text-muted);
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-/* ---------- Точки ---------- */
-.tutorial__dots {
+/* ---------- Разбор экрана-функции ---------- */
+.tut__info-badge {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
+  width: 60px;
+  height: 60px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 40%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
+  color: var(--ember-accent);
 }
 
-.tutorial__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--border);
-  transition: background-color 0.2s;
-}
-
-.tutorial__dot.is-active {
-  background-color: var(--accent);
-}
-
-/* ---------- Навигация ---------- */
-.tutorial__nav {
+.tut__points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.tutorial__back {
-  flex: 0 0 auto;
-  min-height: 50px;
-  padding: 12px 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
-  font-size: 16px;
-  font-weight: 600;
+.tut__point {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid var(--ember-border);
+  background-color: var(--ember-surface);
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ember-text);
 }
 
-.tutorial__next {
-  flex: 1;
-  min-height: 50px;
+.tut__point-icon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--ember-accent);
+}
+
+/* ---------- Низ: кнопки ---------- */
+.tut__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.tut__primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 54px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--accent);
-  color: #0b0d12;
-  font-size: 16px;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
+  font-size: 17px;
   font-weight: 700;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ember-accent) 30%, transparent);
+}
+
+.tut__secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.tut__foot-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.tut__ghost-link {
+  align-self: center;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
 }

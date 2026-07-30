@@ -2,15 +2,13 @@ import { useEffect, useState } from "react";
 import { pickCurrentCard, MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
 import { GENERATE_COUNT_OPTIONS } from "../lib/generateCount.js";
-import { splitWords } from "../lib/highlightWord.js";
 import { useWordLookup } from "../hooks/useWordLookup.js";
 import WordLookupSheet from "../components/WordLookupSheet.jsx";
-import ConjugationPanel from "../components/ConjugationPanel.jsx";
+import WordCard from "../components/WordCard.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import LanguageSwitcher from "../components/LanguageSwitcher.jsx";
 import DailyBalance from "../components/DailyBalance.jsx";
 import WeekSchedule from "../components/WeekSchedule.jsx";
-import PlayButton from "../components/PlayButton.jsx";
 import Icon from "../components/icons/Icon.jsx";
 import { LANG_EMOJI } from "../data/onboarding.js";
 import "./CardScreen.css";
@@ -575,103 +573,15 @@ export default function CardScreen({
           пачки (article временно исчезает под экраном загрузки и монтируется
           заново). Листание свайпами перемонтажа не вызывает — второе и далее
           слова не качаются. */}
-      <article
-        className="cards__card cards__card--wiggle"
-        ref={swipe.cardRef}
+      <WordCard
+        card={card}
+        learnLang={learnLang}
+        nativeLang={nativeLang}
+        onWordTap={lookup.open}
+        innerRef={swipe.cardRef}
         style={cardStyle}
-      >
-        <div className="cards__word-block">
-          {/* «Контекст носителей»: короткий ярлык стиля/регистра над выражением
-              (сленг / вежливо / устарело …). У обычных слов поле пустое. */}
-          {card.register && (
-            <span className="cards__register">{card.register}</span>
-          )}
-          {/* Слово + кнопка озвучки (фаза 5.1): без аудио карточка работает
-              как раньше — кнопка просто неактивна. */}
-          <div className="cards__word-row">
-            <h1 id="card-word" className="cards__word" lang={learnLang}>
-              {card.word}
-            </h1>
-            <PlayButton
-              text={card.word}
-              learnLang={learnLang}
-              kind="word"
-              appearance="ember"
-            />
-          </div>
-          {/* Множественное число (существительные): показываем компактной строкой
-              рядом с основной формой. У слов без мн. числа (глаголы, выражения,
-              старые карточки без поля) — не показываем, без пустого места. */}
-          {card.plural && (
-            <p className="cards__plural">
-              <span className="cards__plural-label">{t("cards.plural")}</span>
-              <span className="cards__plural-form" lang={learnLang}>
-                {card.plural}
-              </span>
-            </p>
-          )}
-          {card.translit && (
-            <p className="cards__translit">{card.translit}</p>
-          )}
-          <p className="cards__translation">{card.translation}</p>
-        </div>
-
-        <div className="cards__divider" />
-
-        <div className="cards__example">
-          <div className="cards__example-label-row">
-            <span className="cards__example-label">{t("cards.example")}</span>
-            <PlayButton
-              text={card.example}
-              learnLang={learnLang}
-              kind="example"
-              appearance="ember"
-            />
-          </div>
-          {/* Каждое слово примера тапабельно: перевод + добавление в изучение
-              прямо из контекста (лёгкий пунктир снизу — намёк на тап). */}
-          <p className="cards__example-text" lang={learnLang}>
-            {splitWords(card.example).map((seg, i) =>
-              seg.isWord ? (
-                <button
-                  key={i}
-                  type="button"
-                  className="cards__example-word"
-                  onClick={() => lookup.open(seg.text)}
-                >
-                  {seg.text}
-                </button>
-              ) : (
-                <span key={i}>{seg.text}</span>
-              ),
-            )}
-          </p>
-          <p className="cards__example-translation">
-            {card.exampleTranslation}
-          </p>
-        </div>
-
-        {/* «Контекст носителей»: пометка об уместности/регистре выражения.
-            У обычных слов поле пустое — блок не показывается. */}
-        {card.note && (
-          <div className="cards__note">
-            <span className="cards__note-label">{t("cards.usageNote")}</span>
-            <p className="cards__note-text">{card.note}</p>
-          </div>
-        )}
-
-        {/* Спряжение — только у глаголов (по данным карточки card.pos). Общая
-            панель (та же в тексте чтения): таблица строится ПО ЗАПРОСУ и
-            кэшируется по слову. У существительных/старых карточек без pos её
-            нет. */}
-        {card.pos === "verb" && (
-          <ConjugationPanel
-            word={card.word}
-            learnLang={learnLang}
-            nativeLang={nativeLang}
-          />
-        )}
-      </article>
+        className="cards__card--wiggle"
+      />
 
       {/* Вторичные действия прокручиваются вместе с контентом (у их подписей нет
           фона, поэтому над контентом они бы не читались). Нижний отступ = высота

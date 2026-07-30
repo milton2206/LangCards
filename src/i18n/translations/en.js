@@ -609,6 +609,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberTutorial: {
+        title: "New tutorial",
+        desc: "The app's intro is fully redone in the warm Ember style. On first entry — a short four-screen welcome: “words live in examples” (tap a word right in the tutorial and see the translation) and “one movement” (a real card you can swipe left or right). It all runs on the app's live components, not pictures, and in a sandbox — demo actions don't touch your progress. From settings, under “How to use”, and from the last screen, a detailed guide opens covering every feature: cards, review, the daily session, reading, listening, several languages, level and topics, and installing on your phone. You can skip on any step.",
+      },
       emberStart: {
         title: "Start screen restyled",
         desc: "The first screen — the welcome before signing up or in — now uses the warm Ember look like the rest of the app: a soft background with no blue and no black frame, the “LangCards” name and greeting in Alegreya, and a terracotta sign-in/sign-up button. The mood is warm and encouraging — it greets you kindly. Signing up, signing in, and moving into the app all work exactly as before.",
@@ -871,32 +875,138 @@ export default {
 
   tutorial: {
     skip: "Skip",
-    next: "Next",
-    gotIt: "Got it",
-    slide1: {
-      title: "Learn words in context",
-      text: "Every word comes with an example sentence. That way they stick better than in isolation.",
+    skipStep: "Skip step",
+    next: "Got it, next",
+    gotIt: "Done",
+    begin: "Let's go",
+    alreadyKnow: "I'll figure it out myself",
+    startSession: "Start session",
+    openDetailed: "Detailed guide",
+    tryIt: "Try it yourself",
+    groups: {
+      cards: "Cards & words",
+      review: "Review",
+      session: "Daily session",
+      reading: "Reading",
+      listening: "Listening",
+      languages: "Several languages",
+      level: "Level & topics",
+      install: "Install on phone",
     },
-    slide2: {
-      title: "Control the card with a swipe",
-      text: "Swiping is the main way — just drag with your finger. The buttons below do the same. The card wiggles gently to hint it can be moved.",
-      leftDesc: "already familiar — remove for good",
-      rightDesc: "to learning — you'll review it",
-      skipDesc: "with the button — the word comes back later",
+    demo: {
+      translit: "[to paRAthiro]",
+      translation: "window",
+      exampleTranslation: "I open the window every morning.",
+      tapHint: "Tap a word in the example — the translation shows below.",
+      swipeHint: "Drag the card left or right.",
+      knowConfirm: "“Know” — word removed (this is a demo, your progress is safe).",
+      takeConfirm: "“Take” — word added to learning (this is a demo, your progress is safe).",
+      gradeHint: "Rate yourself: easier — less often, harder — more often. Nothing here is saved.",
+      glossFallback: "a word from the example",
+      gloss: {
+        "Ανοίγω": "I open",
+        "το": "the (article)",
+        "παράθυρο": "window",
+        "κάθε": "every",
+        "πρωί": "morning",
+      },
     },
-    slide3: {
-      title: "Review works on its own",
-      text: "Taken words come back for review on a schedule — the app reminds you when it's time.",
-      gradeHint: "Rate yourself: easier — less often, harder — more often.",
-      againHint: "“Again” brings the word back later in this same session.",
+    session: {
+      label: "Today · {lang}",
+      minutes: "≈ {n} min",
+      cards: "{n} cards",
+      text: "text",
+      dialogue: "dialogue",
+      coreTitle: "This is the core",
+      coreText:
+        "The full walkthrough is in settings, under “How to use”. Open it anytime.",
     },
-    slide4: {
-      title: "New cards — by button",
-      text: "New words appear only when you tap “Generate new cards” yourself.",
-    },
-    slide5: {
-      title: "My words and Known",
-      text: "Taken words are in “My words”, learned ones — in “Known”. Open them from the cards screen.",
+    steps: {
+      welcome: {
+        title: "Hello! This is LangCards",
+        text: "A language builds up little by little — a few minutes a day. We'll point you to what's next, and won't rush you.",
+        lead: "We'll show the essentials in four screens. You can skip on any of them.",
+      },
+      examples: {
+        title: "Words live in examples",
+        text: "Tap any word in the phrase — we'll show the translation. It sticks better this way than as a list.",
+      },
+      swipe: {
+        title: "One movement — and done",
+        text: "Left — already know it. Right — take it into your words. Drag the card to feel it.",
+      },
+      sessionReady: {
+        title: "Today's session is ready",
+        text: "We put together today's plan for you — cards, a bit of reading, and a dialogue. It's a little different every day.",
+      },
+      d_swipe: {
+        title: "The card and the swipe",
+        text: "A word with its translation and a living example. Left — “Know”, right — “Take into learning”. Try it right here.",
+      },
+      d_lookup: {
+        title: "Tap a word for its meaning",
+        text: "Any word in the example is tappable: translation, audio, and on a real card — “Add to learning” too.",
+      },
+      d_cardExtras: {
+        title: "More on the card",
+        text: "The card adapts to the word — it shows only what's relevant.",
+        points: [
+          "Plural form for nouns",
+          "A conjugation table for verbs — on request",
+          "Add your own word straight from an example",
+        ],
+      },
+      d_review: {
+        title: "Review on a schedule",
+        text: "Taken words come back for review when it's time. After you answer — rate yourself in meaningful colors.",
+      },
+      d_session: {
+        title: "Daily session",
+        text: "Each day the app assembles a short plan for you: review, a bit of reading, and a dialogue.",
+      },
+      d_reading: {
+        title: "Reading",
+        text: "A short text in your target language — with a breakdown right inside it.",
+        points: [
+          "Tap a word for its translation in context",
+          "The ¶ mark breaks a sentence down by grammar",
+          "At the end — “Did you get it?” questions",
+        ],
+      },
+      d_listening: {
+        title: "Listening",
+        text: "Short dialogues by ear — with questions and a handy player.",
+        points: [
+          "Dialogues with comprehension questions",
+          "Choose the speech speed",
+          "Pause, rewind, and replay",
+        ],
+      },
+      d_languages: {
+        title: "Several languages",
+        text: "You can learn several pairs at once — the app spreads out the load.",
+        points: [
+          "A priority language — it gets more attention",
+          "A schedule by day of the week",
+        ],
+      },
+      d_level: {
+        title: "Level & topics",
+        text: "The material adapts to you.",
+        points: [
+          "The level test — take it anytime",
+          "Your own generation topics on top of the ready ones",
+        ],
+      },
+      d_install: {
+        title: "Install on phone",
+        text: "LangCards can be installed like a regular app.",
+        points: [
+          "Add to the home screen (PWA) — full screen",
+          "An account is required — sign up once",
+          "Your progress syncs across devices",
+        ],
+      },
     },
   },
 

@@ -671,13 +671,15 @@ export default function App() {
     else setScreen("cards");
   }
 
-  // Короткий туториал показывается ОДИН раз при первом запуске (по флагу).
-  const [showTutorial, setShowTutorial] = useState(
-    () => !localStorage.getItem("tutorialSeen"),
+  // Туториал: короткая версия показывается ОДИН раз при первом запуске (по
+  // флагу), подробная — по запросу из настроек / с 4-го экрана. Значение —
+  // null | "short" | "detailed".
+  const [tutorial, setTutorial] = useState(() =>
+    localStorage.getItem("tutorialSeen") ? null : "short",
   );
 
   function closeTutorial() {
-    setShowTutorial(false);
+    setTutorial(null);
     try {
       localStorage.setItem("tutorialSeen", "1");
     } catch {
@@ -1197,7 +1199,7 @@ export default function App() {
               setScreen("review");
             }}
             onOpenStats={() => setScreen("stats")}
-            onOpenTutorial={() => setShowTutorial(true)}
+            onOpenTutorial={() => setTutorial("short")}
             onExitSession={exitSession}
             sessionNewBlock={sessionBlock === "newWords"}
             sessionNewTarget={sessionNewTarget}
@@ -1348,7 +1350,7 @@ export default function App() {
             onChange={updateSetting}
             onOpenLanguages={() => setScreen("languages")}
             onBack={() => setScreen("session")}
-            onOpenTutorial={() => setShowTutorial(true)}
+            onOpenTutorial={() => setTutorial("detailed")}
             placementLevel={activeLanguage?.placementLevel || null}
             onStartPlacement={() =>
               handleStartPlacement({
@@ -1436,13 +1438,24 @@ export default function App() {
         }
       >
         {content}
-        {/* Туториал — после входа (гостям на экране регистрации он не нужен) */}
-        {showTutorial && (!authRequired || auth.user) && (
-          <Tutorial onClose={closeTutorial} />
+        {/* Туториал — после входа (гостям на экране регистрации он не нужен).
+            Короткая версия при первом входе, подробная — из настроек/4-го экрана. */}
+        {tutorial && (!authRequired || auth.user) && (
+          <Tutorial
+            key={tutorial}
+            mode={tutorial}
+            onClose={closeTutorial}
+            onOpenDetailed={() => setTutorial("detailed")}
+            onStartSession={() => {
+              closeTutorial();
+              setScreen("session");
+            }}
+            nativeLang={nativeLang}
+          />
         )}
         {/* «Что нового» — в основном приложении и не поверх туториала (чтобы два
             окна не стакались у новичка). Один раз за заход; закрытие → null. */}
-        {whatsNew && inMainApp && !showTutorial && (
+        {whatsNew && inMainApp && !tutorial && (
           <WhatsNew
             mode={whatsNew.mode}
             entries={whatsNew.entries}
