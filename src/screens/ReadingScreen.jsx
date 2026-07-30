@@ -11,6 +11,7 @@ import {
   loadTextQuestions,
   saveTextQuestions,
   questionsKeyFor,
+  recentDialogueTitles,
 } from "../lib/comprehensionClient.js";
 import { stopCurrentAudio } from "../lib/ttsClient.js";
 import { apiErrorText } from "../lib/apiClient.js";
@@ -146,6 +147,9 @@ export default function ReadingScreen({
       const recentTitles = texts
         .filter((tx) => tx && tx.title && tx.topic === topic)
         .map((tx) => tx.title);
+      // Недавние диалоги аудирования этой темы — чтобы текст чтения не совпал с
+      // диалогом (механизм генерации общий, но результаты должны расходиться).
+      const otherTitles = recentDialogueTitles(pairKey, WORD_SOURCE, topic);
 
       const text = await requestReadingText({
         learnLang,
@@ -156,6 +160,7 @@ export default function ReadingScreen({
         // изучаемого + немного нового под тему и уровень).
         knownWords: takenWords || [],
         recentTitles,
+        otherTitles,
         // Объём блока чтения из движка заданий (сервер зажимает 3–8).
         sentences: plannedSentences || undefined,
       });

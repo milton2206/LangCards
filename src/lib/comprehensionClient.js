@@ -64,6 +64,8 @@ export async function requestDialogueSet({
   takenWords = [],
   source = "mixed",
   recentTitles = [],
+  // Заголовки недавних ТЕКСТОВ чтения этой темы — чтобы диалог не совпал с текстом.
+  otherTitles = [],
   questionCount, // число вопросов на понимание (объём блока в движке заданий)
 }) {
   let res;
@@ -82,6 +84,8 @@ export async function requestDialogueSet({
         source,
         // Заголовки недавних диалогов этой темы — чтобы модель не повторяла сюжет.
         recentTitles,
+        // …и недавних текстов той же темы — чтобы диалог не совпал с текстом.
+        otherTitles,
         // Объём: сколько вопросов просить (сервер зажимает в свои рамки). Пусто —
         // серверный дефолт.
         questions: questionCount,

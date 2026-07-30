@@ -14,7 +14,7 @@ import {
   requestDialogueSet,
   recentDialogueTitles,
 } from "../lib/comprehensionClient.js";
-import { requestGrammar } from "../lib/readingClient.js";
+import { requestGrammar, loadTexts } from "../lib/readingClient.js";
 import { apiErrorText } from "../lib/apiClient.js";
 import { stopCurrentAudio, prewarmPhrases } from "../lib/ttsClient.js";
 import AudioPlayer from "../components/AudioPlayer.jsx";
@@ -241,6 +241,11 @@ export default function ListeningScreen({
     try {
       // Заголовки недавних диалогов ЭТОЙ темы — чтобы модель дала другой сюжет.
       const recentTitles = recentDialogueTitles(pairKey, WORD_SOURCE, topic);
+      // …и недавних текстов чтения этой темы — чтобы диалог не совпал с текстом
+      // (механизм генерации общий, но результаты должны расходиться).
+      const otherTitles = loadTexts(pairKey, WORD_SOURCE)
+        .filter((tx) => tx && tx.title && tx.topic === topic)
+        .map((tx) => tx.title);
       const next = await requestDialogueSet({
         learnLang,
         nativeLang,
@@ -248,6 +253,7 @@ export default function ListeningScreen({
         level,
         takenWords: takenWords || [],
         recentTitles,
+        otherTitles,
         // Объём блока диалога из движка заданий (сервер зажимает число вопросов).
         questionCount: plannedQuestions || undefined,
       });

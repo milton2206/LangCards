@@ -607,6 +607,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      distinctVariedContent: {
+        title: "Reading and listening no longer overlap",
+        desc: "A reading text and a listening dialogue on the same topic now come out different — each generation is told about recent stories of the other format and asked for a distinct one. And instead of cramming every one of your words in, each piece weaves in just a few of them naturally; novelty and coherence win over stuffing in more vocabulary. Regenerating gives a fresh piece, not a repeat of the last text or a copy of the dialogue.",
+      },
       verbConjugationReading: {
         title: "Conjugation table in reading too",
         desc: "In a reading text, tap a word for its translation — and if it's a verb, the popup now has a “Conjugation” button that opens the same table (pronouns × present/future/past, forms only) as on the card. It's the same shared table and cache: a verb you already opened on a card won't be generated again in a text, and the other way round.",

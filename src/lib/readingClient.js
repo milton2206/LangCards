@@ -87,6 +87,9 @@ export async function requestReadingText({
   source,
   gapChoices,
   recentTitles,
+  // Заголовки недавних ДИАЛОГОВ аудирования этой темы — чтобы текст чтения не
+  // повторял диалог (разные форматы должны расходиться).
+  otherTitles,
 }) {
   let res;
   try {
@@ -112,6 +115,8 @@ export async function requestReadingText({
         gapChoices,
         // Заголовки недавних текстов этой темы — чтобы модель не повторяла сюжет.
         recentTitles,
+        // …и недавних диалогов той же темы — чтобы текст не совпал с диалогом.
+        otherTitles,
       }),
     });
   } catch {
