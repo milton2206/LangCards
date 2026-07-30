@@ -563,6 +563,12 @@ export default {
     install: "Install on phone",
     feedback: "Report a problem",
     changePassword: "Change password",
+    appearance: "Appearance",
+    theme: {
+      system: "System",
+      light: "Light",
+      dark: "Dark",
+    },
     deleteAccount: "Delete account",
     // Multi-language mode (explicit choice, phase 4.2).
     multiLang: "Multi-language mode",
@@ -609,6 +615,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      themeToggle: {
+        title: "Light and dark theme",
+        desc: "Settings now has an “Appearance” switch: dark (warm charcoal), light (warm clay), or “System”. Switching recolors the whole app at once — background, cards, text, buttons and statuses, along with the page background, with no dark edges in the light theme. The meaningful colors stay the same on either background: “Know” terracotta, “Take”/learned olive, errors reddish. Your choice is remembered between visits.",
+      },
       emberTutorial: {
         title: "New tutorial",
         desc: "The app's intro is fully redone in the warm Ember style. On first entry — a short four-screen welcome: “words live in examples” (tap a word right in the tutorial and see the translation) and “one movement” (a real card you can swipe left or right). It all runs on the app's live components, not pictures, and in a sandbox — demo actions don't touch your progress. From settings, under “How to use”, and from the last screen, a detailed guide opens covering every feature: cards, review, the daily session, reading, listening, several languages, level and topics, and installing on your phone. You can skip on any step.",

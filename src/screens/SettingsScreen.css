@@ -119,6 +119,48 @@
   border-radius: var(--ember-radius-sm);
 }
 
+/* ---------- Оформление: сегмент из трёх тем ---------- */
+.settings__theme {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.settings__theme-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  min-height: 68px;
+  padding: 12px 6px;
+  border: 1.5px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.settings__theme-chip svg {
+  color: var(--ember-text-muted);
+  transition: color 0.15s;
+}
+
+.settings__theme-chip.is-active {
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
+}
+
+.settings__theme-chip.is-active svg {
+  color: var(--ember-accent);
+}
+
 /* ---------- Строка-ряд (Manage languages, Check my level again) ---------- */
 .settings__row {
   width: 100%;

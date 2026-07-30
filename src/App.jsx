@@ -82,6 +82,12 @@ import {
   recordSignupSource,
 } from "./lib/presence.js";
 import { resolveWhatsNew } from "./lib/whatsNew.js";
+import {
+  loadThemePref,
+  saveThemePref,
+  applyThemePref,
+  watchSystemTheme,
+} from "./theme/emberTheme.js";
 
 // Id тем-пресетов и запасная тема: когда выбранная своя тема удалена или
 // принадлежит другой паре, откатываемся к пресету, чтобы генерация не осталась
@@ -686,6 +692,23 @@ export default function App() {
       // ignore
     }
   }
+
+  // Тема оформления Ember: 'system' | 'light' | 'dark'. Стартовая тема уже
+  // выставлена в main.jsx (до рендера, без мигания); здесь храним выбор и
+  // применяем его при смене. Только представление — логику не затрагивает.
+  const [themePref, setThemePref] = useState(loadThemePref);
+
+  function handleChangeTheme(pref) {
+    setThemePref(pref);
+    saveThemePref(pref);
+    applyThemePref(pref);
+  }
+
+  // Пока выбрано «как в системе» — следим за сменой темы ОС и перекрашиваем.
+  useEffect(() => {
+    applyThemePref(themePref);
+    return watchSystemTheme(themePref, () => applyThemePref("system"));
+  }, [themePref]);
 
   useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(settings));
@@ -1351,6 +1374,8 @@ export default function App() {
             onOpenLanguages={() => setScreen("languages")}
             onBack={() => setScreen("session")}
             onOpenTutorial={() => setTutorial("detailed")}
+            themePref={themePref}
+            onChangeTheme={handleChangeTheme}
             placementLevel={activeLanguage?.placementLevel || null}
             onStartPlacement={() =>
               handleStartPlacement({

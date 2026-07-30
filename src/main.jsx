@@ -1,10 +1,13 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-// Токены Ember (шаг 1/N): только ЗАВОДЯТ переменные (палитра, шрифты, тема).
-// Ни к одному экрану не применяются — визуально ничего не меняется.
+// Токены Ember: палитра/шрифты + переопределения под data-theme (светлая/тёмная).
 import './theme/ember.css'
+import { applyThemePref, loadThemePref } from './theme/emberTheme.js'
 import App from './App.jsx'
+
+// Тему выставляем ДО первого рендера — чтобы не мелькнула чужая тема (FOUC).
+applyThemePref(loadThemePref())
 
 // Одноразовая очистка перемешанных списков слов, оставшихся ДО разделения по
 // языковым парам (тестовые данные, в которых немецкие и греческие слова попали
