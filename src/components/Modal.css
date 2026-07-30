@@ -140,11 +140,11 @@
 }
 
 /* ============================================================================
- * Вид Ember (модификатор `modal__box--ember` — сейчас его использует только
- * смена пароля). Общий базовый вид выше не трогаем: отзыв и удаление аккаунта
- * остаются как есть. Токены `--ember-*`, шрифты Alegreya (заголовок) / Fira
- * (интерфейс и поля), тёплые плашки, терракотовый акцент/фокус, ошибка —
- * красноватым, успех — оливковым.
+ * Вид Ember (модификатор `modal__box--ember`): смена пароля, «Что нового»,
+ * удаление аккаунта, «Сообщить о проблеме». Общий базовый вид выше не трогаем —
+ * он остаётся для возможных старых окон. Токены `--ember-*`, шрифты Alegreya
+ * (заголовок) / Fira (интерфейс и поля), тёплые плашки, терракотовый акцент/
+ * фокус, ошибка — красноватым, успех — оливковым, опасное действие — красным.
  * ========================================================================== */
 .modal__box--ember {
   background-color: var(--ember-card);
@@ -173,6 +173,13 @@
   border: 1px solid color-mix(in srgb, var(--ember-accent) 35%, transparent);
   background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
   color: var(--ember-accent);
+}
+
+/* Значок опасного действия (удаление аккаунта) — красноватый. */
+.modal__box--ember .modal__title-icon--danger {
+  border-color: color-mix(in srgb, #cf4b3f 40%, transparent);
+  background-color: color-mix(in srgb, #cf4b3f 14%, transparent);
+  color: #cf4b3f;
 }
 
 .modal__box--ember .modal__title {
@@ -206,6 +213,30 @@
   border-color: var(--ember-accent);
 }
 
+/* Поле отзыва — тёплая плашка, терракотовый фокус (шрифт Fira). */
+.modal__box--ember .modal__textarea {
+  background-color: var(--ember-surface);
+  border-color: var(--ember-border);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+}
+
+.modal__box--ember .modal__textarea::placeholder {
+  color: color-mix(in srgb, var(--ember-text-muted) 75%, transparent);
+}
+
+.modal__box--ember .modal__textarea:focus {
+  border-color: var(--ember-accent);
+}
+
+/* Предупреждение о необратимости — тёплая красноватая плашка (читаемо). */
+.modal__box--ember .modal__warn {
+  color: var(--ember-text);
+  background-color: color-mix(in srgb, #cf4b3f 12%, transparent);
+  border: 1px solid color-mix(in srgb, #cf4b3f 40%, transparent);
+  border-radius: var(--ember-radius-sm);
+}
+
 /* Ошибка — красноватым (тёплый, в тон палитре). */
 .modal__box--ember .modal__error {
   color: #e0605a;
@@ -230,5 +261,12 @@
   background-color: var(--ember-surface);
   border-color: var(--ember-border);
   color: var(--ember-text);
+  font-family: var(--font-ui);
+}
+
+/* Опасное действие (удалить аккаунт) — тёплый красный, читается в обеих темах. */
+.modal__box--ember .modal__btn--danger {
+  background-color: #cf4b3f;
+  color: #fff7f2;
   font-family: var(--font-ui);
 }

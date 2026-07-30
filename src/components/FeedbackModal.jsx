@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import Icon from "./icons/Icon.jsx";
 import "./Modal.css";
 
 /**
@@ -53,11 +54,19 @@ export default function FeedbackModal({ onClose, onSend }) {
       aria-labelledby="feedback-title"
       onClick={onClose}
     >
-      <div className="modal__box" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal__box modal__box--ember"
+        onClick={(e) => e.stopPropagation()}
+      >
         <header className="modal__header">
-          <h2 id="feedback-title" className="modal__title">
-            {t("feedback.title")}
-          </h2>
+          <span className="modal__title-group">
+            <span className="modal__title-icon" aria-hidden="true">
+              <Icon name="daily" size={20} />
+            </span>
+            <h2 id="feedback-title" className="modal__title">
+              {t("feedback.title")}
+            </h2>
+          </span>
           <button
             type="button"
             className="modal__close"
@@ -70,7 +79,9 @@ export default function FeedbackModal({ onClose, onSend }) {
 
         {status === "sent" ? (
           <>
-            <p className="modal__text">{t("feedback.thanks")}</p>
+            <p className="modal__success" role="status">
+              {t("feedback.thanks")}
+            </p>
             <div className="modal__actions">
               <button
                 type="button"

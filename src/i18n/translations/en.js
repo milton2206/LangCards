@@ -615,6 +615,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberDialogs: {
+        title: "Delete and feedback dialogs restyled",
+        desc: "“Delete account” and “Report a problem” now use the warm Ember look like the rest of the app: a soft background with no blue, headings in Alegreya, and line-drawn icons. In delete account, the irreversibility warning is a readable reddish panel and the delete button is red (a dangerous action). In feedback, the input is a warm field with a terracotta focus, the send button is terracotta, and the “thank you” after sending shows in olive. It works in both dark and light themes. The logic itself — account-scoped deletion, sending feedback — is unchanged.",
+      },
       whatsNewSessions: {
         title: "Update history collapses",
         desc: "The “What's new” window now shows the whole update history grouped by date: the latest session on top, older ones below. Each date is a collapsible block — everything starts collapsed, so you see a compact list of dates, and a tap expands the session you want (and collapses it again). A quick, tidy way to look back at what changed.",

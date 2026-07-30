@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { apiErrorText } from "../lib/apiClient.js";
+import Icon from "./icons/Icon.jsx";
 import "./Modal.css";
 
 /**
@@ -47,11 +48,22 @@ export default function DeleteAccountDialog({ email, onClose, onConfirm }) {
       aria-labelledby="delete-title"
       onClick={status === "deleting" ? undefined : onClose}
     >
-      <div className="modal__box" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal__box modal__box--ember"
+        onClick={(e) => e.stopPropagation()}
+      >
         <header className="modal__header">
-          <h2 id="delete-title" className="modal__title">
-            {t("account.deleteTitle")}
-          </h2>
+          <span className="modal__title-group">
+            <span
+              className="modal__title-icon modal__title-icon--danger"
+              aria-hidden="true"
+            >
+              <Icon name="alert" size={20} />
+            </span>
+            <h2 id="delete-title" className="modal__title">
+              {t("account.deleteTitle")}
+            </h2>
+          </span>
         </header>
 
         {/* Прямо говорим о необратимости и что именно исчезнет. */}
