@@ -1,4 +1,3 @@
-import LanguageSwitcher from "../components/LanguageSwitcher.jsx";
 import Flag from "../components/icons/Flag.jsx";
 import Icon from "../components/icons/Icon.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
@@ -54,10 +53,7 @@ export default function SessionScreen({
   onStartBlock,
   onManual,
   onOpenSettings,
-  languages,
-  multiLangMode,
   activeLanguage,
-  onSwitchLanguage,
   learnLang,
   scheduleActive,
 }) {
@@ -103,28 +99,11 @@ export default function SessionScreen({
     return "";
   }
 
-  // Индикатор языка слева вверху: круглый флаг + название. В мультирежиме —
-  // интерактивный переключатель (тап открывает список пар); иначе — статичный
-  // чип. Круглый флаг — как договорились на карточке.
-  const langChip =
-    multiLangMode && languages?.length > 0 ? (
-      <LanguageSwitcher
-        languages={languages}
-        activeLanguage={activeLanguage}
-        onSwitch={onSwitchLanguage}
-        appearance="ember"
-        showName
-      />
-    ) : (
-      <div className="session__lang">
-        <Flag lang={learnLang} size={22} />
-        <span className="session__lang-name">{t(`lang.${learnLang}`)}</span>
-      </div>
-    );
-
+  // Верхняя панель — только настройки справа. Ручной выбор языка убран: язык
+  // дня определяется расписанием (логика не тронута), а сам язык виден у метки
+  // «Сегодня: [язык]» ниже с круглым флагом.
   const topbar = (
     <header className="session__topbar">
-      {langChip}
       <button
         type="button"
         className="session__icon-btn"
@@ -156,10 +135,17 @@ export default function SessionScreen({
         </p>
       )}
 
-      {/* Пояснения дня (расписание / день второстепенного языка) — приглушённо. */}
+      {/* Пояснения дня (расписание / день второстепенного языка) — приглушённо.
+          У «Сегодня: [язык]» — круглый флаг языка рядом с названием. */}
       {scheduleActive && (
-        <p className="session__note">
-          {t("schedule.today", { lang: t(`lang.${learnLang}`) })}
+        <p className="session__note session__note--today">
+          <span>{t("schedule.todayLabel")}</span>
+          <Flag
+            lang={learnLang}
+            size={18}
+            className="session__note-flag"
+          />
+          <span className="session__note-lang">{t(`lang.${learnLang}`)}</span>
         </p>
       )}
       {plan?.secondary && (

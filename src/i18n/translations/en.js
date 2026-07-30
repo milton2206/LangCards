@@ -439,6 +439,7 @@ export default {
     title: "Week schedule",
     daysLabel: "Study days:",
     today: "Today: {lang}",
+    todayLabel: "Today:",
     restToday: "Rest day today",
     restTitle: "Today is a rest day",
     restHint:
@@ -615,6 +616,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      sessionLangFlag: {
+        title: "Session: day's language with a flag",
+        desc: "On the “Today's session” screen we removed the manual language switcher at the top — it was redundant, since the day's language is set by the schedule anyway. The language now shows next to the “Today: [language]” label with a round flag beside the name, like elsewhere. The active-language logic is unchanged.",
+      },
       emberDialogs: {
         title: "Delete and feedback dialogs restyled",
         desc: "“Delete account” and “Report a problem” now use the warm Ember look like the rest of the app: a soft background with no blue, headings in Alegreya, and line-drawn icons. In delete account, the irreversibility warning is a readable reddish panel and the delete button is red (a dangerous action). In feedback, the input is a warm field with a terracotta focus, the send button is terracotta, and the “thank you” after sending shows in olive. It works in both dark and light themes. The logic itself — account-scoped deletion, sending feedback — is unchanged.",
