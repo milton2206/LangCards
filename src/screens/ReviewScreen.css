@@ -1,8 +1,23 @@
+/* ============================================================================
+ * Экран повторения слов (SRS) — оформление Ember.
+ * ----------------------------------------------------------------------------
+ * По аналогии с экраном карточки (CardScreen.css): токены `--ember-*`, шрифты
+ * (Alegreya Sans — слово и пример-контент, Fira Sans — интерфейс), тёплый фон,
+ * терракотовый акцент, оливковый = «выучено». Синего дизайна больше нет. Активна
+ * ТЁМНАЯ тема, но все цвета идут через семантические токены, поэтому светлая
+ * тема заработает без переделки. Логика повторения (nextSrs, очередь, оценки),
+ * свайпы и озвучка НЕ менялись — только представление.
+ * ========================================================================== */
+
 .review {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  /* Тёплый фон экрана — совпадает с Ember, ровный по краям и в overscroll-зоне. */
+  background-color: var(--ember-bg);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
 }
 
 .review__header {
@@ -16,16 +31,16 @@
   width: 44px;
   height: 44px;
   min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 20px;
   line-height: 1;
 }
 
 .review__remaining {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 14px;
   font-weight: 600;
 }
@@ -38,9 +53,9 @@
   justify-content: center;
   gap: 20px;
   padding: 28px 22px;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background-color: var(--ember-card);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius);
 }
 
 /* Ряды «текст + кнопка озвучки» (фаза 5.1) */
@@ -65,8 +80,10 @@
   gap: 10px;
 }
 
-/* Лицо карточки: пример предложения целиком, изучаемое слово выделено */
+/* Лицо карточки: пример предложения целиком, изучаемое слово выделено.
+   Изучаемый язык — Alegreya Sans (контент, три алфавита читаются ровно). */
 .review__sentence {
+  font-family: var(--font-word);
   font-size: clamp(20px, 6vw, 25px);
   font-weight: 600;
   line-height: 1.5;
@@ -76,9 +93,10 @@
   -webkit-hyphens: auto;
 }
 
+/* Выделенное изучаемое слово — тёплая терракотовая подсветка (без синего). */
 .review__highlight {
-  background-color: rgba(108, 140, 255, 0.22);
-  color: var(--accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 22%, transparent);
+  color: var(--ember-accent);
   font-weight: 800;
   padding: 0 3px;
   border-radius: 4px;
@@ -88,10 +106,10 @@
   align-self: flex-start;
   min-height: 52px;
   padding: 12px 28px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--bg-elevated);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 16px;
   font-weight: 700;
 }
@@ -99,7 +117,7 @@
 .review__divider {
   width: 100%;
   height: 1px;
-  background-color: var(--border);
+  background-color: var(--ember-border);
 }
 
 /* ---------- Оборот: слово, транскрипция, перевод, перевод примера ---------- */
@@ -110,7 +128,9 @@
   width: 100%;
 }
 
+/* Слово — крупно, гуманистическая Alegreya Sans. */
 .review__word {
+  font-family: var(--font-word);
   font-size: clamp(24px, 8vw, 32px);
   font-weight: 700;
   line-height: 1.2;
@@ -122,22 +142,22 @@
 }
 
 /* Ярлык стиля/регистра выражения («Контекст носителей») — тот же вид, что на
-   карточке. Заметный, но компактный. */
+   карточке: тёплая терракотовая плашка-пилюля. */
 .review__register {
   align-self: flex-start;
   display: inline-block;
   padding: 3px 11px;
   border-radius: 999px;
-  border: 1px solid rgba(108, 140, 255, 0.35);
-  background-color: rgba(108, 140, 255, 0.14);
-  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 35%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.3px;
 }
 
 .review__translit {
-  color: var(--accent);
+  color: var(--ember-accent);
   font-size: 15px;
   letter-spacing: 0.5px;
 }
@@ -159,18 +179,62 @@
   letter-spacing: 1px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
 }
 
 .review__sentence-translation {
   font-size: 15px;
   line-height: 1.5;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
-/* ---------- Самооценка: 2×2 сетка ---------- */
+/* ---------- Кнопки озвучки (вид Ember) ---------- */
+/* Слово: терракотовый «сквиркл» с линейной иконкой (как на карточке). */
+.review__word-row .playbtn--ember {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: none;
+  border-radius: 14px;
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+}
+
+.review__word-row .playbtn--ember.playbtn--playing {
+  filter: brightness(1.06);
+}
+
+.review__word-row .playbtn--ember .playbtn__spinner {
+  border-color: color-mix(in srgb, var(--ember-on-accent) 35%, transparent);
+  border-top-color: var(--ember-on-accent);
+}
+
+/* Озвучка примера — та же форма, меньше и мягче (тёплая терракота приглушённо). */
+.review__sentence-row .playbtn--ember {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  border: none;
+  border-radius: 10px;
+  background-color: color-mix(in srgb, var(--ember-accent) 20%, transparent);
+  color: var(--ember-accent);
+}
+
+.review__sentence-row .playbtn--ember.playbtn--playing {
+  background-color: color-mix(in srgb, var(--ember-accent) 30%, transparent);
+}
+
+.review__sentence-row .playbtn--ember .playbtn__spinner {
+  border-color: color-mix(in srgb, var(--ember-accent) 30%, transparent);
+  border-top-color: var(--ember-accent);
+}
+
+/* ---------- Самооценка: 2×2 сетка в смысловых цветах Ember ----------
+   Тёплая шкала без синего: Не помню — терракота (повторить сейчас), Трудно —
+   янтарь (осторожно), Нормально — нейтральный серый (ожидаемо), Легко —
+   оливковый (выучено). */
 .review__grades {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -186,8 +250,9 @@
   gap: 2px;
   min-height: 52px;
   padding: 8px 6px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--ember-radius-sm);
   border: 1.5px solid transparent;
+  font-family: var(--font-ui);
 }
 
 .review__grade-label {
@@ -201,28 +266,32 @@
   opacity: 0.75;
 }
 
+/* Не помню — терракотовый акцент (повторить сейчас, требует внимания). */
 .review__grade--again {
-  background-color: rgba(255, 107, 107, 0.14);
-  border-color: rgba(255, 107, 107, 0.5);
-  color: #ff8a8a;
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ember-accent) 50%, transparent);
+  color: var(--ember-accent);
 }
 
+/* Трудно — тёплый янтарь (тот же тон «осторожно», что и в карточке). */
 .review__grade--hard {
-  background-color: rgba(255, 176, 32, 0.14);
-  border-color: rgba(255, 176, 32, 0.5);
-  color: #ffb020;
+  background-color: rgba(224, 158, 74, 0.14);
+  border-color: rgba(224, 158, 74, 0.5);
+  color: #e0964a;
 }
 
+/* Нормально — нейтральный (ожидаемый исход, без акцента). */
 .review__grade--good {
-  background-color: rgba(108, 140, 255, 0.14);
-  border-color: rgba(108, 140, 255, 0.5);
-  color: var(--accent);
+  background-color: var(--ember-surface);
+  border-color: var(--ember-border);
+  color: var(--ember-text-muted);
 }
 
+/* Легко — оливковый (выучено, положительный исход). */
 .review__grade--easy {
-  background-color: rgba(53, 200, 139, 0.14);
-  border-color: rgba(53, 200, 139, 0.5);
-  color: #35c88b;
+  background-color: color-mix(in srgb, var(--ember-learned) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ember-learned) 50%, transparent);
+  color: var(--ember-learned);
 }
 
 /* ---------- Экран «Повторение завершено» ---------- */
@@ -241,26 +310,35 @@
   width: 44px;
   height: 44px;
   min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 20px;
   line-height: 1;
 }
 
-.review__status-emoji {
-  font-size: 56px;
-  line-height: 1;
+/* Значок завершения — оливковый круг с линейной галочкой (не эмодзи). */
+.review__status-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ember-learned) 40%, transparent);
+  background-color: color-mix(in srgb, var(--ember-learned) 14%, transparent);
+  color: var(--ember-learned);
 }
 
 .review__status-title {
+  font-family: var(--font-word);
   font-size: 24px;
   font-weight: 700;
 }
 
 .review__status-hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 15px;
   max-width: 30ch;
 }
@@ -269,10 +347,10 @@
   margin-top: 12px;
   min-height: 48px;
   padding: 12px 24px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: none;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
 }

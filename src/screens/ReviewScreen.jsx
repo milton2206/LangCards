@@ -4,6 +4,7 @@ import { formatInterval } from "../i18n/format.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { nextSrs } from "../hooks/useWordLists.js";
 import PlayButton from "../components/PlayButton.jsx";
+import Icon from "../components/icons/Icon.jsx";
 import "./ReviewScreen.css";
 
 const GRADES = [
@@ -118,8 +119,8 @@ export default function ReviewScreen({
         >
           ←
         </button>
-        <div className="review__status-emoji" aria-hidden="true">
-          🎉
+        <div className="review__status-badge" aria-hidden="true">
+          <Icon name="check" size={32} />
         </div>
         <h1 className="review__status-title">{t("review.doneTitle")}</h1>
         <p className="review__status-hint">{t("review.doneHint")}</p>
@@ -181,6 +182,7 @@ export default function ReviewScreen({
               text={info.example}
               learnLang={learnLang}
               kind="example"
+              appearance="ember"
             />
           </div>
         ) : (
@@ -203,6 +205,7 @@ export default function ReviewScreen({
                   text={currentWord}
                   learnLang={learnLang}
                   kind="word"
+                  appearance="ember"
                 />
               </div>
               {info.register && (

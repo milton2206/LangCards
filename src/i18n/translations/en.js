@@ -607,6 +607,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberReview: {
+        title: "Word review screen restyled",
+        desc: "Reviewing due words now uses the warm Ember look like the rest of the app: a soft background with no blue and no black frame at the edges, and the word shown large in Alegreya. The self-rating buttons use meaningful colors — “Forgot” terracotta (repeat now), “Hard” amber, “Good” neutral, “Easy” olive (learned). The review logic, intervals, swipes, and audio all work exactly as before.",
+      },
       distinctVariedContent: {
         title: "Reading and listening no longer overlap",
         desc: "A reading text and a listening dialogue on the same topic now come out different — each generation is told about recent stories of the other format and asked for a distinct one. And instead of cramming every one of your words in, each piece weaves in just a few of them naturally; novelty and coherence win over stuffing in more vocabulary. Regenerating gives a fresh piece, not a repeat of the last text or a copy of the dialogue.",
