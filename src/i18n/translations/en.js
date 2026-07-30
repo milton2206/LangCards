@@ -616,6 +616,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      reviewCardCentered: {
+        title: "Word centered on review",
+        desc: "The review card's front is tidier now: before you tap, you see the word itself — large, centered in the card (with its transcription underneath if there is one), without the empty space around it. The translation and example still open on “Show translation”, and swipes, audio, and the review logic all work as before.",
+      },
       sessionLangFlag: {
         title: "Session: day's language with a flag",
         desc: "On the “Today's session” screen we removed the manual language switcher at the top — it was redundant, since the day's language is set by the schedule anyway. The language now shows next to the “Today: [language]” label with a round flag beside the name, like elsewhere. The active-language logic is unchanged.",

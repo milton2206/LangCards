@@ -58,6 +58,66 @@
   border-radius: var(--ember-radius);
 }
 
+/* ---------- Лицо: слово по центру карточки, крупно ----------
+   До тапа показываем только само слово (+ транскрипция при наличии),
+   вертикально и горизонтально по центру — собранная компоновка, фокус на
+   слове, без ощущения пустоты. Оборот открывается по «Показать перевод». */
+.review__front {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 18px;
+}
+
+.review__front-word {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  max-width: 100%;
+}
+
+.review__front-word .review__word {
+  min-width: 0;
+}
+
+/* Слово на лице — крупнее, чем на обороте: оно в центре внимания. */
+.review__front .review__word {
+  font-size: clamp(32px, 11vw, 48px);
+}
+
+.review__front .review__translit {
+  font-size: 17px;
+}
+
+/* «Показать перевод» на лице — по центру (на обороте кнопки нет). */
+.review__front .review__reveal {
+  align-self: center;
+}
+
+/* Озвучка слова на лице — терракотовый сквиркл (как на обороте). */
+.review__front-word .playbtn--ember {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: none;
+  border-radius: 14px;
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+}
+
+.review__front-word .playbtn--ember.playbtn--playing {
+  filter: brightness(1.06);
+}
+
+.review__front-word .playbtn--ember .playbtn__spinner {
+  border-color: color-mix(in srgb, var(--ember-on-accent) 35%, transparent);
+  border-top-color: var(--ember-on-accent);
+}
+
 /* Ряды «текст + кнопка озвучки» (фаза 5.1) */
 .review__sentence-row {
   display: flex;

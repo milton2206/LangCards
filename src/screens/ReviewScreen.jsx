@@ -163,38 +163,65 @@ export default function ReviewScreen({
       </header>
 
       <article className="review__card">
-        {/* Лицо: предложение целиком, изучаемое слово выделено. Рядом —
-            озвучка примера (фаза 5.1). */}
-        {hasExample ? (
-          <div className="review__sentence-row">
-            <p className="review__sentence" lang={learnLang}>
-              {segments.map((seg, i) =>
-                seg.highlight ? (
-                  <mark key={i} className="review__highlight">
-                    {seg.text}
-                  </mark>
-                ) : (
-                  <span key={i}>{seg.text}</span>
-                ),
-              )}
-            </p>
-            <PlayButton
-              text={info.example}
-              learnLang={learnLang}
-              kind="example"
-              appearance="ember"
-            />
+        {!revealed ? (
+          /* Лицо: само слово по центру карточки, крупно (Alegreya) — фокус на
+             нём, без лишней пустоты. При наличии — транскрипция под словом.
+             Пример и перевод открываются по тапу «Показать перевод». */
+          <div className="review__front">
+            <div className="review__front-word">
+              <h1 id="review-word" className="review__word" lang={learnLang}>
+                {currentWord}
+              </h1>
+              <PlayButton
+                text={currentWord}
+                learnLang={learnLang}
+                kind="word"
+                appearance="ember"
+              />
+            </div>
+            {info.translit && (
+              <p className="review__translit">{info.translit}</p>
+            )}
+            <button
+              type="button"
+              className="review__reveal"
+              onClick={() => setRevealed(true)}
+            >
+              {t("review.reveal")}
+            </button>
           </div>
         ) : (
-          // Нет сохранённого примера (редкий случай для старых данных) —
-          // показываем хотя бы само слово, чтобы экран оставался рабочим.
-          <p className="review__sentence" lang={learnLang}>
-            {currentWord}
-          </p>
-        )}
-
-        {revealed ? (
+          /* Оборот (после тапа): пример целиком с выделенным словом + разбор
+             (слово, транскрипция, перевод, перевод примера, заметка) — как было. */
           <>
+            {hasExample ? (
+              <div className="review__sentence-row">
+                <p className="review__sentence" lang={learnLang}>
+                  {segments.map((seg, i) =>
+                    seg.highlight ? (
+                      <mark key={i} className="review__highlight">
+                        {seg.text}
+                      </mark>
+                    ) : (
+                      <span key={i}>{seg.text}</span>
+                    ),
+                  )}
+                </p>
+                <PlayButton
+                  text={info.example}
+                  learnLang={learnLang}
+                  kind="example"
+                  appearance="ember"
+                />
+              </div>
+            ) : (
+              // Нет сохранённого примера (редкий случай для старых данных) —
+              // показываем хотя бы само слово, чтобы экран оставался рабочим.
+              <p className="review__sentence" lang={learnLang}>
+                {currentWord}
+              </p>
+            )}
+
             <div className="review__divider" />
             <div className="review__answer">
               <div className="review__word-row">
@@ -242,14 +269,6 @@ export default function ReviewScreen({
               )}
             </div>
           </>
-        ) : (
-          <button
-            type="button"
-            className="review__reveal"
-            onClick={() => setRevealed(true)}
-          >
-            {t("review.reveal")}
-          </button>
         )}
       </article>
 
