@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import Icon from "./icons/Icon.jsx";
 import "./Modal.css";
 import "./WhatsNew.css";
 
@@ -50,11 +51,19 @@ export default function WhatsNew({ mode, entries = [], onClose }) {
       aria-labelledby="whatsnew-title"
       onClick={onClose}
     >
-      <div className="modal__box" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal__box modal__box--ember"
+        onClick={(e) => e.stopPropagation()}
+      >
         <header className="modal__header">
-          <h2 id="whatsnew-title" className="modal__title">
-            {isGreeting ? t("whatsnew.greetingTitle") : t("whatsnew.title")}
-          </h2>
+          <span className="modal__title-group">
+            <span className="modal__title-icon" aria-hidden="true">
+              <Icon name="spark" size={20} />
+            </span>
+            <h2 id="whatsnew-title" className="modal__title">
+              {isGreeting ? t("whatsnew.greetingTitle") : t("whatsnew.title")}
+            </h2>
+          </span>
           <button
             type="button"
             className="modal__close"
@@ -73,6 +82,11 @@ export default function WhatsNew({ mode, entries = [], onClose }) {
               <li className="whatsnew__item" key={e.id}>
                 <div className="whatsnew__row">
                   <span className="whatsnew__item-title">
+                    <Icon
+                      name="spark"
+                      size={15}
+                      className="whatsnew__item-icon"
+                    />
                     {t(`whatsnew.entries.${e.id}.title`)}
                   </span>
                   <span className="whatsnew__date">{formatDate(e.date)}</span>

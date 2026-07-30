@@ -1,3 +1,10 @@
+/* ============================================================================
+ * Окно «Как установить на телефон» (PWA) — оформление Ember.
+ * ----------------------------------------------------------------------------
+ * Токены `--ember-*`, шрифты (Alegreya — заголовок, Fira — интерфейс/шаги).
+ * Тёплая карточка, терракотовый акцент, линейная иконка в шапке, синего нет.
+ * Логику определения устройства и показа шагов CSS не затрагивает.
+ * ========================================================================== */
 .install {
   position: fixed;
   inset: 0;
@@ -18,9 +25,11 @@
   flex-direction: column;
   gap: 16px;
   padding: 20px;
-  background-color: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background-color: var(--ember-card);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
 }
 
 .install__header {
@@ -30,9 +39,32 @@
   gap: 12px;
 }
 
+/* Заголовок + линейная иконка в одну строку. */
+.install__title-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.install__title-icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 35%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
+}
+
 .install__title {
+  font-family: var(--font-word); /* Alegreya — заголовок */
   font-size: 19px;
   font-weight: 700;
+  color: var(--ember-text);
 }
 
 .install__close {
@@ -40,33 +72,36 @@
   width: 40px;
   height: 40px;
   min-height: 40px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 22px;
   line-height: 1;
 }
 
 .install__lead {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 14px;
   line-height: 1.5;
 }
 
+/* Шаги под устройство — тёплая плашка. */
 .install__section {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 14px;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  background-color: var(--ember-surface);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
 }
 
 .install__section-title {
+  font-family: var(--font-word); /* Alegreya — подзаголовок раздела */
   font-size: 15px;
   font-weight: 700;
+  color: var(--ember-text);
 }
 
 .install__steps {
@@ -77,28 +112,38 @@
   gap: 8px;
   font-size: 14px;
   line-height: 1.5;
+  color: var(--ember-text);
 }
 
+/* Номера шагов — терракотой (акцент). */
 .install__steps li {
   padding-left: 2px;
 }
 
+.install__steps li::marker {
+  color: var(--ember-accent);
+  font-weight: 700;
+}
+
+/* Примечание (iOS: только Safari) — тёплая янтарная плашка. */
 .install__note {
   font-size: 13px;
   line-height: 1.5;
-  color: var(--text);
+  color: var(--ember-text);
   padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  background-color: rgba(255, 180, 0, 0.1);
-  border: 1px solid rgba(255, 180, 0, 0.3);
+  border-radius: var(--ember-radius-sm);
+  background-color: rgba(224, 158, 74, 0.12);
+  border: 1px solid rgba(224, 158, 74, 0.35);
 }
 
+/* Кнопка действия — терракотовым акцентом. */
 .install__done {
   min-height: 48px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--accent);
-  color: #0b0d12;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
   font-size: 16px;
   font-weight: 700;
 }

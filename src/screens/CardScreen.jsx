@@ -204,9 +204,9 @@ export default function CardScreen({
       ? error.raw
       : t(`errors.${error.code}`, error.params);
     return (
-      <section className="cards cards--status">
-        <div className="cards__status-emoji" aria-hidden="true">
-          ⚠️
+      <section className="cards cards--status cards--error">
+        <div className="cards__status-badge" aria-hidden="true">
+          <Icon name="alert" size={30} />
         </div>
         <h1 className="cards__status-title">{t("errors.title")}</h1>
         <p className="cards__status-hint">{errorText}</p>

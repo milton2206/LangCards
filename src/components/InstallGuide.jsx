@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import Icon from "./icons/Icon.jsx";
 import "./InstallGuide.css";
 
 // Определение устройства по user-agent.
@@ -51,9 +52,14 @@ export default function InstallGuide({ onClose }) {
     >
       <div className="install__box" onClick={(e) => e.stopPropagation()}>
         <header className="install__header">
-          <h2 id="install-title" className="install__title">
-            {t("install.title")}
-          </h2>
+          <span className="install__title-group">
+            <span className="install__title-icon" aria-hidden="true">
+              <Icon name="download" size={20} />
+            </span>
+            <h2 id="install-title" className="install__title">
+              {t("install.title")}
+            </h2>
+          </span>
           <button
             type="button"
             className="install__close"

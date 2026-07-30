@@ -797,6 +797,21 @@
   line-height: 1;
 }
 
+/* Экран ошибки: линейный значок «внимание» в красноватом круге (акцент ошибки
+   из палитры, не синий/дефолтный). Только состояние ошибки (.cards--error) —
+   загрузка/финал/пусто остаются с прежними значками. */
+.cards__status-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, #e0605a 45%, transparent);
+  background-color: color-mix(in srgb, #e0605a 14%, transparent);
+  color: #e0605a;
+}
+
 .cards__status-title {
   /* Заголовки — тоже Alegreya Sans (в направлении Ember: «слова и заголовки»). */
   font-family: var(--font-word);

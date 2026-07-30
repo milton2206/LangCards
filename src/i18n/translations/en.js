@@ -609,6 +609,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberHelperScreens: {
+        title: "Three more screens restyled",
+        desc: "The “What's new” window, the error screen, and the “Install on phone” guide now use the warm Ember look like the rest of the app: a soft background with no blue, headings in Alegreya, and line-drawn icons. “What's new” lists items as warm plates with a terracotta accent; the error screen uses a reddish icon (not blue) with terracotta “Retry”/“Back” buttons; and the install guide keeps its steps readable with a terracotta action button. The logic — showing updates, handling errors, and installing the PWA — works exactly as before.",
+      },
       emberPassword: {
         title: "Password screens restyled",
         desc: "Changing your password in settings and resetting a forgotten one (requesting the link on the sign-in screen and setting a new password from the email link) now use the warm Ember look like the rest of the app: a soft background with no blue, headings in Alegreya, input fields as warm plates with a terracotta focus, and a line-drawn lock icon. Action buttons are terracotta, errors show in reddish and success or the “email sent” message in olive. The logic itself — the neutral reset message, the recovery link, and entering and saving the new password — works exactly as before.",
