@@ -609,6 +609,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberStart: {
+        title: "Start screen restyled",
+        desc: "The first screen — the welcome before signing up or in — now uses the warm Ember look like the rest of the app: a soft background with no blue and no black frame, the “LangCards” name and greeting in Alegreya, and a terracotta sign-in/sign-up button. The mood is warm and encouraging — it greets you kindly. Signing up, signing in, and moving into the app all work exactly as before.",
+      },
       emberHelperScreens: {
         title: "Three more screens restyled",
         desc: "The “What's new” window, the error screen, and the “Install on phone” guide now use the warm Ember look like the rest of the app: a soft background with no blue, headings in Alegreya, and line-drawn icons. “What's new” lists items as warm plates with a terracotta accent; the error screen uses a reddish icon (not blue) with terracotta “Retry”/“Back” buttons; and the install guide keeps its steps readable with a terracotta action button. The logic — showing updates, handling errors, and installing the PWA — works exactly as before.",

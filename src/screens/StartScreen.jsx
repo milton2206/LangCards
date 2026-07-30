@@ -5,7 +5,7 @@ export default function StartScreen({ onStart }) {
   const { t } = useI18n();
   return (
     <section className="start" aria-labelledby="start-title">
-      <div className="start__badge">🗂️ LangCards</div>
+      <div className="start__badge">LangCards</div>
 
       <div className="start__body">
         <h1 id="start-title" className="start__title">

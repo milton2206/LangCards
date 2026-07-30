@@ -1431,6 +1431,7 @@ export default function App() {
             "listening",
             "languages",
             "auth",
+            "start",
           ].includes(screen)
         }
       >

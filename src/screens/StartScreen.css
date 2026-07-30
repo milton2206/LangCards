@@ -1,19 +1,35 @@
+/* ============================================================================
+ * Стартовый экран (лендинг перед регистрацией/входом) — оформление Ember.
+ * ----------------------------------------------------------------------------
+ * Первое, что видит новый человек. Настроение тёплое и ободряющее: тёплый фон,
+ * приветствие/название шрифтом Alegreya, интерфейс Fira, терракотовый акцент,
+ * синего дизайна больше нет. Активна ТЁМНАЯ тема, светлые токены заложены.
+ * Логику (переход к регистрации/входу) CSS не затрагивает.
+ * ========================================================================== */
+
 .start {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  /* Тёплый фон — совпадает с Ember, ровный по краям и в overscroll-зоне. */
+  background-color: var(--ember-bg);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
 }
 
+/* Название-вордмарк «LangCards» (логотип-значок ещё не финализирован —
+   пока тёплая текстовая марка Alegreya с терракотовым акцентом). */
 .start__badge {
   align-self: flex-start;
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: 999px;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  font-size: 14px;
-  font-weight: 600;
+  background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 30%, transparent);
+  color: var(--ember-accent);
+  font-family: var(--font-word);
+  font-size: 16px;
+  font-weight: 700;
   letter-spacing: 0.2px;
 }
 
@@ -26,17 +42,20 @@
   gap: 16px;
 }
 
+/* Приветствие крупно, гуманистической Alegreya — тёплая встреча, не казённо. */
 .start__title {
+  font-family: var(--font-word);
   font-size: clamp(28px, 8vw, 34px);
-  line-height: 1.2;
+  line-height: 1.25;
   font-weight: 700;
   letter-spacing: -0.5px;
+  color: var(--ember-text);
   /* переносим длинные слова, чтобы не появлялся горизонтальный скролл */
   overflow-wrap: break-word;
 }
 
 .start__subtitle {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 16px;
   line-height: 1.6;
   max-width: 40ch;
@@ -50,25 +69,27 @@
 
 .start__status {
   align-self: flex-start;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 14px;
 }
 
+/* Основное действие — тёплой терракотой (приглашение, а не приказ). */
 .start__cta {
   width: 100%;
   min-height: var(--tap-target);
   padding: 12px 20px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--accent);
-  color: #0b0d12;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .start__cta:disabled {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
+  background-color: var(--ember-surface);
+  border: 1px solid var(--ember-border);
+  color: var(--ember-text-muted);
   cursor: not-allowed;
 }
