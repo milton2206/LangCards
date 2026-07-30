@@ -3,6 +3,8 @@ import { pickCurrentCard, MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
 import { GENERATE_COUNT_OPTIONS } from "../lib/generateCount.js";
 import { splitWords } from "../lib/highlightWord.js";
+import { requestConjugation } from "../lib/conjugationClient.js";
+import { apiErrorText } from "../lib/apiClient.js";
 import { useWordLookup } from "../hooks/useWordLookup.js";
 import WordLookupSheet from "../components/WordLookupSheet.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
@@ -13,6 +15,12 @@ import PlayButton from "../components/PlayButton.jsx";
 import Icon from "../components/icons/Icon.jsx";
 import { LANG_EMOJI } from "../data/onboarding.js";
 import "./CardScreen.css";
+
+// Порядок строк (лица-числа) и столбцов (времена) таблицы спряжения глагола.
+// Подписи местоимений и заголовки времён — из i18n на родном языке пользователя
+// (cards.pron.* / cards.tense.*), формы — на изучаемом языке.
+const CONJ_PERSONS = ["1sg", "2sg", "3sg", "1pl", "2pl", "3pl"];
+const CONJ_TENSES = ["present", "future", "past"];
 
 // Переключатель «сколько карточек генерировать за раз» (5/10/20) — рядом с
 // кнопкой генерации в обоих местах, где она встречается на этом экране.
@@ -186,6 +194,40 @@ export default function CardScreen({
       ? "none"
       : "transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease",
   };
+
+  // Таблица спряжения глагола — ТОЛЬКО по кнопке (экономия API), с кэшем по слову
+  // (conjugationClient). conj: null (скрыто) | { status, table?, errorText? }.
+  // Сбрасываем при смене слова, чтобы таблица прошлого глагола не «прилипала».
+  const [conj, setConj] = useState(null);
+  const conjWord = card?.word || "";
+  useEffect(() => {
+    setConj(null);
+  }, [conjWord]);
+
+  async function handleConjugation() {
+    // Повторный тап — свернуть (данные уже в кэше, следующее открытие мгновенно).
+    if (conj) {
+      setConj(null);
+      return;
+    }
+    setConj({ status: "loading" });
+    try {
+      const res = await requestConjugation({
+        word: conjWord,
+        learnLang,
+        nativeLang,
+      });
+      setConj({
+        status: "ready",
+        table: res && res.isVerb ? res.conjugation : null,
+      });
+    } catch (err) {
+      setConj({
+        status: "error",
+        errorText: apiErrorText(err, t, "cards.conjFailed"),
+      });
+    }
+  }
 
   if (loading) {
     return (
@@ -656,6 +698,65 @@ export default function CardScreen({
           <div className="cards__note">
             <span className="cards__note-label">{t("cards.usageNote")}</span>
             <p className="cards__note-text">{card.note}</p>
+          </div>
+        )}
+
+        {/* Спряжение — только у глаголов (по данным карточки card.pos). Таблица
+            строится ПО ЗАПРОСУ (кнопка), кэшируется по слову: повторное открытие
+            мгновенно и по API не бьёт. У существительных/старых карточек без pos
+            кнопки нет. */}
+        {card.pos === "verb" && (
+          <div className="cards__conj">
+            <button
+              type="button"
+              className={"cards__conj-btn" + (conj ? " is-open" : "")}
+              onClick={handleConjugation}
+              disabled={conj?.status === "loading"}
+              aria-expanded={Boolean(conj)}
+            >
+              <Icon name="grammar" size={18} className="cards__conj-btn-icon" />
+              {t("cards.conjugation")}
+            </button>
+
+            {conj?.status === "loading" && (
+              <p className="cards__conj-note">{t("cards.conjLoading")}</p>
+            )}
+            {conj?.status === "error" && (
+              <p className="cards__conj-error">{conj.errorText}</p>
+            )}
+            {conj?.status === "ready" && !conj.table && (
+              <p className="cards__conj-note">{t("cards.conjNotVerb")}</p>
+            )}
+            {conj?.status === "ready" && conj.table && (
+              <div className="cards__conj-table-wrap">
+                <table className="cards__conj-table">
+                  <thead>
+                    <tr>
+                      <th className="cards__conj-corner" aria-hidden="true" />
+                      {CONJ_TENSES.map((tn) => (
+                        <th key={tn} scope="col">
+                          {t(`cards.tense.${tn}`)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {CONJ_PERSONS.map((p) => (
+                      <tr key={p}>
+                        <th scope="row" className="cards__conj-pron">
+                          {t(`cards.pron.${p}`)}
+                        </th>
+                        {CONJ_TENSES.map((tn) => (
+                          <td key={tn} lang={learnLang}>
+                            {conj.table[tn]?.[p] || "—"}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </article>

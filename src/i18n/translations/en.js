@@ -90,6 +90,20 @@ export default {
     remaining: "Left in batch: {n}",
     countLabel: "Cards:",
     plural: "pl.",
+    // Verb conjugation table (on request, verbs only).
+    conjugation: "Conjugation",
+    conjLoading: "Building the table…",
+    conjFailed: "Couldn't build the conjugation table. Please try again.",
+    conjNotVerb: "No conjugation for this word.",
+    tense: { present: "Present", future: "Future", past: "Past" },
+    pron: {
+      "1sg": "I",
+      "2sg": "you",
+      "3sg": "he · she",
+      "1pl": "we",
+      "2pl": "you (pl.)",
+      "3pl": "they",
+    },
     example: "Example",
     // Content-type toggle and the "Native context" mode note.
     modeLabel: "Generate:",
@@ -593,6 +607,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      verbConjugation: {
+        title: "Conjugation table for verbs",
+        desc: "Verb cards now have a “Conjugation” button. Tap it for a plain table — rows are the pronouns (I / you / he·she / we / you / they), columns are three tenses (present / future / past), forms only, no lesson. It's built only when you ask (to save the daily limit) and cached per word, so opening it again is instant. Works at least for Greek (ο γιατρός is a noun, so no button — but πληρώνω → θα πληρώσω → πλήρωσα). Nouns and other words don't show the button.",
+      },
       pluralForm: {
         title: "Plural form on noun cards",
         desc: "Noun cards now show the plural form next to the singular — handy for languages where the article and ending change (Greek: ο γιατρός → οι γιατροί, το νοσοκομείο → τα νοσοκομεία). It's generated together with the card, and words without a plural (verbs, expressions) simply don't show one.",

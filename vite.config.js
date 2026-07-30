@@ -142,6 +142,39 @@ function devApiReading() {
   };
 }
 
+// Dev-плагин: локально обслуживает POST /api/conjugation тем же кодом, что и
+// serverless-функция на Vercel (таблица спряжения глагола по запросу).
+function devApiConjugation() {
+  return {
+    name: "dev-api-conjugation",
+    async configureServer(server) {
+      server.middlewares.use("/api/conjugation", async (req, res) => {
+        if (req.method !== "POST") {
+          res.statusCode = 405;
+          res.end("Method Not Allowed");
+          return;
+        }
+        try {
+          if (!(await guardDev(server, req, res, "conjugation"))) return;
+          const chunks = [];
+          for await (const chunk of req) chunks.push(chunk);
+          const raw = Buffer.concat(chunks).toString("utf8");
+          const params = raw ? JSON.parse(raw) : {};
+          // Импортируем лениво, чтобы ошибка ключа не роняла запуск дев-сервера.
+          const { generateConjugation } = await server.ssrLoadModule(
+            "/lib/conjugation.js",
+          );
+          const result = await generateConjugation(params);
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify(result));
+        } catch (err) {
+          sendApiError(res, err, "Ошибка таблицы спряжения");
+        }
+      });
+    },
+  };
+}
+
 // Dev-плагин: локально обслуживает POST /api/placement тем же кодом, что и
 // serverless-функция на Vercel (банк заданий теста на уровень, фаза 6.3).
 function devApiPlacement() {
@@ -290,6 +323,7 @@ export default defineConfig(({ mode }) => {
       devApiCards(),
       devApiTts(),
       devApiReading(),
+      devApiConjugation(),
       devApiPlacement(),
       devApiListening(),
       devApiAccount(),
