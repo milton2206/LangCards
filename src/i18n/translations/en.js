@@ -607,6 +607,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      verbConjugationReading: {
+        title: "Conjugation table in reading too",
+        desc: "In a reading text, tap a word for its translation — and if it's a verb, the popup now has a “Conjugation” button that opens the same table (pronouns × present/future/past, forms only) as on the card. It's the same shared table and cache: a verb you already opened on a card won't be generated again in a text, and the other way round.",
+      },
       verbConjugation: {
         title: "Conjugation table for verbs",
         desc: "Verb cards now have a “Conjugation” button. Tap it for a plain table — rows are the pronouns (I / you / he·she / we / you / they), columns are three tenses (present / future / past), forms only, no lesson. It's built only when you ask (to save the daily limit) and cached per word, so opening it again is instant. Works at least for Greek (ο γιατρός is a noun, so no button — but πληρώνω → θα πληρώσω → πλήρωσα). Nouns and other words don't show the button.",

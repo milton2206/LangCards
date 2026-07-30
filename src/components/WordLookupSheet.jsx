@@ -1,6 +1,7 @@
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import PlayButton from "./PlayButton.jsx";
+import ConjugationPanel from "./ConjugationPanel.jsx";
 import "./WordLookupSheet.css";
 
 /**
@@ -84,6 +85,18 @@ export default function WordLookupSheet({
                   </p>
                 )}
               </div>
+            )}
+
+            {/* Глагол → та же панель спряжения, что и на карточке (общий модуль,
+                общий кэш по слову: слово из текста и из карточки не генерируется
+                дважды). У не-глаголов кнопки нет. */}
+            {card.pos === "verb" && (
+              <ConjugationPanel
+                word={card.word}
+                learnLang={learnLang}
+                nativeLang={nativeLang}
+                variant="lookup"
+              />
             )}
           </div>
         )}

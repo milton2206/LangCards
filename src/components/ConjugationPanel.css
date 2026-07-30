@@ -1,0 +1,115 @@
+/* ============================================================================
+ * Панель спряжения глагола (ОБЩАЯ для карточки и текста чтения). Вид Ember:
+ * тёплая плашка, читаемая таблица, три алфавита ровно. Только цвета через
+ * `--ember-*`. Кнопка «Формы» + таблица местоимения × времена (только формы).
+ * ========================================================================== */
+
+.conj {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.conj__btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--ember-border);
+  border-radius: 999px;
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.conj__btn-icon {
+  flex: 0 0 auto;
+  color: var(--ember-text-muted);
+}
+
+.conj__btn.is-open {
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
+}
+
+.conj__btn.is-open .conj__btn-icon {
+  color: var(--ember-accent);
+}
+
+.conj__btn:disabled {
+  opacity: 0.6;
+}
+
+.conj__note {
+  color: var(--ember-text-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.conj__error {
+  padding: 10px 14px;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid rgba(224, 158, 74, 0.4);
+  background-color: rgba(224, 158, 74, 0.12);
+  color: #e0964a;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Тёплая плашка с таблицей; на узком экране горизонтально прокручивается,
+   а карточку/шторку по ширине не распирает. */
+.conj__table-wrap {
+  overflow-x: auto;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid var(--ember-border);
+  background-color: color-mix(in srgb, var(--ember-accent) 6%, transparent);
+}
+
+.conj__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.conj__table th,
+.conj__table td {
+  padding: 9px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--ember-border);
+  white-space: nowrap;
+}
+
+.conj__table tr:last-child th,
+.conj__table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Заголовки времён (настоящее/будущее/прошедшее) — приглушённо, прописной. */
+.conj__table thead th {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ember-text-muted);
+}
+
+/* Подписи местоимений (родной язык) — приглушённый столбец слева. */
+.conj__pron {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  color: var(--ember-text-muted);
+  white-space: nowrap;
+}
+
+/* Сами формы — на изучаемом языке, Alegreya (три алфавита читаются ровно). */
+.conj__table td {
+  font-family: var(--font-word);
+  font-weight: 500;
+  color: var(--ember-text);
+}
