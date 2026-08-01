@@ -113,3 +113,25 @@
   font-weight: 500;
   color: var(--ember-text);
 }
+
+/* Форма, по которой человек тапнул: тёплая терракотовая подсветка — сразу
+   видно, где эта форма стоит в системе времён и лиц. */
+.conj__table td.is-tapped {
+  background-color: color-mix(in srgb, var(--ember-accent) 20%, transparent);
+  color: var(--ember-accent);
+  font-weight: 700;
+  box-shadow: inset 2px 0 0 var(--ember-accent);
+}
+
+/* Начальная форма — когда тапнули не по ней (πηγαίνει → πηγαίνω). */
+.conj__lemma {
+  color: var(--ember-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.conj__lemma-word {
+  font-family: var(--font-word);
+  font-weight: 700;
+  color: var(--ember-accent);
+}

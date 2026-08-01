@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { requestConjugation } from "../lib/conjugationClient.js";
+import { requestConjugation, normalizeForm } from "../lib/conjugationClient.js";
 import { apiErrorText } from "../lib/apiClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import Icon from "./icons/Icon.jsx";
@@ -7,28 +7,47 @@ import "./ConjugationPanel.css";
 
 // Порядок строк (лица-числа) и столбцов (времена) таблицы спряжения. Подписи
 // местоимений и заголовки времён — из i18n на родном языке (cards.pron.* /
-// cards.tense.*), формы — на изучаемом.
+// cards.tense.*), формы — на изучаемом. Времена идут по естественной оси:
+// настоящее → прошедшее → будущее.
 const PERSONS = ["1sg", "2sg", "3sg", "1pl", "2pl", "3pl"];
-const TENSES = ["present", "future", "past"];
+const TENSES = ["present", "past", "future"];
+
+// Совпадает ли ячейка таблицы с формой, по которой тапнул человек. Сравниваем и
+// целиком, и по последнему слову: в тексте тапают одно слово, а в ячейке может
+// стоять форма с частицей («θα πάω» ↔ тап по «πάω»).
+function matchesForm(cell, form) {
+  const target = normalizeForm(form);
+  if (!target) return false;
+  const value = normalizeForm(cell);
+  if (!value) return false;
+  if (value === target) return true;
+  const parts = value.split(" ");
+  return parts.length > 1 && parts[parts.length - 1] === target;
+}
 
 /**
  * ОБЩАЯ панель спряжения глагола — ОДИН модуль на карточку и на текст чтения.
- * Кнопка «Формы» + таблица (местоимения × времена) строятся ПО ЗАПРОСУ, с общим
- * кэшем по слову (conjugationClient): одно и то же слово из карточки и из текста
- * не генерируется дважды. Показывать панель должен вызывающий и ТОЛЬКО для
- * глаголов (word.pos === "verb") — сама панель part-of-speech не проверяет.
+ * Кнопка «Формы» + таблица (местоимения × времена) строятся ПО ЗАПРОСУ, кэш —
+ * по НАЧАЛЬНОЙ форме (см. conjugationClient): любая личная форма одного глагола
+ * открывает одну и ту же таблицу и повторно API не дёргает. Показывать панель
+ * должен вызывающий и ТОЛЬКО для глаголов (word.pos === "verb") — сама панель
+ * part-of-speech не проверяет.
  *
- * word — что спрягать; learnLang/nativeLang — язык форм / язык подписей.
+ * word — что спрягать (заголовочное слово); learnLang/nativeLang — язык форм /
+ *   язык подписей.
+ * form — форма, по которой человек тапнул: подсвечиваем её в таблице, чтобы было
+ *   видно, где она в системе. Если не передана, подсветки нет.
  * variant — необязательный класс-обёртка для мелкой подгонки под место вызова.
  */
 export default function ConjugationPanel({
   word,
+  form,
   learnLang,
   nativeLang,
   variant,
 }) {
   const { t } = useI18n();
-  // conj: null (скрыто) | { status: "loading"|"ready"|"error", table?, errorText? }
+  // conj: null (скрыто) | { status: "loading"|"ready"|"error", table?, lemma?, errorText? }
   const [conj, setConj] = useState(null);
 
   // Смена слова — сворачиваем прошлую таблицу (чтобы не «прилипала»).
@@ -48,6 +67,7 @@ export default function ConjugationPanel({
       setConj({
         status: "ready",
         table: res && res.isVerb ? res.conjugation : null,
+        lemma: res && res.isVerb ? res.lemma : null,
       });
     } catch (err) {
       setConj({
@@ -56,6 +76,12 @@ export default function ConjugationPanel({
       });
     }
   }
+
+  // Начальную форму показываем, только если она отличается от того, что человек
+  // видел/тапнул — иначе это шум.
+  const shownForm = form || word;
+  const showLemma =
+    conj?.lemma && normalizeForm(conj.lemma) !== normalizeForm(shownForm);
 
   return (
     <div className={"conj" + (variant ? ` conj--${variant}` : "")}>
@@ -78,34 +104,53 @@ export default function ConjugationPanel({
         <p className="conj__note">{t("cards.conjNotVerb")}</p>
       )}
       {conj?.status === "ready" && conj.table && (
-        <div className="conj__table-wrap">
-          <table className="conj__table">
-            <thead>
-              <tr>
-                <th className="conj__corner" aria-hidden="true" />
-                {TENSES.map((tn) => (
-                  <th key={tn} scope="col">
-                    {t(`cards.tense.${tn}`)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {PERSONS.map((p) => (
-                <tr key={p}>
-                  <th scope="row" className="conj__pron">
-                    {t(`cards.pron.${p}`)}
-                  </th>
+        <>
+          {showLemma && (
+            <p className="conj__lemma">
+              {t("cards.conjBase")}:{" "}
+              <span className="conj__lemma-word" lang={learnLang}>
+                {conj.lemma}
+              </span>
+            </p>
+          )}
+          <div className="conj__table-wrap">
+            <table className="conj__table">
+              <thead>
+                <tr>
+                  <th className="conj__corner" aria-hidden="true" />
                   {TENSES.map((tn) => (
-                    <td key={tn} lang={learnLang}>
-                      {conj.table[tn]?.[p] || "—"}
-                    </td>
+                    <th key={tn} scope="col">
+                      {t(`cards.tense.${tn}`)}
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {PERSONS.map((p) => (
+                  <tr key={p}>
+                    <th scope="row" className="conj__pron">
+                      {t(`cards.pron.${p}`)}
+                    </th>
+                    {TENSES.map((tn) => {
+                      const cell = conj.table[tn]?.[p] || "";
+                      const isTapped = matchesForm(cell, form);
+                      return (
+                        <td
+                          key={tn}
+                          lang={learnLang}
+                          className={isTapped ? "is-tapped" : undefined}
+                          aria-current={isTapped ? "true" : undefined}
+                        >
+                          {cell || "—"}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

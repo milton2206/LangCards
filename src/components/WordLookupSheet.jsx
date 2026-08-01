@@ -99,6 +99,9 @@ export default function WordLookupSheet({
             {card.pos === "verb" && (
               <ConjugationPanel
                 word={card.word}
+                // Подсвечиваем в таблице именно ту форму, по которой тапнули
+                // в тексте (она может отличаться от заголовочного слова).
+                form={lookup.word}
                 learnLang={learnLang}
                 nativeLang={nativeLang}
                 variant="lookup"

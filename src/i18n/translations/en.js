@@ -95,6 +95,7 @@ export default {
     conjLoading: "Building the table…",
     conjFailed: "Couldn't build the conjugation table. Please try again.",
     conjNotVerb: "No conjugation for this word.",
+    conjBase: "Base form",
     tense: { present: "Present", future: "Future", past: "Past" },
     pron: {
       "1sg": "I",
@@ -610,6 +611,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      verbAnyForm: {
+        title: "Verb forms — from any form",
+        desc: "The conjugation table used to be offered mainly for the base form. Now tap a verb in ANY form — “πηγαίνει”, “πήγε”, “θα πάμε” — and the “Conjugation” button still appears: the app works out the base form itself and builds the table for it (shown under “Base form”). The form you tapped is highlighted in terracotta, so you can see straight away where it sits among the persons and tenses. The table covers three tenses: present, past and future — which matters especially for Greek and its irregular aorist. The cache now works by base form: open the table for one form and you get it instantly for every other form of that verb, with no new AI requests. It works the same on a card and in reading; non-verbs still have no button.",
+      },
       darkThemeOnly: {
         title: "Dark theme only",
         desc: "The theme switch is gone from settings: the app is always in the dark Ember look — warm charcoal, terracotta, olive. That's how it was meant to be, and the choice only added one more decision to make. Nothing changed visually: every screen, the page background, and the edges when you pull to scroll are all just as dark as before. The light look is still in the code — if we decide to bring the choice back, turning it on will be easy.",
