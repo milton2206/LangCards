@@ -3,11 +3,12 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 // Токены Ember: палитра/шрифты + переопределения под data-theme (светлая/тёмная).
 import './theme/ember.css'
-import { applyThemePref, loadThemePref } from './theme/emberTheme.js'
+import { ACTIVE_THEME, applyEmberTheme } from './theme/emberTheme.js'
 import App from './App.jsx'
 
-// Тему выставляем ДО первого рендера — чтобы не мелькнула чужая тема (FOUC).
-applyThemePref(loadThemePref())
+// Приложение всегда тёмное. Выставляем ДО первого рендера — без мигания.
+// Светлые токены остаются в ember.css, но нигде не включаются (см. emberTheme.js).
+applyEmberTheme(ACTIVE_THEME)
 
 // Одноразовая очистка перемешанных списков слов, оставшихся ДО разделения по
 // языковым парам (тестовые данные, в которых немецкие и греческие слова попали

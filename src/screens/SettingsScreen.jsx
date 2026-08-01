@@ -40,17 +40,8 @@ export default function SettingsScreen({
   onSendFeedback,
   onDeleteAccount,
   onChangePassword,
-  themePref,
-  onChangeTheme,
 }) {
   const { t } = useI18n();
-
-  // Оформление: «как в системе» / светлая / тёмная — линейная иконка + подпись.
-  const THEME_OPTIONS = [
-    { id: "system", icon: "display" },
-    { id: "light", icon: "sun" },
-    { id: "dark", icon: "moon" },
-  ];
   const [showInstall, setShowInstall] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -95,33 +86,6 @@ export default function SettingsScreen({
           </span>
         </button>
       </div>
-
-      {/* Оформление: светлая/тёмная тема Ember (или «как в системе»). Меняет
-          токены сразу на всех экранах; выбор сохраняется между заходами. */}
-      {onChangeTheme && (
-        <div className="settings__group">
-          <h2 className="settings__group-title">{t("settings.appearance")}</h2>
-          <div className="settings__theme" role="group">
-            {THEME_OPTIONS.map((opt) => {
-              const active = themePref === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  className={
-                    "settings__theme-chip" + (active ? " is-active" : "")
-                  }
-                  aria-pressed={active}
-                  onClick={() => onChangeTheme(opt.id)}
-                >
-                  <Icon name={opt.icon} size={20} />
-                  {t(`settings.theme.${opt.id}`)}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Тема и уровень — по-прежнему в settings (localStorage). Выбранная
           тема может быть пресетом ИЛИ своей темой пары; и то, и другое — просто

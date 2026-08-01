@@ -564,12 +564,6 @@ export default {
     install: "Install on phone",
     feedback: "Report a problem",
     changePassword: "Change password",
-    appearance: "Appearance",
-    theme: {
-      system: "System",
-      light: "Light",
-      dark: "Dark",
-    },
     deleteAccount: "Delete account",
     // Multi-language mode (explicit choice, phase 4.2).
     multiLang: "Multi-language mode",
@@ -616,6 +610,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      darkThemeOnly: {
+        title: "Dark theme only",
+        desc: "The theme switch is gone from settings: the app is always in the dark Ember look — warm charcoal, terracotta, olive. That's how it was meant to be, and the choice only added one more decision to make. Nothing changed visually: every screen, the page background, and the edges when you pull to scroll are all just as dark as before. The light look is still in the code — if we decide to bring the choice back, turning it on will be easy.",
+      },
       logoAndIcon: {
         title: "The app has its own mark now",
         desc: "LangCards got a logo: a terracotta square bubble with a cream letter L — a card and a speech bubble at once. The mark is now the app icon in every size: on your phone's home screen, in the browser tab, and when installing. Android gets a dedicated version with extra room around the edges, so the icon isn't cropped when it's masked into a circle or squircle. The start screen now shows a logo lockup with the mark and the name, and the name itself is the same everywhere — “LangCards”.",
