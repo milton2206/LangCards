@@ -2,12 +2,16 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
+    <!-- Favicon: SVG (следует теме браузера) + PNG-фолбэк для старых движков. -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0f1115" />
+    <!-- Тёплый уголь Ember: цвет строки состояния и подложки установленного PWA. -->
+    <meta name="theme-color" content="#18110d" />
     <meta
       name="description"
-      content="Карточки — учи иностранные слова в контексте живых примеров."
+      content="LangCards — учи иностранные слова в контексте живых примеров."
     />
 
     <!-- Шрифты Ember (Google Fonts): Alegreya Sans — слова и заголовки,
@@ -26,13 +30,13 @@
 
     <!-- PWA: установка на главный экран и полноэкранный режим -->
     <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Карточки" />
+    <meta name="apple-mobile-web-app-title" content="LangCards" />
 
-    <title>Карточки — учи слова в контексте</title>
+    <title>LangCards — учи слова в контексте</title>
   </head>
   <body>
     <div id="root"></div>

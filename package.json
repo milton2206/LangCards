@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "backup": "node scripts/backup.mjs",
-    "restore": "node scripts/restore.mjs"
+    "restore": "node scripts/restore.mjs",
+    "icons": "node scripts/gen-icons.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.1",

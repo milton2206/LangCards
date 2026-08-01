@@ -1,0 +1,21 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LangCards">
+  <!-- MASKABLE-версия для Android: фон во весь квадрат (без скруглений — форму
+       задаёт лаунчер), знак уменьшен и центрирован так, чтобы целиком попадать
+       в безопасную зону (круг диаметром 80% от иконки). При кадрировании в круг,
+       сквиркл или каплю знак не обрезается. -->
+  <rect width="512" height="512" fill="#18110D"/>
+  <g transform="translate(47.4 37.6) scale(0.815)">
+    <path
+      d="M160 84 H352 A72 72 0 0 1 424 156 V312 A72 72 0 0 1 352 384 H200 L88 452 V156 A72 72 0 0 1 160 84 Z"
+      fill="#C05F36"
+    />
+    <path
+      d="M200 164 V304 H312"
+      fill="none"
+      stroke="#FFFAF6"
+      stroke-width="44"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </g>
+</svg>

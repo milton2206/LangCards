@@ -714,9 +714,10 @@ export default function App() {
     localStorage.setItem("settings", JSON.stringify(settings));
   }, [settings]);
 
-  // Заголовок вкладки браузера — на языке интерфейса (родной язык пользователя).
+  // Заголовок вкладки браузера: название бренда (не переводится) + суть на языке
+  // интерфейса (родной язык пользователя).
   useEffect(() => {
-    document.title = translate(nativeLang, "start.title");
+    document.title = `LangCards — ${translate(nativeLang, "start.title")}`;
   }, [nativeLang]);
 
   // Гейт навигации: без аккаунта доступны только start/auth; после входа с

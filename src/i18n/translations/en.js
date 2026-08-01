@@ -43,7 +43,7 @@ export default {
   },
 
   start: {
-    title: "Cards — learn words in context",
+    title: "Learn words in context",
     subtitle:
       "Memorize foreign words not in isolation, but inside living examples — so they stick for good.",
     status: "App in development",
@@ -616,6 +616,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      logoAndIcon: {
+        title: "The app has its own mark now",
+        desc: "LangCards got a logo: a terracotta square bubble with a cream letter L — a card and a speech bubble at once. The mark is now the app icon in every size: on your phone's home screen, in the browser tab, and when installing. Android gets a dedicated version with extra room around the edges, so the icon isn't cropped when it's masked into a circle or squircle. The start screen now shows a logo lockup with the mark and the name, and the name itself is the same everywhere — “LangCards”.",
+      },
       reviewCardCentered: {
         title: "Word centered on review",
         desc: "The review card's front is tidier now: before you tap, you see the word itself — large, centered in the card (with its transcription underneath if there is one), without the empty space around it. The translation and example still open on “Show translation”, and swipes, audio, and the review logic all work as before.",

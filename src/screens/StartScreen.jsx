@@ -1,11 +1,18 @@
 import { useI18n } from "../i18n/I18nContext.jsx";
+import LogoMark from "../components/icons/LogoMark.jsx";
 import "./StartScreen.css";
 
 export default function StartScreen({ onStart }) {
   const { t } = useI18n();
   return (
     <section className="start" aria-labelledby="start-title">
-      <div className="start__badge">LangCards</div>
+      {/* Лого-строка: знак + название. Название — часть бренда, не переводится. */}
+      <div className="start__logo">
+        <LogoMark size={34} />
+        <span className="start__logo-name">
+          <span className="start__logo-lang">Lang</span>Cards
+        </span>
+      </div>
 
       <div className="start__body">
         <h1 id="start-title" className="start__title">
