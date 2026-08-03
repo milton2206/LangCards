@@ -1,8 +1,22 @@
+/* ============================================================================
+ * Онбординг (первичная настройка) — оформление Ember.
+ * ----------------------------------------------------------------------------
+ * Токены `--ember-*`, шрифты (Alegreya Sans — заголовок шага, Fira Sans —
+ * интерфейс). Плашки выбора устроены как чипы настроек: выбранное — терракотой,
+ * остальные приглушённо. Языки — круглыми флагами, темы — линейными иконками,
+ * уровни — «лесенкой» CEFR. Работает в обеих темах: все цвета через токены.
+ * Логика мастера (шаги, сохранение выбора, развилка теста уровня) не менялась.
+ * ========================================================================== */
+
 .onb {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  /* Тёплый фон — ровный по краям и в overscroll-зоне. */
+  background-color: var(--ember-bg);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
 }
 
 /* ---------- Шапка: назад, прогресс, счётчик ---------- */
@@ -17,10 +31,10 @@
   width: 44px;
   height: 44px;
   min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 20px;
   line-height: 1;
 }
@@ -35,17 +49,17 @@
   flex: 1;
   height: 4px;
   border-radius: 999px;
-  background-color: var(--border);
+  background-color: var(--ember-border);
   transition: background-color 0.2s;
 }
 
 .onb__dot.is-active {
-  background-color: var(--accent);
+  background-color: var(--ember-accent);
 }
 
 .onb__counter {
   flex: 0 0 auto;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 14px;
   font-variant-numeric: tabular-nums;
 }
@@ -58,16 +72,19 @@
 }
 
 .onb__title {
+  font-family: var(--font-word); /* Alegreya — заголовок шага */
   font-size: clamp(24px, 6vw, 28px);
   font-weight: 700;
   letter-spacing: -0.4px;
+  color: var(--ember-text);
   overflow-wrap: break-word;
 }
 
 .onb__hint {
   margin-top: 6px;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 15px;
+  line-height: 1.5;
 }
 
 .onb__options {
@@ -95,39 +112,48 @@
   width: 100%;
   min-height: 72px;
   padding: 14px 16px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1.5px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
   text-align: left;
 }
 
 .onb__choice-btn:active {
-  border-color: var(--accent);
+  border-color: var(--ember-accent);
   background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
 }
 
-.onb__choice-emoji {
+/* Линейная иконка в тёплом круге (вместо эмодзи). */
+.onb__choice-icon {
   grid-row: 1 / span 2;
   align-self: center;
-  font-size: 24px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 30%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
+  color: var(--ember-accent);
 }
 
 .onb__choice-label {
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 700;
   overflow-wrap: break-word;
 }
 
 .onb__choice-hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 13px;
   line-height: 1.4;
   overflow-wrap: break-word;
 }
 
-/* Крупная кнопка выбора под палец */
+/* ---------- Крупная плашка выбора (как чип настроек, под палец) ---------- */
 .onb__option {
   display: flex;
   align-items: center;
@@ -135,16 +161,18 @@
   width: 100%;
   min-height: 60px;
   padding: 14px 16px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1.5px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
   font-size: 17px;
-  font-weight: 500;
+  font-weight: 600;
   text-align: left;
   transition:
     border-color 0.15s,
     background-color 0.15s,
+    color 0.15s,
     transform 0.05s;
 }
 
@@ -152,15 +180,23 @@
   transform: scale(0.99);
 }
 
+/* Выбранное — терракотой (тот же приём, что у чипов настроек). */
 .onb__option.is-selected {
-  border-color: var(--accent);
+  border-color: var(--ember-accent);
   background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
 }
 
-.onb__option-emoji {
+.onb__option-icon {
   flex: 0 0 auto;
-  font-size: 22px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ember-text-muted);
+}
+
+.onb__option.is-selected .onb__option-icon {
+  color: var(--ember-accent);
 }
 
 .onb__option-label {
@@ -170,10 +206,11 @@
 
 .onb__option-check {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 18px;
-  text-align: center;
-  color: var(--accent);
-  font-weight: 700;
+  color: var(--ember-accent);
 }
 
 /* ---------- Футер с кнопкой «Начать» ---------- */
@@ -182,38 +219,33 @@
   bottom: 0;
   padding-top: 12px;
   padding-bottom: calc(4px + env(safe-area-inset-bottom));
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    var(--bg) 40%
-  );
+  background: linear-gradient(to bottom, transparent, var(--ember-bg) 40%);
 }
 
 .onb__start {
   width: 100%;
   min-height: 52px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--accent);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
   color: var(--ember-on-accent);
+  font-family: var(--font-ui);
   font-size: 17px;
   font-weight: 700;
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--ember-accent) 35%, transparent);
 }
 
 .onb__start:disabled {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
+  background-color: var(--ember-surface);
+  border: 1px solid var(--ember-border);
+  color: var(--ember-text-muted);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
 /* На десктопе внутри «телефона» фон футера совпадает с контейнером */
 @media (min-width: 520px) {
   .onb__footer {
-    background: linear-gradient(
-      to bottom,
-      transparent,
-      var(--bg-elevated) 40%
-    );
+    background: linear-gradient(to bottom, transparent, var(--ember-bg) 40%);
   }
 }

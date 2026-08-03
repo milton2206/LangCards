@@ -6,7 +6,35 @@ import {
   stepHintKey,
 } from "../data/onboarding.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import Icon from "../components/icons/Icon.jsx";
+import Flag from "../components/icons/Flag.jsx";
+import LevelBars from "../components/icons/LevelBars.jsx";
 import "./OnboardingScreen.css";
+
+// Значок опции по шагу — тот же набор, что в настройках: языки круглыми
+// флагами, темы линейными иконками, уровни «лесенкой» CEFR. Эмодзи не
+// используем (на Windows флаги-эмодзи рисуются буквами).
+const TOPIC_ICON = {
+  work: "work",
+  housing: "housing",
+  doctor: "doctor",
+  travel: "travel",
+  daily: "daily",
+  restaurant: "restaurant",
+};
+
+function OptionIcon({ stepKey, optionId, active }) {
+  if (stepKey === "learnLang" || stepKey === "nativeLang") {
+    return <Flag lang={optionId} size={26} />;
+  }
+  if (stepKey === "topic") {
+    return <Icon name={TOPIC_ICON[optionId]} size={20} />;
+  }
+  if (stepKey === "level") {
+    return <LevelBars level={optionId} active={active} size={18} />;
+  }
+  return null;
+}
 
 /**
  * Пошаговый мастер стартовых настроек.
@@ -104,8 +132,8 @@ export default function OnboardingScreen({
               className="onb__choice-btn"
               onClick={() => onStartPlacement(draft)}
             >
-              <span className="onb__choice-emoji" aria-hidden="true">
-                🎯
+              <span className="onb__choice-icon" aria-hidden="true">
+                <Icon name="target" size={22} />
               </span>
               <span className="onb__choice-label">
                 {t("placement.entryOnboarding")}
@@ -119,8 +147,8 @@ export default function OnboardingScreen({
               className="onb__choice-btn"
               onClick={() => setLevelMode("manual")}
             >
-              <span className="onb__choice-emoji" aria-hidden="true">
-                ✍️
+              <span className="onb__choice-icon" aria-hidden="true">
+                <Icon name="level" size={22} />
               </span>
               <span className="onb__choice-label">
                 {t("placement.chooseSelf")}
@@ -147,14 +175,18 @@ export default function OnboardingScreen({
                 className={"onb__option" + (active ? " is-selected" : "")}
                 onClick={() => choose(opt.id)}
               >
-                <span className="onb__option-emoji" aria-hidden="true">
-                  {opt.emoji}
+                <span className="onb__option-icon" aria-hidden="true">
+                  <OptionIcon
+                    stepKey={current.key}
+                    optionId={opt.id}
+                    active={active}
+                  />
                 </span>
                 <span className="onb__option-label">
                   {t(optionLabelKey(current.key, opt.id))}
                 </span>
                 <span className="onb__option-check" aria-hidden="true">
-                  {active ? "✓" : ""}
+                  {active && <Icon name="check" size={18} strokeWidth={2.4} />}
                 </span>
               </button>
             );

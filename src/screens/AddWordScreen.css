@@ -1,8 +1,22 @@
+/* ============================================================================
+ * Добавление своего слова — оформление Ember.
+ * ----------------------------------------------------------------------------
+ * Токены `--ember-*`, шрифты (Alegreya Sans — заголовок и само слово, Fira Sans
+ * — интерфейс и поле ввода). Поле — тёплая плашка с терракотовым фокусом,
+ * основное действие терракотой, вторичное нейтрально, успех оливковым.
+ * Работает в обеих темах. Логика (генерация карточки, добавление в SRS) не
+ * менялась — только представление.
+ * ========================================================================== */
+
 .addword {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  /* Тёплый фон — ровный по краям и в overscroll-зоне. */
+  background-color: var(--ember-bg);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
 }
 
 .addword__header {
@@ -16,21 +30,24 @@
   width: 44px;
   height: 44px;
   min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 20px;
   line-height: 1;
 }
 
 .addword__title {
-  font-size: 22px;
+  font-family: var(--font-word); /* Alegreya — заголовок */
+  font-size: 24px;
   font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--ember-text);
 }
 
 .addword__hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 15px;
   line-height: 1.5;
 }
@@ -41,29 +58,36 @@
   gap: 12px;
 }
 
+/* Поле ввода — тёплая плашка, терракотовый фокус. */
 .addword__input {
   width: 100%;
   padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1.5px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
   /* font-size >= 16px, чтобы iOS не зумил поле при фокусе (см. index.css) */
   font-size: 16px;
 }
 
+.addword__input::placeholder {
+  color: color-mix(in srgb, var(--ember-text-muted) 75%, transparent);
+}
+
 .addword__input:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--ember-accent);
 }
 
 .addword__primary {
   width: 100%;
   min-height: 50px;
   border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--accent);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
   color: var(--ember-on-accent);
+  font-family: var(--font-ui);
   font-size: 16px;
   font-weight: 700;
 }
@@ -75,10 +99,11 @@
 .addword__ghost {
   width: 100%;
   min-height: 48px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
   font-size: 15px;
   font-weight: 600;
 }
@@ -86,7 +111,7 @@
 /* Сообщение об ошибке / лимите — мягкий янтарный тон, как подсказки в приложении */
 .addword__error {
   padding: 12px 14px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--ember-radius-sm);
   border: 1px solid color-mix(in srgb, var(--ember-warning) 40%, transparent);
   background-color: color-mix(in srgb, var(--ember-warning) 12%, transparent);
   color: var(--ember-warning);
@@ -105,8 +130,8 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 4px solid var(--border);
-  border-top-color: var(--accent);
+  border: 4px solid var(--ember-border);
+  border-top-color: var(--ember-accent);
   animation: addword-spin 0.9s linear infinite;
 }
 
@@ -134,9 +159,9 @@
   flex-direction: column;
   gap: 20px;
   padding: 22px 20px;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background-color: var(--ember-card);
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius);
 }
 
 .addword__word-block {
@@ -145,11 +170,14 @@
   gap: 8px;
 }
 
+/* Слово — Alegreya (три алфавита читаются ровно), как на карточке. */
 .addword__word {
+  font-family: var(--font-word);
   font-size: clamp(22px, 7vw, 32px);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.5px;
+  color: var(--ember-text);
   overflow-wrap: anywhere;
   word-break: break-word;
   hyphens: auto;
@@ -157,7 +185,7 @@
 }
 
 .addword__translit {
-  color: var(--accent);
+  color: var(--ember-accent);
   font-size: 15px;
   letter-spacing: 0.5px;
 }
@@ -172,7 +200,7 @@
   flex-direction: column;
   gap: 8px;
   padding-left: 14px;
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--ember-accent);
 }
 
 .addword__example-label {
@@ -180,13 +208,16 @@
   letter-spacing: 1px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
 }
 
+/* Пример на изучаемом языке — тоже Alegreya (контент, не интерфейс). */
 .addword__example-text {
+  font-family: var(--font-word);
   font-size: 17px;
   line-height: 1.5;
   font-weight: 500;
+  color: var(--ember-text);
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -194,7 +225,7 @@
 .addword__example-translation {
   font-size: 15px;
   line-height: 1.5;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -216,18 +247,28 @@
   gap: 10px;
 }
 
-.addword__result-emoji {
-  font-size: 52px;
-  line-height: 1;
+/* Значок успеха — оливковый круг с линейной галочкой (не эмодзи). */
+.addword__result-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ember-learned) 40%, transparent);
+  background-color: color-mix(in srgb, var(--ember-learned) 14%, transparent);
+  color: var(--ember-learned);
 }
 
 .addword__result-title {
-  font-size: 22px;
+  font-family: var(--font-word); /* Alegreya — заголовок итога */
+  font-size: 24px;
   font-weight: 700;
+  color: var(--ember-text);
 }
 
 .addword__result-hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 15px;
   max-width: 30ch;
 }

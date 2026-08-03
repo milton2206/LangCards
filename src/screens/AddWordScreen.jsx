@@ -3,6 +3,7 @@ import { useI18n } from "../i18n/I18nContext.jsx";
 import { requestManualCard } from "../lib/manualCard.js";
 import { apiErrorText } from "../lib/apiClient.js";
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
+import Icon from "../components/icons/Icon.jsx";
 import "./AddWordScreen.css";
 
 // Локализованный текст ошибки по коду из requestManualCard. Слово-специфичный
@@ -85,8 +86,8 @@ export default function AddWordScreen({
 
       {status === "added" ? (
         <div className="addword__result">
-          <div className="addword__result-emoji" aria-hidden="true">
-            ✅
+          <div className="addword__result-badge" aria-hidden="true">
+            <Icon name="check" size={32} strokeWidth={2.2} />
           </div>
           <h2 className="addword__result-title">{t("addWord.addedTitle")}</h2>
           <p className="addword__result-hint">{t("addWord.addedHint")}</p>

@@ -613,6 +613,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      emberOnboardingAddWord: {
+        title: "The last two screens restyled",
+        desc: "First-time setup and “Add your own word” — the two screens still in the old look — now use the warm Ember style too. In setup, languages are picked with round flags, and topics and levels are plates with line icons just like in settings: the selected one in terracotta, the rest muted. On the add-word screen the input is a warm field with a terracotta focus, the create button is terracotta, and after adding you get an olive check mark instead of an emoji. Both screens work in dark and light themes. The logic is unchanged: setup still saves your choices, and a word is still added with its translation and example.",
+      },
       lightThemeBack: {
         title: "The light theme is back",
         desc: "Settings, under “Appearance”, lets you pick light or dark again — dark stays the default and your choice is remembered. While we were at it we went through every screen and cleaned out colors that had been written in directly, bypassing the palette: in the light theme those spots would have stayed as dark patches. Now everything — backgrounds, text, borders, icons, error and success states — switches with the theme, including the page background, so pulling the screen no longer reveals a dark strip. Terracotta, olive and red were taken deeper on the light clay so small labels and helper text stay readable. The meaning of the colors is unchanged: “Know” terracotta, “Take” and learned olive, errors reddish.",

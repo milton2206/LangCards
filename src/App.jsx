@@ -1435,9 +1435,13 @@ export default function App() {
       <Analytics />
       <AppShell
         ember={
-          // Экран восстановления пароля (по ссылке) и экран входа/сброса —
-          // тоже Ember: каркас тёплый, без холодной каймы вокруг.
+          // Все экраны переведены на Ember, поэтому каркас всегда тёплый —
+          // вокруг экрана нет холодной каймы (заметно на десктопе, где у
+          // контейнера есть рамка и поля). Онбординг и тест уровня приходят не
+          // через `screen`, поэтому их состояния перечислены отдельно.
           auth.recovery ||
+          needsSetup ||
+          Boolean(placement) ||
           [
             "cards",
             "session",
@@ -1449,6 +1453,10 @@ export default function App() {
             "languages",
             "auth",
             "start",
+            "addword",
+            "review",
+            "known",
+            "knownreview",
           ].includes(screen)
         }
       >
