@@ -57,16 +57,16 @@
 }
 
 .comp__answer.is-correct {
-  border-color: rgba(53, 200, 139, 0.6);
-  background-color: rgba(53, 200, 139, 0.12);
-  color: #35c88b;
+  border-color: color-mix(in srgb, var(--ember-learned) 60%, transparent);
+  background-color: color-mix(in srgb, var(--ember-learned) 12%, transparent);
+  color: var(--ember-learned);
   opacity: 1;
 }
 
 .comp__answer.is-wrong {
-  border-color: rgba(255, 107, 107, 0.6);
-  background-color: rgba(255, 107, 107, 0.12);
-  color: #ff6b6b;
+  border-color: color-mix(in srgb, var(--ember-danger) 60%, transparent);
+  background-color: color-mix(in srgb, var(--ember-danger) 12%, transparent);
+  color: var(--ember-danger);
   opacity: 1;
 }
 
@@ -82,13 +82,13 @@
 }
 
 .comp__result.is-correct {
-  border-color: rgba(53, 200, 139, 0.35);
-  background-color: rgba(53, 200, 139, 0.07);
+  border-color: color-mix(in srgb, var(--ember-learned) 35%, transparent);
+  background-color: color-mix(in srgb, var(--ember-learned) 7%, transparent);
 }
 
 .comp__result.is-wrong {
-  border-color: rgba(255, 107, 107, 0.35);
-  background-color: rgba(255, 107, 107, 0.07);
+  border-color: color-mix(in srgb, var(--ember-danger) 35%, transparent);
+  background-color: color-mix(in srgb, var(--ember-danger) 7%, transparent);
 }
 
 .comp__verdict {
@@ -100,8 +100,8 @@
 .comp__why {
   padding: 12px 14px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(108, 140, 255, 0.25);
-  background-color: rgba(108, 140, 255, 0.08);
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 25%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 8%, transparent);
 }
 
 .comp__why-label {
@@ -124,7 +124,7 @@
   border: none;
   border-radius: var(--radius-sm);
   background-color: var(--accent);
-  color: #0b0d12;
+  color: var(--ember-on-accent);
   font-size: 15px;
   font-weight: 700;
 }
@@ -247,9 +247,9 @@
 }
 
 .comp--ember .comp__answer.is-wrong {
-  border-color: #e0605a;
-  background-color: color-mix(in srgb, #e0605a 16%, transparent);
-  color: #e0605a;
+  border-color: var(--ember-danger);
+  background-color: color-mix(in srgb, var(--ember-danger) 16%, transparent);
+  color: var(--ember-danger);
 }
 
 .comp--ember .comp__result {
@@ -264,8 +264,8 @@
 }
 
 .comp--ember .comp__result.is-wrong {
-  border-color: color-mix(in srgb, #e0605a 35%, transparent);
-  background-color: color-mix(in srgb, #e0605a 8%, transparent);
+  border-color: color-mix(in srgb, var(--ember-danger) 35%, transparent);
+  background-color: color-mix(in srgb, var(--ember-danger) 8%, transparent);
 }
 
 .comp--ember .comp__why {

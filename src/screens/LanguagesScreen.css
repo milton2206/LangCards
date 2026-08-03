@@ -219,7 +219,7 @@
 .langs__mini--danger {
   border-color: transparent;
   background-color: transparent;
-  color: #e0605a;
+  color: var(--ember-danger);
   padding-left: 4px;
   padding-right: 4px;
 }
@@ -330,8 +330,8 @@
 }
 
 .langs__primary--danger {
-  background-color: #e0605a;
-  color: #fff;
+  background-color: var(--ember-danger-solid);
+  color: var(--ember-on-danger);
 }
 
 .langs__ghost {

@@ -44,7 +44,7 @@
 /* Сегодняшний день — акцентная рамка */
 .week__dot.is-today {
   border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.12);
+  background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
 }
 
 /* Выходной — приглушён */
@@ -176,7 +176,7 @@
 /* Выбранный для редактирования день — акцентная рамка (важнее приглушения off) */
 .week__dot--edit.is-editing {
   border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.16);
+  background-color: color-mix(in srgb, var(--ember-accent) 16%, transparent);
   opacity: 1;
 }
 
@@ -216,7 +216,7 @@
 
 .week__opt.is-active {
   border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.14);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
   color: var(--accent);
 }
 

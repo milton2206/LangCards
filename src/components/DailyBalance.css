@@ -31,12 +31,12 @@
 
 .balance__chip.is-active {
   border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.14);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
 }
 
 /* Норма выполнена — спокойный зелёный тон */
 .balance__chip.is-done {
-  border-color: rgba(53, 200, 139, 0.5);
+  border-color: color-mix(in srgb, var(--ember-learned) 50%, transparent);
 }
 
 .balance__code {
@@ -49,5 +49,5 @@
 }
 
 .balance__check {
-  color: #35c88b;
+  color: var(--ember-learned);
 }

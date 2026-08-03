@@ -104,7 +104,7 @@
 
 .onb__choice-btn:active {
   border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.12);
+  background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
 }
 
 .onb__choice-emoji {
@@ -154,7 +154,7 @@
 
 .onb__option.is-selected {
   border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.14);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
 }
 
 .onb__option-emoji {
@@ -195,7 +195,7 @@
   border: none;
   border-radius: var(--radius-sm);
   background-color: var(--accent);
-  color: #0b0d12;
+  color: var(--ember-on-accent);
   font-size: 17px;
   font-weight: 700;
 }

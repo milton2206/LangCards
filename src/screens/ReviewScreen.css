@@ -335,9 +335,9 @@
 
 /* Трудно — тёплый янтарь (тот же тон «осторожно», что и в карточке). */
 .review__grade--hard {
-  background-color: rgba(224, 158, 74, 0.14);
-  border-color: rgba(224, 158, 74, 0.5);
-  color: #e0964a;
+  background-color: color-mix(in srgb, var(--ember-warning) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ember-warning) 50%, transparent);
+  color: var(--ember-warning);
 }
 
 /* Нормально — нейтральный (ожидаемый исход, без акцента). */

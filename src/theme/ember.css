@@ -34,10 +34,25 @@
      чтобы токен-набор был самодостаточным: текст, приглушённый текст,
      границы). Подобраны в тон терракоты/глины, вне двух акцентов. */
   --ember-ink: #2a1c12; /* ↩ derived · тёплый «чернильный» для текста на свету */
-  --ember-brown-muted: #8a6f5c; /* ↩ derived · приглушённый коричневый (свет) */
-  --ember-line-light: #ead9cb; /* ↩ derived · тонкая линия на глине (свет) */
+  --ember-brown-muted: #6f5647; /* ↩ derived · приглушённый коричневый (свет) */
+  --ember-line-light: #dcc8b6; /* ↩ derived · тонкая линия на глине (свет) */
   --ember-cream-muted: #c7b5a6; /* ↩ derived · приглушённый тёплый (тьма) */
   --ember-line-dark: #3a2b21; /* ↩ derived · тонкая линия на угле (тьма) */
+
+  /* Насыщенные версии акцентов ДЛЯ СВЕТЛОЙ темы. Терракота и олива с листа
+     задумывались на тёмном фоне и на глине бледнят: мелкие подписи и «выучено»
+     не дотягивали до 4.5:1. Здесь — те же цвета, взятые глубже, чтобы текст и
+     кнопки читались на светлом. На тёмной теме НЕ используются. */
+  --ember-terracotta-deep: #a84c28; /* ↩ derived · акцент, свет (≈4.7:1 на глине) */
+  --ember-olive-deep: #4f6b33; /* ↩ derived · выучено, свет (≈5.1:1 на глине) */
+
+  /* Служебные смыслы (предупреждение и опасное/ошибка). Раньше эти цвета были
+     вписаны значениями прямо в экраны — в светлой теме они оставались тёмными
+     пятнами. Теперь это токены и переключаются вместе с темой. */
+  --ember-amber: #e0964a; /* ↩ derived · янтарь, тьма */
+  --ember-amber-deep: #8a5214; /* ↩ derived · янтарь, свет (≈5.4:1 на глине) */
+  --ember-red: #e0605a; /* ↩ derived · красноватый, тьма */
+  --ember-red-deep: #b03a2e; /* ↩ derived · красноватый, свет (≈5.1:1 на глине) */
 
   /* ---------- Типографика (шрифты подключены в index.html) ----------
      Заведены как токены, но НЕ применяются к экранам глобально на этом шаге.
@@ -84,6 +99,19 @@
 
   /* Текст поверх акцентных плашек (тёплый угол читается на обоих акцентах). */
   --ember-on-accent: var(--ember-charcoal);
+
+  /* ---------- Служебные смыслы: предупреждение и опасное/ошибка ----------
+     Текст/иконка (-*), заливка плашки (-bg) и её рамка (-border). Solid —
+     сплошная опасная кнопка («удалить аккаунт») с текстом on-danger. */
+  --ember-warning: var(--ember-amber);
+  --ember-warning-bg: rgba(224, 158, 74, 0.12);
+  --ember-warning-border: rgba(224, 158, 74, 0.4);
+  --ember-danger: var(--ember-red);
+  --ember-danger-bg: rgba(224, 96, 90, 0.12);
+  --ember-danger-border: rgba(224, 96, 90, 0.4);
+  --ember-on-warning: var(--ember-espresso);
+  --ember-danger-solid: #b3392e;
+  --ember-on-danger: #fff7f2;
 }
 
 /* Явная тёмная тема — те же значения, что и база (для симметрии механики). */
@@ -109,6 +137,16 @@
   --ember-take-rgb: 147, 181, 107; /* #93b56b */
 
   --ember-on-accent: var(--ember-charcoal);
+
+  --ember-warning: var(--ember-amber);
+  --ember-warning-bg: rgba(224, 158, 74, 0.12);
+  --ember-warning-border: rgba(224, 158, 74, 0.4);
+  --ember-danger: var(--ember-red);
+  --ember-danger-bg: rgba(224, 96, 90, 0.12);
+  --ember-danger-border: rgba(224, 96, 90, 0.4);
+  --ember-on-warning: var(--ember-espresso);
+  --ember-danger-solid: #b3392e;
+  --ember-on-danger: #fff7f2;
 }
 
 /* Светлая тема — глина + сливочная карточка, насыщенные акценты. */
@@ -122,18 +160,32 @@
   --ember-text-muted: var(--ember-brown-muted);
   --ember-border: var(--ember-line-light);
 
-  /* На свету акценты берём в насыщенном варианте (терракота/олива с листа). */
-  --ember-accent: var(--ember-terracotta);
-  --ember-accent-strong: var(--ember-terracotta);
-  --ember-learned: var(--ember-olive);
+  /* На свету акценты берём ГЛУБЖЕ, чем на листе: терракота/олива с листа
+     задумывались на угле и на глине бледнят (мелкие подписи не дотягивали до
+     4.5:1). Смысл цветов тот же — Know терракота, Take/выучено олива. */
+  --ember-accent: var(--ember-terracotta-deep);
+  --ember-accent-strong: var(--ember-terracotta-deep);
+  --ember-learned: var(--ember-olive-deep);
 
   --ember-know: var(--ember-accent);
   --ember-take: var(--ember-learned);
   --ember-skip: var(--ember-text-muted);
 
-  /* Светлая тема: насыщенные акценты. */
-  --ember-know-rgb: 192, 95, 54; /* #c05f36 */
-  --ember-take-rgb: 109, 143, 78; /* #6d8f4e */
+  /* Светлая тема: насыщенные акценты (совпадают с --ember-know/take выше). */
+  --ember-know-rgb: 168, 76, 40; /* #a84c28 */
+  --ember-take-rgb: 79, 107, 51; /* #4f6b33 */
 
   --ember-on-accent: var(--ember-cream);
+
+  /* Служебные смыслы на светлом — тоже глубже, иначе янтарь и красный
+     растворяются в глине. */
+  --ember-warning: var(--ember-amber-deep);
+  --ember-warning-bg: rgba(138, 82, 20, 0.1);
+  --ember-warning-border: rgba(138, 82, 20, 0.35);
+  --ember-danger: var(--ember-red-deep);
+  --ember-danger-bg: rgba(176, 58, 46, 0.1);
+  --ember-danger-border: rgba(176, 58, 46, 0.35);
+  --ember-on-warning: var(--ember-cream);
+  --ember-danger-solid: #b3392e;
+  --ember-on-danger: #fff7f2;
 }

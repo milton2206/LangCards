@@ -25,10 +25,10 @@
 .selectbar__delete {
   flex: 1;
   min-height: 52px;
-  border: 1px solid rgba(255, 107, 107, 0.5);
+  border: 1px solid color-mix(in srgb, var(--ember-danger) 50%, transparent);
   border-radius: var(--radius-sm);
-  background-color: rgba(255, 107, 107, 0.16);
-  color: #ff8a8a;
+  background-color: color-mix(in srgb, var(--ember-danger) 16%, transparent);
+  color: var(--ember-danger);
   font-size: 16px;
   font-weight: 700;
 }
@@ -94,8 +94,8 @@
   min-height: 48px;
   border: none;
   border-radius: var(--radius-sm);
-  background-color: #ff6b6b;
-  color: #1a0b0b;
+  background-color: var(--ember-danger-solid);
+  color: var(--ember-on-danger);
   font-size: 16px;
   font-weight: 700;
 }

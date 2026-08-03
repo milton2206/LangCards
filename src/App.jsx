@@ -82,6 +82,7 @@ import {
   recordSignupSource,
 } from "./lib/presence.js";
 import { resolveWhatsNew } from "./lib/whatsNew.js";
+import { applyEmberTheme, loadTheme, saveTheme } from "./theme/emberTheme.js";
 
 // Id тем-пресетов и запасная тема: когда выбранная своя тема удалена или
 // принадлежит другой паре, откатываемся к пресету, чтобы генерация не осталась
@@ -687,8 +688,16 @@ export default function App() {
     }
   }
 
-  // Тема оформления — всегда тёмная Ember, выставляется в main.jsx до рендера.
-  // Выбора темы в приложении нет (светлые токены в ember.css лежат про запас).
+  // Тема оформления Ember: 'light' | 'dark' (по умолчанию тёмная). Стартовая
+  // выставлена в main.jsx до рендера; здесь храним выбор и применяем при смене.
+  // Только представление — логику не затрагивает.
+  const [theme, setTheme] = useState(loadTheme);
+
+  function handleChangeTheme(next) {
+    setTheme(next);
+    saveTheme(next);
+    applyEmberTheme(next);
+  }
 
   useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(settings));
@@ -1355,6 +1364,8 @@ export default function App() {
             onOpenLanguages={() => setScreen("languages")}
             onBack={() => setScreen("session")}
             onOpenTutorial={() => setTutorial("detailed")}
+            theme={theme}
+            onChangeTheme={handleChangeTheme}
             placementLevel={activeLanguage?.placementLevel || null}
             onStartPlacement={() =>
               handleStartPlacement({

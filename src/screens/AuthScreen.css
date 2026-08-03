@@ -137,7 +137,7 @@
 
 /* Ошибка — красноватым (тёплый, в тон палитре). */
 .auth__error {
-  color: #e0605a;
+  color: var(--ember-danger);
   font-size: 14px;
   line-height: 1.4;
 }

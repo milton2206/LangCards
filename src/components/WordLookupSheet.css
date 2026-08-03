@@ -77,9 +77,9 @@
 .lookup__error {
   padding: 10px 14px;
   border-radius: var(--ember-radius-sm);
-  border: 1px solid rgba(224, 158, 74, 0.4);
-  background-color: rgba(224, 158, 74, 0.12);
-  color: #e0964a;
+  border: 1px solid color-mix(in srgb, var(--ember-warning) 40%, transparent);
+  background-color: color-mix(in srgb, var(--ember-warning) 12%, transparent);
+  color: var(--ember-warning);
   font-size: 14px;
   line-height: 1.45;
 }

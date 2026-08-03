@@ -124,9 +124,9 @@
 
 /* Есть что повторять — заметно, но не тревожно (тёплый янтарь) */
 .cards__daily--due {
-  border-color: rgba(224, 158, 74, 0.4);
-  background-color: rgba(224, 158, 74, 0.12);
-  color: #e0964a;
+  border-color: color-mix(in srgb, var(--ember-warning) 40%, transparent);
+  background-color: color-mix(in srgb, var(--ember-warning) 12%, transparent);
+  color: var(--ember-warning);
 }
 
 .cards__daily-cta {
@@ -134,8 +134,10 @@
   min-height: 52px;
   border: none;
   border-radius: var(--ember-radius-sm);
-  background-color: #e0964a;
-  color: #241a14;
+  background-color: var(--ember-warning);
+  /* Текст на янтарной плашке: тёмный на светлом янтаре (тьма) и кремовый на
+     глубоком (свет) — на обеих темах читается. */
+  color: var(--ember-on-warning);
   font-size: 16px;
   font-weight: 800;
 }
@@ -596,9 +598,9 @@
 .cards__limit-notice {
   padding: 10px 14px;
   border-radius: var(--ember-radius-sm);
-  border: 1px solid rgba(224, 158, 74, 0.4);
-  background-color: rgba(224, 158, 74, 0.12);
-  color: #e0964a;
+  border: 1px solid color-mix(in srgb, var(--ember-warning) 40%, transparent);
+  background-color: color-mix(in srgb, var(--ember-warning) 12%, transparent);
+  color: var(--ember-warning);
   font-size: 13px;
   line-height: 1.4;
 }
@@ -807,9 +809,9 @@
   width: 68px;
   height: 68px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, #e0605a 45%, transparent);
-  background-color: color-mix(in srgb, #e0605a 14%, transparent);
-  color: #e0605a;
+  border: 1px solid color-mix(in srgb, var(--ember-danger) 45%, transparent);
+  background-color: color-mix(in srgb, var(--ember-danger) 14%, transparent);
+  color: var(--ember-danger);
 }
 
 .cards__status-title {

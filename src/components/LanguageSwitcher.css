@@ -61,7 +61,7 @@
 }
 
 .langswitch__item.is-active {
-  background-color: rgba(108, 140, 255, 0.14);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
 }
 
 .langswitch__item-name {

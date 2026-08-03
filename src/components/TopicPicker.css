@@ -68,8 +68,8 @@
 }
 
 .topicpicker__remove:active {
-  border-color: #e0605a;
-  color: #e0605a;
+  border-color: var(--ember-danger);
+  color: var(--ember-danger);
 }
 
 /* ---------- Добавление ---------- */

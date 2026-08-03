@@ -19,7 +19,7 @@
 
 .playbtn--playing {
   border-color: var(--accent);
-  background-color: rgba(108, 140, 255, 0.14);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
 }
 
 .playbtn.is-disabled {

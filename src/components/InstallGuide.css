@@ -132,8 +132,8 @@
   color: var(--ember-text);
   padding: 10px 12px;
   border-radius: var(--ember-radius-sm);
-  background-color: rgba(224, 158, 74, 0.12);
-  border: 1px solid rgba(224, 158, 74, 0.35);
+  background-color: color-mix(in srgb, var(--ember-warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ember-warning) 35%, transparent);
 }
 
 /* Кнопка действия — терракотовым акцентом. */

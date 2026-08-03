@@ -108,9 +108,9 @@
 .knownreview__limit {
   padding: 10px 14px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 176, 32, 0.4);
-  background-color: rgba(255, 176, 32, 0.12);
-  color: #ffb020;
+  border: 1px solid color-mix(in srgb, var(--ember-warning) 40%, transparent);
+  background-color: color-mix(in srgb, var(--ember-warning) 12%, transparent);
+  color: var(--ember-warning);
   font-size: 13px;
   line-height: 1.4;
 }
@@ -134,15 +134,15 @@
 }
 
 .knownreview__btn--remember {
-  background-color: rgba(53, 200, 139, 0.14);
-  border-color: rgba(53, 200, 139, 0.5);
-  color: #35c88b;
+  background-color: color-mix(in srgb, var(--ember-learned) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ember-learned) 50%, transparent);
+  color: var(--ember-learned);
 }
 
 .knownreview__btn--restore {
-  background-color: rgba(255, 176, 32, 0.14);
-  border-color: rgba(255, 176, 32, 0.5);
-  color: #ffb020;
+  background-color: color-mix(in srgb, var(--ember-warning) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ember-warning) 50%, transparent);
+  color: var(--ember-warning);
 }
 
 /* ---------- Экран «всё просмотрено» ---------- */

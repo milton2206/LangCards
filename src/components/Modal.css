@@ -95,14 +95,14 @@
   color: var(--text);
   padding: 12px 14px;
   border-radius: var(--radius-sm);
-  background-color: rgba(240, 60, 60, 0.1);
-  border: 1px solid rgba(240, 60, 60, 0.4);
+  background-color: color-mix(in srgb, var(--ember-danger) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ember-danger) 40%, transparent);
 }
 
 .modal__error {
   font-size: 13px;
   line-height: 1.4;
-  color: #f05a5a;
+  color: var(--ember-danger);
 }
 
 .modal__actions {
@@ -125,12 +125,12 @@
 
 .modal__btn--primary {
   background-color: var(--accent);
-  color: #0b0d12;
+  color: var(--ember-on-accent);
 }
 
 .modal__btn--danger {
-  background-color: #e0433a;
-  color: #fff;
+  background-color: var(--ember-danger-solid);
+  color: var(--ember-on-danger);
 }
 
 .modal__btn--ghost {
@@ -177,9 +177,9 @@
 
 /* Значок опасного действия (удаление аккаунта) — красноватый. */
 .modal__box--ember .modal__title-icon--danger {
-  border-color: color-mix(in srgb, #cf4b3f 40%, transparent);
-  background-color: color-mix(in srgb, #cf4b3f 14%, transparent);
-  color: #cf4b3f;
+  border-color: color-mix(in srgb, var(--ember-danger-solid) 40%, transparent);
+  background-color: color-mix(in srgb, var(--ember-danger-solid) 14%, transparent);
+  color: var(--ember-danger-solid);
 }
 
 .modal__box--ember .modal__title {
@@ -232,14 +232,14 @@
 /* Предупреждение о необратимости — тёплая красноватая плашка (читаемо). */
 .modal__box--ember .modal__warn {
   color: var(--ember-text);
-  background-color: color-mix(in srgb, #cf4b3f 12%, transparent);
-  border: 1px solid color-mix(in srgb, #cf4b3f 40%, transparent);
+  background-color: color-mix(in srgb, var(--ember-danger-solid) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ember-danger-solid) 40%, transparent);
   border-radius: var(--ember-radius-sm);
 }
 
 /* Ошибка — красноватым (тёплый, в тон палитре). */
 .modal__box--ember .modal__error {
-  color: #e0605a;
+  color: var(--ember-danger);
 }
 
 /* Успех «пароль изменён» — оливковым. */
@@ -266,7 +266,7 @@
 
 /* Опасное действие (удалить аккаунт) — тёплый красный, читается в обеих темах. */
 .modal__box--ember .modal__btn--danger {
-  background-color: #cf4b3f;
-  color: #fff7f2;
+  background-color: var(--ember-danger-solid);
+  color: var(--ember-on-danger);
   font-family: var(--font-ui);
 }

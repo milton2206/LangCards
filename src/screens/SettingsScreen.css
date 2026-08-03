@@ -119,6 +119,48 @@
   border-radius: var(--ember-radius-sm);
 }
 
+/* ---------- Оформление: светлая / тёмная ---------- */
+.settings__theme {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.settings__theme-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 12px 10px;
+  border: 1.5px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.settings__theme-chip svg {
+  color: var(--ember-text-muted);
+  transition: color 0.15s;
+}
+
+.settings__theme-chip.is-active {
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
+}
+
+.settings__theme-chip.is-active svg {
+  color: var(--ember-accent);
+}
+
 /* ---------- Строка-ряд (Manage languages, Check my level again) ---------- */
 .settings__row {
   width: 100%;
@@ -274,11 +316,11 @@
 }
 
 .settings__sync.is-offline .settings__sync-text {
-  color: #e0964a;
+  color: var(--ember-warning);
 }
 
 .settings__sync.is-error .settings__sync-text {
-  color: #e0605a;
+  color: var(--ember-danger);
 }
 
 .settings__sync-retry {
@@ -311,10 +353,10 @@
   width: 100%;
   min-height: 44px;
   margin-top: 4px;
-  border: 1px solid color-mix(in srgb, #e0605a 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ember-danger) 45%, transparent);
   border-radius: var(--ember-radius-sm);
   background-color: transparent;
-  color: #e0605a;
+  color: var(--ember-danger);
   font-size: 14px;
   font-weight: 600;
 }

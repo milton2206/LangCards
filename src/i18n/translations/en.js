@@ -565,6 +565,8 @@ export default {
     install: "Install on phone",
     feedback: "Report a problem",
     changePassword: "Change password",
+    appearance: "Appearance",
+    theme: { dark: "Dark", light: "Light" },
     deleteAccount: "Delete account",
     // Multi-language mode (explicit choice, phase 4.2).
     multiLang: "Multi-language mode",
@@ -611,6 +613,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      lightThemeBack: {
+        title: "The light theme is back",
+        desc: "Settings, under “Appearance”, lets you pick light or dark again — dark stays the default and your choice is remembered. While we were at it we went through every screen and cleaned out colors that had been written in directly, bypassing the palette: in the light theme those spots would have stayed as dark patches. Now everything — backgrounds, text, borders, icons, error and success states — switches with the theme, including the page background, so pulling the screen no longer reveals a dark strip. Terracotta, olive and red were taken deeper on the light clay so small labels and helper text stay readable. The meaning of the colors is unchanged: “Know” terracotta, “Take” and learned olive, errors reddish.",
+      },
       verbAnyForm: {
         title: "Verb forms — from any form",
         desc: "The conjugation table used to be offered mainly for the base form. Now tap a verb in ANY form — “πηγαίνει”, “πήγε”, “θα πάμε” — and the “Conjugation” button still appears: the app works out the base form itself and builds the table for it (shown under “Base form”). The form you tapped is highlighted in terracotta, so you can see straight away where it sits among the persons and tenses. The table covers three tenses: present, past and future — which matters especially for Greek and its irregular aorist. The cache now works by base form: open the table for one form and you get it instantly for every other form of that verb, with no new AI requests. It works the same on a card and in reading; non-verbs still have no button.",
