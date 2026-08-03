@@ -613,6 +613,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      onboardingBeforeTutorial: {
+        title: "Setup first, then the intro",
+        desc: "A fix for new users: on sign-up the app intro was opening on top of the first-time setup — before you had picked your native language, so it came up in the wrong one. The order is now strict: setup first (language you are learning, native language, topic, level), and only then the short intro, in the native language you chose. We also added a safety net: until a native language is picked the interface shows in English rather than your phone language — we do not have the interface in other languages.",
+      },
       emberOnboardingAddWord: {
         title: "The last two screens restyled",
         desc: "First-time setup and “Add your own word” — the two screens still in the old look — now use the warm Ember style too. In setup, languages are picked with round flags, and topics and levels are plates with line icons just like in settings: the selected one in terracotta, the rest muted. On the add-word screen the input is a warm field with a terracotta focus, the create button is terracotta, and after adding you get an olive check mark instead of an emoji. Both screens work in dark and light themes. The logic is unchanged: setup still saves your choices, and a word is still added with its translation and example.",

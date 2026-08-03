@@ -2,22 +2,23 @@ import { createContext, useContext, useMemo } from "react";
 import {
   translate,
   translatePlural,
-  DICTIONARIES,
-  DEFAULT_LANG,
+  resolveUiLang,
+  UI_FALLBACK_LANG,
 } from "./index.js";
 
 const I18nContext = createContext({
-  lang: DEFAULT_LANG,
+  lang: UI_FALLBACK_LANG,
   t: (key) => key,
   tp: (key) => key,
 });
 
 /**
  * Провайдер языка интерфейса. lang берётся из родного языка пользователя
- * (nativeLang). Неизвестный/пустой язык → русский по умолчанию.
+ * (nativeLang). Пока он не выбран (первый вход, онбординг) или не поддерживается
+ * — английский: интерфейса на языке устройства у нас нет.
  */
 export function I18nProvider({ lang, children }) {
-  const active = DICTIONARIES[lang] ? lang : DEFAULT_LANG;
+  const active = resolveUiLang(lang);
   const value = useMemo(
     () => ({
       lang: active,

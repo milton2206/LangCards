@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { I18nProvider } from "./i18n/I18nContext.jsx";
-import { translate } from "./i18n/index.js";
+import { translate, resolveUiLang } from "./i18n/index.js";
 import AppShell from "./components/AppShell.jsx";
 import StartScreen from "./screens/StartScreen.jsx";
 import OnboardingScreen from "./screens/OnboardingScreen.jsx";
@@ -706,7 +706,8 @@ export default function App() {
   // Заголовок вкладки браузера: название бренда (не переводится) + суть на языке
   // интерфейса (родной язык пользователя).
   useEffect(() => {
-    document.title = `LangCards — ${translate(nativeLang, "start.title")}`;
+    // Тот же язык, что у интерфейса: пока родной не выбран — английский.
+    document.title = `LangCards — ${translate(resolveUiLang(nativeLang), "start.title")}`;
   }, [nativeLang]);
 
   // Гейт навигации: без аккаунта доступны только start/auth; после входа с
@@ -1461,9 +1462,13 @@ export default function App() {
         }
       >
         {content}
-        {/* Туториал — после входа (гостям на экране регистрации он не нужен).
+        {/* Туториал — ТОЛЬКО в основном приложении (inMainApp), как и «Что
+            нового». Раньше здесь стояла проверка одного лишь входа, поэтому у
+            нового пользователя туториал открывался ПОВЕРХ онбординга (окно
+            position:fixed) — до того, как выбран родной язык, и потому на чужом
+            языке. Теперь порядок жёсткий: онбординг → туториал.
             Короткая версия при первом входе, подробная — из настроек/4-го экрана. */}
-        {tutorial && (!authRequired || auth.user) && (
+        {tutorial && inMainApp && (
           <Tutorial
             key={tutorial}
             mode={tutorial}
