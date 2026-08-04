@@ -55,11 +55,44 @@ export function stopCurrentAudio() {
  * Создаёт и возвращает <audio> для url, остановив предыдущий звук (простая
  * озвучка слова/примера — карточки, лупа слова в чтении). Плеер длинного аудио
  * этим НЕ пользуется, но делит ту же шину через claimAudio.
+ *
+ * ВАЖНО: шина освобождается САМА, чем бы ни закончилось воспроизведение —
+ * конец, ошибка загрузки или пауза (в т.ч. когда звук перехватил другой плеер).
+ * Раньше playUrl только занимал шину и не отпускал её никогда: activeStop
+ * навсегда оставался закрытым на уже отыгравший <audio>, и состояние «занято»
+ * жило до перезагрузки страницы.
  */
 export function playUrl(url) {
   const audio = new Audio(url);
-  claimAudio(() => audio.pause());
+  const stop = () => {
+    try {
+      audio.pause();
+    } catch {
+      // элемент уже мёртв — ничего страшного
+    }
+  };
+  claimAudio(stop);
+
+  const free = () => releaseAudio(stop);
+  audio.addEventListener("ended", free, { once: true });
+  audio.addEventListener("error", free, { once: true });
+  // pause прилетает и когда нас глушит другой плеер, и в конце дорожки:
+  // releaseAudio снимает владение только если владелец — мы, так что безопасно.
+  audio.addEventListener("pause", free);
+
   return audio;
+}
+
+/**
+ * Забыть закэшированный URL озвучки. Нужен для ПОВТОРА при сбое загрузки: если
+ * файл не проигрался (сеть моргнула или объект ещё не доехал в хранилище),
+ * следующая попытка должна сходить на сервер заново, а не подсунуть тот же
+ * битый URL из памяти.
+ */
+export function forgetTtsUrl({ text, learnLang, rate = DEFAULT_RATE }) {
+  const clean = String(text ?? "").trim();
+  if (!clean || !learnLang) return;
+  urlCache.delete(`${learnLang}|${rate}|${clean}`);
 }
 
 export async function fetchTtsUrl({ text, learnLang, rate = DEFAULT_RATE }) {

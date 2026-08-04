@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { fetchTtsUrl, claimAudio, releaseAudio } from "../lib/ttsClient.js";
+import {
+  fetchTtsUrl,
+  forgetTtsUrl,
+  claimAudio,
+  releaseAudio,
+} from "../lib/ttsClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import Icon from "./icons/Icon.jsx";
 import "./AudioPlayer.css";
@@ -72,6 +77,8 @@ export default function AudioPlayer({
   const playOnLoadRef = useRef(false);
 
   const [phase, setPhase] = useState("idle"); // idle | preparing | ready | error
+  // Право на ОДИН автоповтор при сбое загрузки (сбрасывается при смене содержимого).
+  const retriedRef = useRef(false);
   const [urls, setUrls] = useState(null);
   const [durations, setDurations] = useState([]);
   const [index, setIndex] = useState(0);
@@ -133,6 +140,7 @@ export default function AudioPlayer({
     setPlaying(false);
     setScrub(null);
     setActivated(!compact);
+    retriedRef.current = false; // новое содержимое — снова даём право на повтор
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sig]);
 
@@ -212,6 +220,29 @@ export default function AudioPlayer({
         .then(() => setPlaying(true))
         .catch(() => setPlaying(false));
     }
+  }
+
+  /**
+   * Ошибка загрузки дорожки. Раньше её НИКТО не слушал (<audio> был без
+   * onError): плеер оставался в состоянии «играет», шина — занятой, и звук не
+   * возвращался до перезагрузки страницы. Теперь отпускаем шину и ОДИН раз
+   * пробуем заново со свежими ссылками; если и это не помогло — честно уходим
+   * в error, откуда кнопка запускает подготовку заново.
+   */
+  async function onAudioError() {
+    setPlaying(false);
+    releaseAudio(pauseSelf);
+    if (retriedRef.current) {
+      setPhase("error");
+      return;
+    }
+    retriedRef.current = true;
+    for (const tr of tracks || []) {
+      forgetTtsUrl({ text: tr.text, learnLang: tr.learnLang, rate: tr.rate });
+    }
+    seekOnLoadRef.current = posInTrack || 0;
+    playOnLoadRef.current = true; // заиграет, как только приедут метаданные
+    await prepare();
   }
 
   function onTimeUpdate() {
@@ -376,6 +407,7 @@ export default function AudioPlayer({
         onLoadedMetadata={onLoadedMetadata}
         onTimeUpdate={onTimeUpdate}
         onEnded={onEnded}
+        onError={onAudioError}
       />
 
       <button

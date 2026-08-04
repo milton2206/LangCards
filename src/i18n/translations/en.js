@@ -613,6 +613,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      audioStuckFix: {
+        title: "Audio no longer goes silent",
+        desc: "Sometimes the speaker button stopped working: you tapped it and got silence, and only reloading the page helped. There were two causes. First, the app makes sure only one sound plays at a time, but that busy state was never cleared after a track finished, failed, or was paused — so the next sound was muted before it even started. It is now always cleared. Second, if the audio failed to load, the button simply stayed quiet; now the app retries once with a fresh link and only then shows an error. Rapid taps on different buttons also no longer kill the previous one: an interrupted playback is normal, not a failure.",
+      },
       steadyGeneration: {
         title: "Steadier generation, sharper translations",
         desc: "Three fixes from your feedback. First: generation no longer fails on the first try — if the model came back empty, was overloaded, or sent a malformed reply, the app quietly tries once more and you never notice. An error is shown only if the retry did not help either. Second: error messages no longer appear in the wrong language — with a Ukrainian interface a Russian string from the server could show up; now all text comes from the interface translation. Third: less junk in card translations. The model used to pad the list with extra options — “to catch up” came with an unrelated “go live” alongside the right meaning. Now there is one translation, in exactly the sense the word carries in the example; a second one appears only when it is a genuine synonym.",

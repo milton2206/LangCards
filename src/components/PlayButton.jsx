@@ -1,5 +1,10 @@
-import { useState, useEffect } from "react";
-import { fetchTtsUrl, playUrl, MAX_TTS_TEXT_LEN } from "../lib/ttsClient.js";
+import { useState, useEffect, useRef } from "react";
+import {
+  fetchTtsUrl,
+  playUrl,
+  forgetTtsUrl,
+  MAX_TTS_TEXT_LEN,
+} from "../lib/ttsClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import Icon from "./icons/Icon.jsx";
 import "./PlayButton.css";
@@ -45,6 +50,65 @@ export default function PlayButton({
   const tooLong = String(text ?? "").trim().length > MAX_TTS_TEXT_LEN;
   const disabled = offline || tooLong || state === "error";
 
+  // Текущий звук этой кнопки — чтобы заглушить его при уходе с экрана. Пауза
+  // заодно освобождает шину (см. playUrl), так что «занято» не залипает.
+  const audioRef = useRef(null);
+  useEffect(
+    () => () => {
+      const audio = audioRef.current;
+      if (audio) {
+        try {
+          audio.pause();
+        } catch {
+          // элемент уже мёртв — не страшно
+        }
+      }
+    },
+    [],
+  );
+
+  /**
+   * Пробует проиграть url. true — звук пошёл (или его штатно перехватил другой
+   * плеер), false — элемент не смог загрузиться и есть смысл повторить.
+   */
+  function startPlayback(url) {
+    return new Promise((resolve) => {
+      const audio = playUrl(url);
+      audioRef.current = audio;
+      let settled = false;
+      const done = (ok) => {
+        if (!settled) {
+          settled = true;
+          resolve(ok);
+        }
+      };
+
+      audio.addEventListener("error", () => done(false), { once: true });
+      audio.addEventListener("ended", () => setState("idle"), { once: true });
+      // Нас заглушил другой плеер — это норма, просто возвращаемся в исходное.
+      // Раньше состояние «playing» в этом случае залипало навсегда.
+      audio.addEventListener("pause", () => setState("idle"));
+
+      audio
+        .play()
+        .then(() => {
+          setState("playing");
+          done(true);
+        })
+        .catch((err) => {
+          // AbortError — успели нажать другую кнопку, наш звук прервали. Это НЕ
+          // сбой: раньше он уводил кнопку в error и гасил её на 2.5 секунды,
+          // из-за чего следующий тап «не работал».
+          if (err?.name === "AbortError") {
+            setState("idle");
+            done(true);
+          } else {
+            done(false);
+          }
+        });
+    });
+  }
+
   async function handlePlay(e) {
     // Кнопка живёт внутри свайпаемой карточки — тап не должен уходить наверх.
     e.stopPropagation();
@@ -52,24 +116,18 @@ export default function PlayButton({
 
     setState("loading");
     const url = await fetchTtsUrl({ text, learnLang });
-    if (!url) {
-      // Не готово/нет сети: побудем неактивной и вернёмся — можно повторить.
-      setState("error");
-      setTimeout(() => setState("idle"), 2500);
-      return;
-    }
+    if (url && (await startPlayback(url))) return;
 
-    try {
-      // Общий плеер (ttsClient): новый звук останавливает предыдущий.
-      const audio = playUrl(url);
-      audio.onended = () => setState("idle");
-      audio.onerror = () => setState("idle");
-      await audio.play();
-      setState("playing");
-    } catch {
-      setState("error");
-      setTimeout(() => setState("idle"), 2500);
-    }
+    // Не проигралось — забываем URL и пробуем ОДИН раз заново: сервер отдаст
+    // свежую ссылку (или до-генерирует файл). Раньше здесь была тишина.
+    forgetTtsUrl({ text, learnLang });
+    setState("loading");
+    const retryUrl = await fetchTtsUrl({ text, learnLang });
+    if (retryUrl && (await startPlayback(retryUrl))) return;
+
+    // Не помогло и со второго раза: коротко подсветим ошибку и вернёмся в строй.
+    setState("error");
+    setTimeout(() => setState("idle"), 2500);
   }
 
   const label =
