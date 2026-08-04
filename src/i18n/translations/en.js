@@ -613,6 +613,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      sessionAutoRefresh: {
+        title: "No more being signed out mid-work",
+        desc: "A fix: if the app had been open for a long time (your phone sitting locked, say), the next generation could hit “Your session has expired, sign in again” and you had to log back in. The session now renews itself: the token is refreshed ahead of time, and if a request still goes out with a stale one, the app quietly refreshes the session and retries once. You are only asked to sign in again when the session genuinely could not be renewed.",
+      },
       onboardingBeforeTutorial: {
         title: "Setup first, then the intro",
         desc: "A fix for new users: on sign-up the app intro was opening on top of the first-time setup — before you had picked your native language, so it came up in the wrong one. The order is now strict: setup first (language you are learning, native language, topic, level), and only then the short intro, in the native language you chose. We also added a safety net: until a native language is picked the interface shows in English rather than your phone language — we do not have the interface in other languages.",

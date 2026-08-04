@@ -7,19 +7,70 @@
 
 import { supabase } from "./supabase.js";
 
+// За сколько секунд до истечения срока считаем токен «вот-вот протухнет» и
+// обновляем его ЗАРАНЕЕ. Запас нужен на дорогу до сервера и проверку там.
+const REFRESH_MARGIN_SEC = 60;
+
 /**
- * Заголовок Authorization: Bearer <access_token> текущей сессии Supabase.
- * Без настроенного Supabase / без сессии — пустой объект (сервер ответит 401).
+ * Access-токен текущей сессии, годный к отправке.
+ * Обычный вызов отдаёт сохранённый токен, но если срок на исходе — сначала
+ * обновляет сессию. forceRefresh — обновить безусловно (после 401).
+ * Возвращает null, если Supabase не настроен, сессии нет или обновить не вышло.
  */
-export async function authHeaders() {
-  if (!supabase) return {};
+async function currentToken({ forceRefresh = false } = {}) {
+  if (!supabase) return null;
   try {
+    if (forceRefresh) {
+      const { data } = await supabase.auth.refreshSession();
+      return data?.session?.access_token ?? null;
+    }
     const { data } = await supabase.auth.getSession();
-    const token = data?.session?.access_token;
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    const session = data?.session;
+    if (!session) return null;
+
+    const expiresAt = Number(session.expires_at) || 0;
+    const secondsLeft = expiresAt - Date.now() / 1000;
+    if (expiresAt && secondsLeft < REFRESH_MARGIN_SEC) {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      // Не вышло обновить (нет сети) — пробуем со старым: вдруг ещё живой.
+      return refreshed?.session?.access_token ?? session.access_token;
+    }
+    return session.access_token;
   } catch {
-    return {};
+    return null;
   }
+}
+
+/**
+ * Запрос к /api/* с токеном сессии. Заменяет прямой fetch во всех клиентах.
+ *
+ * Почему не просто fetch с заголовком: токен живёт ограниченное время, а когда
+ * вкладка долго в фоне (телефон заблокирован), автообновление Supabase может не
+ * сработать вовремя. Раньше такой запрос получал 401 и человек видел «сессия
+ * завершилась, войдите заново» посреди работы. Теперь:
+ *   1) перед отправкой токен обновляется, если срок на исходе;
+ *   2) если сервер всё же ответил 401 — сессия обновляется молча и запрос
+ *      повторяется РОВНО ОДИН раз;
+ *   3) и только если обновить не удалось (refresh-токен тоже мёртв) — 401
+ *      уходит наверх, и экран показывает «войдите заново».
+ * Повтор строго однократный: бесконечно дёргать мёртвую сессию незачем.
+ */
+export async function apiFetch(url, options = {}) {
+  const send = (token) =>
+    fetch(url, {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+  const res = await send(await currentToken());
+  if (res.status !== 401) return res;
+
+  const refreshed = await currentToken({ forceRefresh: true });
+  if (!refreshed) return res; // обновить не вышло — отдаём исходный 401
+  return send(refreshed);
 }
 
 /**

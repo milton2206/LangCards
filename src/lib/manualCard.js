@@ -1,4 +1,4 @@
-import { authHeaders, makeApiError } from "./apiClient.js";
+import { apiFetch, makeApiError } from "./apiClient.js";
 
 // Запрос на генерацию ОДНОЙ карточки по слову, введённому пользователем вручную.
 // Использует тот же серверный эндпоинт /api/cards (флаг manual: true), поэтому
@@ -11,9 +11,9 @@ import { authHeaders, makeApiError } from "./apiClient.js";
 export async function requestManualCard({ learnLang, nativeLang, word }) {
   let res;
   try {
-    res = await fetch("/api/cards", {
+    res = await apiFetch("/api/cards", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         learnLang,
         nativeLang,

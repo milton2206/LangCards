@@ -5,7 +5,7 @@
 //   • объяснения грамматики — по хешу (предложение + родной язык), повторный
 //     тап того же предложения мгновенный и по API не бьёт.
 
-import { authHeaders, makeApiError } from "./apiClient.js";
+import { apiFetch, makeApiError } from "./apiClient.js";
 
 const TEXTS_KEY = "readingTexts"; // { "de-ru|mixed": [ {…текст}, … ] }
 const GRAMMAR_KEY = "readingGrammar"; // { "<hash>": { points: [] } }
@@ -93,9 +93,9 @@ export async function requestReadingText({
 }) {
   let res;
   try {
-    res = await fetch("/api/reading", {
+    res = await apiFetch("/api/reading", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "text",
         learnLang,
@@ -166,9 +166,9 @@ export async function requestGrammar({
 
   let res;
   try {
-    res = await fetch("/api/reading", {
+    res = await apiFetch("/api/reading", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "grammar",
         sentence: clean,

@@ -3,7 +3,7 @@
 // service_role. Здесь — только запрос с токеном сессии: сервер берёт id ТОЛЬКО
 // из проверенного токена, а не из тела, поэтому подставить чужой id нельзя.
 
-import { authHeaders, makeApiError } from "./apiClient.js";
+import { apiFetch, makeApiError } from "./apiClient.js";
 
 /**
  * Просит сервер удалить аккаунт текущего пользователя и все его данные.
@@ -13,9 +13,9 @@ import { authHeaders, makeApiError } from "./apiClient.js";
 export async function deleteAccountRequest() {
   let res;
   try {
-    res = await fetch("/api/account", {
+    res = await apiFetch("/api/account", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "delete" }),
     });
   } catch {

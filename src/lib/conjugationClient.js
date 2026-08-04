@@ -9,7 +9,7 @@
 // API больше не бьют — это одна и та же таблица. Пустая строка в forms — это
 // негативный кэш («не глагол»), чтобы не спрашивать одно и то же дважды.
 
-import { authHeaders, makeApiError } from "./apiClient.js";
+import { apiFetch, makeApiError } from "./apiClient.js";
 
 const TABLES_KEY = "conjugationTables"; // { "<hash>": { isVerb, lemma?, conjugation? } }
 const FORMS_KEY = "conjugationForms"; // { "<hash>": "<лемма>" | "" }
@@ -107,9 +107,9 @@ export async function requestConjugation({ word, learnLang, nativeLang }) {
   // 2) Ничего не знаем — спрашиваем сервер.
   let res;
   try {
-    res = await fetch("/api/conjugation", {
+    res = await apiFetch("/api/conjugation", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ word: clean, learnLang, nativeLang }),
     });
   } catch {

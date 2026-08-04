@@ -8,7 +8,7 @@
 //     перепройти без нового запроса к API);
 //   • вопросы к тексту — по хешу самого текста (перепройти тот же текст даром).
 
-import { authHeaders, makeApiError } from "./apiClient.js";
+import { apiFetch, makeApiError } from "./apiClient.js";
 
 const DIALOGUES_KEY = "listeningDialogues"; // { "de-ru|mixed": [ {…диалог+вопросы}, … ] }
 const QUESTIONS_KEY = "readingQuestions"; // { "<hash>": { questions: [] } }
@@ -70,9 +70,9 @@ export async function requestDialogueSet({
 }) {
   let res;
   try {
-    res = await fetch("/api/listening", {
+    res = await apiFetch("/api/listening", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "dialogue",
         learnLang,
@@ -227,9 +227,9 @@ export async function requestTextQuestions({
   const passage = sentences.map((s) => s.text).join(" ");
   let res;
   try {
-    res = await fetch("/api/reading", {
+    res = await apiFetch("/api/reading", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "questions",
         passage,

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { prewarmTts } from "../lib/ttsClient.js";
-import { authHeaders, parseApiError } from "../lib/apiClient.js";
+import { apiFetch, parseApiError } from "../lib/apiClient.js";
 
 // Порция карточек хранится по языковым парам: { "de-ru": [...], "el-ru": [...] }.
 // При переключении языка показывается порция только текущей пары.
@@ -71,9 +71,9 @@ export function useCards(pairKey) {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch("/api/cards", {
+        const res = await apiFetch("/api/cards", {
           method: "POST",
-          headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(params),
         });
 

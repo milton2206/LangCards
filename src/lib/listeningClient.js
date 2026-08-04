@@ -15,7 +15,7 @@
 
 import { requestReadingText } from "./readingClient.js";
 import { highlightWordInExample, coreWord } from "./highlightWord.js";
-import { authHeaders, makeApiError } from "./apiClient.js";
+import { apiFetch, makeApiError } from "./apiClient.js";
 
 const SETS_KEY = "listeningSets"; // { "de-ru": { format, items, index, … } }
 
@@ -264,9 +264,9 @@ export async function requestGapSet(params) {
 async function fetchSoundAlikes({ learnLang, nativeLang, level, words, source, count }) {
   let res;
   try {
-    res = await fetch("/api/listening", {
+    res = await apiFetch("/api/listening", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "soundalike",
         learnLang,

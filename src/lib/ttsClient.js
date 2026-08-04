@@ -6,7 +6,7 @@
 // кнопка play становится неактивной, карточки продолжают работать.
 
 // Совпадает с серверным MAX_TTS_TEXT_LEN — не гоняем заведомо неудачные запросы.
-import { authHeaders } from "./apiClient.js";
+import { apiFetch } from "./apiClient.js";
 
 export const MAX_TTS_TEXT_LEN = 300;
 
@@ -71,9 +71,9 @@ export async function fetchTtsUrl({ text, learnLang, rate = DEFAULT_RATE }) {
   if (urlCache.has(key)) return urlCache.get(key);
 
   try {
-    const res = await fetch("/api/tts", {
+    const res = await apiFetch("/api/tts", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text: clean, learnLang, rate }),
     });
     // Озвучка не критична: любой не-ok (в т.ч. 429-лимит) → null, кнопка play
