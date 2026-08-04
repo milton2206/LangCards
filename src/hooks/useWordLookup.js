@@ -34,7 +34,8 @@ export function useWordLookup({ learnLang, nativeLang, onAdd }) {
             ? t("addWord.notRecognized")
             : err.code === "offline"
               ? t("errors.offline")
-              : err.raw || t("addWord.failed");
+              // Серверную строку не показываем — она по-русски (см. apiClient).
+              : t("addWord.failed");
         setLookup((prev) =>
           prev && prev.word === word && prev.status === "loading"
             ? { word, status: "error", errorText }

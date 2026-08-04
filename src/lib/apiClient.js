@@ -94,8 +94,15 @@ export async function parseApiError(res) {
     };
   }
   if (code === "unauthorized") return { code: "sessionExpired" };
+  // Сорвалась генерация (модель, разбор, пустой ответ) — у экрана есть СВОЙ
+  // локализованный текст под это («не удалось составить диалог/текст/карточку»).
+  // Серверную строку не тащим: она написана по-русски и в украинском или
+  // английском интерфейсе выглядела бы чужой.
+  if (code === "generationFailed") return { code: "generationFailed" };
+  // raw оставляем в объекте ошибки (пригодится в консоли/логах), но показывать
+  // его пользователю нельзя — сервер не знает языка интерфейса.
   const raw = body?.error || null;
-  return raw ? { raw } : { code: "server", params: { status: res.status } };
+  return { code: "server", params: { status: res.status }, raw };
 }
 
 /**
@@ -114,8 +121,14 @@ export async function makeApiError(res) {
 
 /**
  * Локализованный текст ошибки по её коду — общий для экранов (чтение,
- * аудирование, добавление слова и т.п.). Известные коды → строки из i18n;
- * иначе raw-сообщение сервера или запасной ключ.
+ * аудирование, добавление слова и т.п.).
+ *
+ * ВАЖНО: наружу идёт ТОЛЬКО текст из i18n. Сообщения сервера (err.raw) написаны
+ * по-русски и раньше показывались как есть — в украинском интерфейсе вылезала
+ * русская строка «Не удалось составить диалог…». Теперь raw остаётся только в
+ * объекте ошибки для отладки, а человек видит фразу на своём языке: сначала
+ * запасной ключ экрана (он точнее — «не удалось составить диалог»), иначе общий
+ * errors.server.
  */
 export function apiErrorText(err, t, fallbackKey) {
   switch (err?.code) {
@@ -130,6 +143,6 @@ export function apiErrorText(err, t, fallbackKey) {
     case "sessionExpired":
       return t("errors.sessionExpired");
     default:
-      return err?.raw || t(fallbackKey || "errors.server");
+      return t(fallbackKey || "errors.server");
   }
 }

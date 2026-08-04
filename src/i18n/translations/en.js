@@ -613,6 +613,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      steadyGeneration: {
+        title: "Steadier generation, sharper translations",
+        desc: "Three fixes from your feedback. First: generation no longer fails on the first try — if the model came back empty, was overloaded, or sent a malformed reply, the app quietly tries once more and you never notice. An error is shown only if the retry did not help either. Second: error messages no longer appear in the wrong language — with a Ukrainian interface a Russian string from the server could show up; now all text comes from the interface translation. Third: less junk in card translations. The model used to pad the list with extra options — “to catch up” came with an unrelated “go live” alongside the right meaning. Now there is one translation, in exactly the sense the word carries in the example; a second one appears only when it is a genuine synonym.",
+      },
       sessionAutoRefresh: {
         title: "No more being signed out mid-work",
         desc: "A fix: if the app had been open for a long time (your phone sitting locked, say), the next generation could hit “Your session has expired, sign in again” and you had to log back in. The session now renews itself: the token is refreshed ahead of time, and if a request still goes out with a stale one, the app quietly refreshes the session and retries once. You are only asked to sign in again when the session genuinely could not be renewed.",

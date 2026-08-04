@@ -113,7 +113,8 @@ export default function PlacementScreen({
     if (err.code === "missing-table") return t("placement.noTable");
     if (err.code === "not-configured") return t("placement.noAccount");
     if (err.code === "empty") return t("placement.empty");
-    return err.raw || t("placement.failed");
+    // Серверную строку не показываем — она по-русски (см. apiClient).
+    return t("placement.failed");
   }
 
   const result = useMemo(

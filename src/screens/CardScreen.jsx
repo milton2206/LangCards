@@ -3,6 +3,7 @@ import { pickCurrentCard, MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
 import { GENERATE_COUNT_OPTIONS } from "../lib/generateCount.js";
 import { useWordLookup } from "../hooks/useWordLookup.js";
+import { apiErrorText } from "../lib/apiClient.js";
 import WordLookupSheet from "../components/WordLookupSheet.jsx";
 import WordCard from "../components/WordCard.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
@@ -197,10 +198,10 @@ export default function CardScreen({
   }
 
   if (error) {
-    // error: { code, params?, raw? } — raw уже локализован сервером.
-    const errorText = error.raw
-      ? error.raw
-      : t(`errors.${error.code}`, error.params);
+    // error: { code, params?, raw? }. Показываем ТОЛЬКО локализованный текст:
+    // серверная строка (raw) написана по-русски и в другом интерфейсе выглядела
+    // бы чужой — она остаётся в объекте для отладки.
+    const errorText = apiErrorText(error, t, "errors.generateFailed");
     return (
       <section className="cards cards--status cards--error">
         <div className="cards__status-badge" aria-hidden="true">
