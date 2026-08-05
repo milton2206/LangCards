@@ -179,3 +179,26 @@
   font-size: 14px;
   font-weight: 600;
 }
+
+/* Модификаторы идут ПОСЛЕ базы: специфичность у них одинаковая, побеждает
+   последнее правило — иначе база затирала бы рамку и отступы. */
+
+/* Повторная отправка письма — вторичное действие рядом с сообщением. */
+.auth__link--resend {
+  align-self: flex-start;
+  margin-top: -4px;
+}
+
+.auth__link--resend:disabled {
+  color: var(--ember-text-muted);
+}
+
+/* Подсветка «Забыли пароль?», когда адрес уже занят: рамкой, а не только
+   цветом — иначе ссылка теряется под сообщением об ошибке. */
+.auth__link--strong {
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 45%, transparent);
+  border-radius: var(--ember-radius-sm);
+  background-color: color-mix(in srgb, var(--ember-accent) 10%, transparent);
+  padding: 10px 16px;
+  font-weight: 700;
+}

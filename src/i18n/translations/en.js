@@ -890,6 +890,9 @@ export default {
     confirmSent:
       "Done! We sent an email to {email}. Follow the link to confirm your email, then sign in.",
     // Password recovery: request the email and set a new password via the link.
+    resend: "Send the email again",
+    resendWait: "You can retry in {n} s",
+    resendSent: "Email sent to {email}. Check your inbox.",
     reset: {
       title: "Reset password",
       lead: "Enter your email — we'll send a password reset link.",
@@ -912,7 +915,7 @@ export default {
     err: {
       invalidCreds: "Incorrect email or password.",
       notConfirmed: "Email not confirmed. Check your inbox and follow the link.",
-      alreadyRegistered: "This email is already registered. Sign in instead.",
+      alreadyRegistered: "This email is already registered. Sign in — or reset your password if you forgot it.",
       invalidEmail: "Invalid email. Check the address and try again.",
       samePassword: "The new password must be different from the old one.",
       sessionExpired: "Your session expired. Sign in again to change your password.",

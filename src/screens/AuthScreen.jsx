@@ -10,10 +10,15 @@ import "./AuthScreen.css";
  * Режимы: "signin" | "signup" | "reset" (ввод email для письма сброса). Сам ввод
  * нового пароля — на отдельном экране восстановления (по ссылке из письма).
  */
+// Пауза между повторными отправками письма — бережём лимит Supabase и не даём
+// задолбить кнопку, пока письмо ещё летит.
+const RESEND_COOLDOWN_SEC = 60;
+
 export default function AuthScreen({
   onSignIn,
   onSignUp,
   onResetPassword,
+  onResendConfirmation,
   onBack,
   resetLinkError,
 }) {
@@ -25,8 +30,25 @@ export default function AuthScreen({
   const [error, setError] = useState(null);
   const [notice, setNotice] = useState(null);
 
+  // Повторная отправка письма подтверждения: показываем её только когда письмо
+  // действительно ожидается (честная регистрация или «email не подтверждён»).
+  const [resendTo, setResendTo] = useState("");
+  const [resendBusy, setResendBusy] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  // Аккаунт уже есть — подсвечиваем «Забыли пароль?»: это второй выход из
+  // ситуации, кроме входа.
+  const [highlightForgot, setHighlightForgot] = useState(false);
+
   const isSignup = mode === "signup";
   const isReset = mode === "reset";
+  const canResend = Boolean(resendTo && onResendConfirmation);
+
+  // Обратный отсчёт до следующей попытки — цепочка односекундных таймеров.
+  useEffect(() => {
+    if (cooldown <= 0) return undefined;
+    const id = setTimeout(() => setCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => clearTimeout(id);
+  }, [cooldown]);
 
   // Пришли по истёкшей/недействительной ссылке сброса — показываем понятное
   // сообщение сразу на экране входа.
@@ -48,6 +70,39 @@ export default function AuthScreen({
     setMode(next);
     setError(null);
     setNotice(null);
+    setResendTo("");
+    setHighlightForgot(false);
+  }
+
+  // Сменили адрес — прежние сообщения к нему уже не относятся. Без этого
+  // «письмо отправлено» продолжало висеть после автопереключения на «Вход».
+  function handleEmailChange(e) {
+    setEmail(e.target.value);
+    setError(null);
+    setNotice(null);
+    setResendTo("");
+    setHighlightForgot(false);
+  }
+
+  // Повторная отправка письма подтверждения.
+  async function handleResend() {
+    if (resendBusy || cooldown > 0) return;
+    const mail = (resendTo || email).trim();
+    if (!mail) return;
+
+    setResendBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await onResendConfirmation(mail);
+      setNotice(t("auth.resendSent", { email: mail }));
+    } catch (err) {
+      setError(t(authErrorKey(err?.message)));
+    } finally {
+      setResendBusy(false);
+      // Паузу держим в любом случае: при ошибке это чаще всего лимит отправок.
+      setCooldown(RESEND_COOLDOWN_SEC);
+    }
   }
 
   // Вход / регистрация.
@@ -71,19 +126,40 @@ export default function AuthScreen({
     try {
       if (isSignup) {
         const data = await onSignUp(mail, password);
-        // Если в проекте включено подтверждение email — сессии сразу нет.
-        if (!data?.session) {
-          setNotice(t("auth.confirmSent", { email: mail }));
-          setMode("signin");
-          setPassword("");
+        // Подтверждение выключено — придёт сессия, экран закроется сам.
+        if (data?.session) return;
+
+        // Сессии нет — два РАЗНЫХ исхода, и раньше мы оба считали за «письмо
+        // отправлено». При включённой защите от перебора адресов Supabase на
+        // регистрацию ЗАНЯТОГО email отвечает успехом, но отдаёт пользователя с
+        // пустым identities и письма НЕ шлёт. Это штатный признак — по нему и
+        // различаем, иначе человеку обещают письмо, которое никогда не придёт.
+        const identities = data?.user?.identities;
+        const alreadyRegistered =
+          Boolean(data?.user) && (!identities || identities.length === 0);
+
+        setMode("signin");
+        setPassword("");
+
+        if (alreadyRegistered) {
+          setError(t("auth.err.alreadyRegistered"));
+          setHighlightForgot(true); // подсказываем второй выход — сброс пароля
+          setResendTo(""); // письма не было, повторять нечего
+          return;
         }
-        // Если подтверждение выключено — придёт сессия, экран закроется сам.
+
+        // Честная регистрация: письмо действительно ушло.
+        setNotice(t("auth.confirmSent", { email: mail }));
+        setResendTo(mail);
       } else {
         await onSignIn(mail, password);
         // Успех: onAuthStateChange обновит App и уведёт с этого экрана.
       }
     } catch (err) {
-      setError(t(authErrorKey(err?.message)));
+      const key = authErrorKey(err?.message);
+      setError(t(key));
+      // Вход упал на неподтверждённом email — предлагаем выслать письмо ещё раз.
+      if (key === "auth.err.notConfirmed") setResendTo(mail);
     } finally {
       setBusy(false);
     }
@@ -202,7 +278,7 @@ export default function AuthScreen({
               type="email"
               className="auth__input"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
               autoComplete="email"
               autoCapitalize="none"
               spellCheck="false"
@@ -231,6 +307,22 @@ export default function AuthScreen({
           {error && <p className="auth__error">{error}</p>}
           {notice && <p className="auth__notice">{notice}</p>}
 
+          {/* Письмо не дошло — выслать ещё раз. Появляется только когда письмо
+              реально ожидается: после честной регистрации или если вход упал
+              на неподтверждённом email. */}
+          {canResend && (
+            <button
+              type="button"
+              className="auth__link auth__link--resend"
+              onClick={handleResend}
+              disabled={resendBusy || cooldown > 0}
+            >
+              {cooldown > 0
+                ? t("auth.resendWait", { n: cooldown })
+                : t("auth.resend")}
+            </button>
+          )}
+
           <button type="submit" className="auth__submit" disabled={busy}>
             {busy
               ? t("auth.busy")
@@ -239,11 +331,14 @@ export default function AuthScreen({
                 : t("auth.submitSignin")}
           </button>
 
-          {/* Ссылка «Забыли пароль?» — только на входе. */}
+          {/* Ссылка «Забыли пароль?» — только на входе. Если адрес уже занят,
+              подсвечиваем её: это второй выход, кроме входа. */}
           {!isSignup && (
             <button
               type="button"
-              className="auth__link"
+              className={
+                "auth__link" + (highlightForgot ? " auth__link--strong" : "")
+              }
               onClick={() => switchMode("reset")}
             >
               {t("auth.forgot")}

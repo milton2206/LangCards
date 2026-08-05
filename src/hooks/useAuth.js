@@ -109,11 +109,36 @@ export function useAuth() {
     };
   }, []);
 
+  // Регистрация. emailRedirectTo — куда ведёт ссылка из письма подтверждения:
+  // без него Supabase подставляет Site URL проекта, и человек, регистрировавшийся
+  // с превью или локально, после клика попадал на прод (или вовсе не туда).
+  //
+  // ВАЖНО про ответ: при включённой защите от перебора адресов (Prevent
+  // enumeration attacks) регистрация на УЖЕ занятый email не даёт ошибки —
+  // приходит успех с user без сессии и с ПУСТЫМ user.identities, и письмо не
+  // отправляется. Разбирает этот случай экран (AuthScreen), здесь просто отдаём
+  // data как есть.
   const signUp = useCallback(async (email, password) => {
     if (!supabase) throw new Error("Supabase не настроен.");
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: window.location.origin },
+    });
     if (error) throw error;
     return data;
+  }, []);
+
+  // Повторная отправка письма подтверждения регистрации. Нужна, когда письмо не
+  // дошло или потерялось: отдельный вызов Supabase, пароль для него не нужен.
+  const resendConfirmation = useCallback(async (email) => {
+    if (!supabase) throw new Error("Supabase не настроен.");
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: window.location.origin },
+    });
+    if (error) throw error;
   }, []);
 
   const signIn = useCallback(async (email, password) => {
@@ -167,6 +192,7 @@ export function useAuth() {
     recovery,
     recoveryError,
     signUp,
+    resendConfirmation,
     signIn,
     signOut,
     sendPasswordReset,

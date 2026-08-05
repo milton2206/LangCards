@@ -1123,6 +1123,7 @@ export default function App() {
           onSignIn={auth.signIn}
           onSignUp={auth.signUp}
           onResetPassword={auth.sendPasswordReset}
+          onResendConfirmation={auth.resendConfirmation}
           resetLinkError={auth.recoveryError}
           onBack={() => setScreen("start")}
         />
