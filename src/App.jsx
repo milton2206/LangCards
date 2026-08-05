@@ -62,6 +62,7 @@ import {
   hasLocalProgress,
   clearLocalProgress,
   clearAccountCache,
+  clearLocalSetup,
   hasSeenTutorial,
   markTutorialSeen,
 } from "./lib/localCache.js";
@@ -125,10 +126,45 @@ export default function App() {
   const userLangs = useUserLanguages(auth.user);
 
   // ---------- Перенос локального прогресса при первом входе ----------
-  // Если на устройстве лежит анонимный (без владельца) непустой wordsByPair,
-  // а пользователь входит впервые — спрашиваем, переносить ли его в аккаунт.
-  // До ответа синхронизация слов придержана (holdSync ниже).
+  // Если на устройстве лежат ничейные (без владельца) слова, а пользователь
+  // входит впервые — спрашиваем, переносить ли их в аккаунт. До ответа
+  // синхронизация слов придержана (holdSync ниже). Сам эффект стоит ниже, после
+  // объявления chosenPair: забирая ничейное устройство, он сбрасывает и активную
+  // пару, оставшуюся от прежнего хозяина.
   const [migrationAsk, setMigrationAsk] = useState(false);
+
+  // Оба ответа устроены одинаково: устройство становится устройством аккаунта,
+  // его НАСТРОЙКА забывается (язык/тема/уровень с ничейного устройства аккаунту
+  // не принадлежат — их человек выберет сам), и страница перезагружается. Разница
+  // только в судьбе слов. Перезагрузка обязательна: без неё в памяти остались бы
+  // прежние settings и слова, и очищенное вернулось бы в localStorage следующим
+  // же эффектом — именно поэтому «начать с чистого листа» раньше не срабатывало.
+  // После перезагрузки владелец совпадает, вопрос больше не задаётся, а дальше
+  // идёт обычный путь новичка: онбординг → знакомство.
+  function handleMigrateTransfer() {
+    // Согласие: слова остаются на устройстве, holdSync снимается — initialSync
+    // объединит их с облаком существующей логикой слияния (mergeWordData):
+    // ничего не теряется и не дублируется.
+    clearLocalSetup();
+    setCacheOwner(auth.user.id);
+    window.location.reload();
+  }
+
+  function handleMigrateDiscard() {
+    // «С чистого листа»: локальный прогресс удаляется целиком (включая старые
+    // «плоские» списки и снимок сегодняшнего занятия — иначе счётчики остались
+    // бы от прежних слов, и сброс выглядел бы несработавшим).
+    clearLocalProgress();
+    clearLocalSetup();
+    setCacheOwner(auth.user.id);
+    window.location.reload();
+  }
+
+  // ---------- Активная языковая пара (глобальное состояние) ----------
+  // Источник — user_languages: при multiLangMode=false — приоритетная пара,
+  // при true — последняя выбранная (localStorage, восстанавливается при
+  // загрузке). Офлайн-фолбэк: сохранённый выбор, затем старые settings.
+  const [chosenPair, setChosenPair] = useState(loadActivePair);
 
   useEffect(() => {
     if (!auth.user) {
@@ -151,33 +187,23 @@ export default function App() {
       window.location.reload();
       return;
     }
-    // Кэш анонимный: есть слова — спрашиваем, нет — просто присваиваем.
-    if (hasLocalProgress()) setMigrationAsk(true);
-    else setCacheOwner(auth.user.id);
+    // Кэш ничейный. Спрашиваем про перенос ТОЛЬКО если переносить реально есть
+    // что — если на устройстве лежат слова. Пусто (а так у любого новичка) —
+    // вопрос не задаём вовсе и молча забираем устройство себе.
+    if (hasLocalProgress()) {
+      setMigrationAsk(true);
+      return;
+    }
+    // Настройка ничейного устройства аккаунту не достаётся: язык/тема/уровень
+    // мог оставить кто угодно, а новичок должен пройти онбординг. Чистим и
+    // хранилище, и состояние в памяти — иначе прежние настройки вернулись бы
+    // обратно ближайшим же эффектом сохранения.
+    clearLocalSetup();
+    setSettings(EMPTY_SETTINGS);
+    setChosenPair(null);
+    setCacheOwner(auth.user.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.user?.id]);
-
-  function handleMigrateTransfer() {
-    // Согласие: кэш становится кэшем аккаунта, holdSync снимается — initialSync
-    // объединит локальное с облаком существующей логикой слияния (mergeWordData):
-    // ничего не теряется и не дублируется.
-    setCacheOwner(auth.user.id);
-    setMigrationAsk(false);
-  }
-
-  function handleMigrateDiscard() {
-    // «С чистого листа»: локальный прогресс удаляется, перезагрузка сбрасывает
-    // состояние хуков (иначе слова из памяти вернулись бы при синхронизации).
-    clearLocalProgress();
-    setCacheOwner(auth.user.id);
-    window.location.reload();
-  }
-
-  // ---------- Активная языковая пара (глобальное состояние) ----------
-  // Источник — user_languages: при multiLangMode=false — приоритетная пара,
-  // при true — последняя выбранная (localStorage, восстанавливается при
-  // загрузке). Офлайн-фолбэк: сохранённый выбор, затем старые settings.
-  const [chosenPair, setChosenPair] = useState(loadActivePair);
 
   // Недельное расписание (фаза 4.5): активно только в мультирежиме при
   // scheduleMode='by_day'. В учебный день активным становится язык дня;
@@ -693,12 +719,13 @@ export default function App() {
   const tutorialCheckedRef = useRef(null);
   useEffect(() => {
     if (authRequired && !auth.user) return; // ещё не вошёл — решать рано
+    if (migrationAsk) return; // судьба локальных данных ещё не решена
     const key = auth.user?.id || "local";
     if (tutorialCheckedRef.current === key) return;
     tutorialCheckedRef.current = key;
     if (!hasSeenTutorial(auth.user?.id || null)) setTutorial("short");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authRequired, auth.user?.id]);
+  }, [authRequired, auth.user?.id, migrationAsk]);
 
   // Флаг ставит только РЕАЛЬНЫЙ показ: закрытие или «Пропустить» (оба зовут
   // onClose), а не сам факт входа.

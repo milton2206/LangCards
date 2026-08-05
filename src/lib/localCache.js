@@ -10,23 +10,46 @@ const ACTIVE_PAIR_KEY = "activeLangPair"; // { learnLang, nativeLang }
 const OWNER_KEY = "cacheOwner"; // id пользователя, которому принадлежит кэш
 const TUTORIAL_KEY = "tutorialSeen"; // старый ОБЩИЙ флаг (см. hasSeenTutorial)
 
-// Ключи локального ПРОГРЕССА (слова/карточки) — то, что нельзя оставлять
-// на устройстве после выхода из аккаунта.
-const PROGRESS_KEYS = ["wordsByPair", "cardsByPair", "wordsSyncDirty"];
+// Старые «плоские» ключи слов (до разделения по парам). Их всё ещё подхватывает
+// loadStore() в useWordLists и переносит в wordsByPair, поэтому для вопросов
+// «есть ли что переносить» и «очистить прогресс» они РАВНОЗНАЧНЫ wordsByPair:
+// не учтёшь — предложение о переносе не покажется, а слова потом появятся; не
+// удалишь — «начать с чистого листа» вернёт их при следующей загрузке.
+const LEGACY_WORD_KEYS = [
+  "takenWords",
+  "knownWords",
+  "skippedWords",
+  "wordInfo",
+];
 
-// Всё состояние приложения, привязанное к аккаунту/пользователю. Сюда входит и
-// старый общий tutorialSeen: он относится к ЧЕЛОВЕКУ, а не к устройству, и на
-// устройстве, сменившем владельца, значить ничего не должен (новый флаг —
-// персональный, tutorialSeen:<userId>, и этой чисткой не затрагивается).
-const ACCOUNT_KEYS = [
-  ...PROGRESS_KEYS,
+// Ключи локального ПРОГРЕССА (слова/карточки) — то, что нельзя оставлять
+// на устройстве после выхода из аккаунта. sessionProgress тоже здесь: это
+// снимок сегодняшнего занятия («Повторение · N»), без слов он врёт.
+const PROGRESS_KEYS = [
+  "wordsByPair",
+  "cardsByPair",
+  "wordsSyncDirty",
+  "sessionProgress",
+  ...LEGACY_WORD_KEYS,
+];
+
+// Ключи НАСТРОЙКИ: что человек выбрал в онбординге и рядом с ним. Отделены от
+// прогресса, потому что при переносе ведут себя иначе — слова аккаунт унаследовать
+// может (по согласию), а выбор языка/темы/уровня с ничейного устройства ему не
+// принадлежит: его человек делает сам (см. clearLocalSetup).
+const SETUP_KEYS = [
   ACTIVE_PAIR_KEY,
-  OWNER_KEY,
   TUTORIAL_KEY,
   "settings",
   "generateMode",
   "generateCount",
 ];
+
+// Всё состояние приложения, привязанное к аккаунту/пользователю. Сюда входит и
+// старый общий tutorialSeen: он относится к ЧЕЛОВЕКУ, а не к устройству, и на
+// устройстве, сменившем владельца, значить ничего не должен (новый флаг —
+// персональный, tutorialSeen:<userId>, и этой чисткой не затрагивается).
+const ACCOUNT_KEYS = [...PROGRESS_KEYS, ...SETUP_KEYS, OWNER_KEY];
 
 // ---------- Последняя выбранная языковая пара ----------
 
@@ -69,17 +92,33 @@ export function setCacheOwner(userId) {
   }
 }
 
-// Есть ли на устройстве непустой локальный прогресс (анонимный wordsByPair).
+// Есть ли на устройстве РЕАЛЬНЫЕ слова, которые можно перенести в аккаунт.
+// Считаем только членство в списках: пустые пары, заготовки карточек и
+// сохранённые описания слов (wordInfo) переносить нечего — по ним предлагать
+// перенос было бы предложением ни о чём.
+function listLen(value) {
+  return Array.isArray(value) ? value.length : 0;
+}
+
 export function hasLocalProgress() {
   try {
     const store = JSON.parse(localStorage.getItem("wordsByPair") || "{}");
-    return Object.values(store).some(
-      (p) =>
-        (p?.takenWords?.length || 0) +
-          (p?.knownWords?.length || 0) +
-          (p?.skippedWords?.length || 0) >
-        0,
-    );
+    const inPairs =
+      store &&
+      typeof store === "object" &&
+      Object.values(store).some(
+        (p) =>
+          listLen(p?.takenWords) +
+            listLen(p?.knownWords) +
+            listLen(p?.skippedWords) >
+          0,
+      );
+    if (inPairs) return true;
+    // Плюс старые «плоские» списки: их loadStore() превратит в слова пары.
+    return ["takenWords", "knownWords", "skippedWords"].some((key) => {
+      const raw = localStorage.getItem(key);
+      return raw ? listLen(JSON.parse(raw)) > 0 : false;
+    });
   } catch {
     return false;
   }
@@ -107,7 +146,10 @@ export function hasSeenTutorial(userId) {
     if (localStorage.getItem(tutorialKeyFor(userId))) return true;
     const legacy = localStorage.getItem(TUTORIAL_KEY);
     const owner = getCacheOwner();
-    if (legacy && (!owner || owner === userId)) {
+    // Строго ВЛАДЕЛЬЦУ кэша. «Владельца нет» засчитывать нельзя: ровно так
+    // выглядит ничейное устройство, которое сейчас забирает себе НОВЫЙ человек, —
+    // он унаследовал бы чужое «уже видел» и остался без знакомства.
+    if (legacy && owner === userId) {
       localStorage.setItem(tutorialKeyFor(userId), "1");
       localStorage.removeItem(TUTORIAL_KEY);
       return true;
@@ -131,6 +173,20 @@ export function markTutorialSeen(userId) {
 // «Начать с чистого листа»: убрать локальный прогресс перед первой синхронизацией.
 export function clearLocalProgress() {
   for (const key of PROGRESS_KEYS) {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // ignore
+    }
+  }
+}
+
+// Забыть НАСТРОЙКУ устройства (язык/тема/уровень, активная пара, общий флаг
+// туториала). Зовётся, когда аккаунт забирает себе ничейное устройство: что бы
+// человек ни выбрал про слова, настраивается он сам — через онбординг и
+// знакомство. Прогресс эта чистка не трогает.
+export function clearLocalSetup() {
+  for (const key of SETUP_KEYS) {
     try {
       localStorage.removeItem(key);
     } catch {
