@@ -62,6 +62,8 @@ import {
   hasLocalProgress,
   clearLocalProgress,
   clearAccountCache,
+  hasSeenTutorial,
+  markTutorialSeen,
 } from "./lib/localCache.js";
 import { loadGenerateCount } from "./lib/generateCount.js";
 import { loadGenerateMode } from "./lib/generateMode.js";
@@ -136,9 +138,15 @@ export default function App() {
     const owner = getCacheOwner();
     if (owner === auth.user.id) return; // кэш уже принадлежит этому аккаунту
     if (owner) {
-      // Чужой кэш (не должно случаться — при выходе чистим; на всякий случай):
-      // молча убираем чужой прогресс и перезагружаемся с чистым состоянием.
-      clearLocalProgress();
+      // Устройство сменило владельца. Это НЕ экзотика: ссылка подтверждения
+      // email (и любая ссылка из письма) создаёт сессию нового человека прямо в
+      // браузере, где лежит кэш прежнего аккаунта, — выхода, который чистит кэш,
+      // на этом пути просто нет. Раньше здесь убирался только прогресс слов, а
+      // settings (пара, тема, уровень) и общий флаг туториала оставались, и
+      // новичок «наследовал» чужую настроенность: онбординг и знакомство не
+      // показывались, потому что по локальным данным всё уже настроено.
+      // Поэтому чистим ВЕСЬ кэш аккаунта и перезагружаемся с чистого состояния.
+      clearAccountCache();
       setCacheOwner(auth.user.id);
       window.location.reload();
       return;
@@ -672,20 +680,31 @@ export default function App() {
     else setScreen("cards");
   }
 
-  // Туториал: короткая версия показывается ОДИН раз при первом запуске (по
-  // флагу), подробная — по запросу из настроек / с 4-го экрана. Значение —
-  // null | "short" | "detailed".
-  const [tutorial, setTutorial] = useState(() =>
-    localStorage.getItem("tutorialSeen") ? null : "short",
-  );
+  // Туториал: короткая версия показывается ОДИН раз (по флагу «просмотрен»),
+  // подробная — по запросу из настроек / с 4-го экрана. null | "short" |
+  // "detailed".
+  const [tutorial, setTutorial] = useState(null);
 
+  // Решение «показывать ли знакомство» принимаем, когда известен ПОЛЬЗОВАТЕЛЬ:
+  // флаг привязан к аккаунту (см. localCache.hasSeenTutorial), а не к браузеру.
+  // Считать его при монтировании нельзя — на путях с готовой сессией (ссылка из
+  // письма) пользователь появляется позже. Ref держит один расчёт на аккаунт,
+  // чтобы закрытый туториал не открывался снова при перерисовках.
+  const tutorialCheckedRef = useRef(null);
+  useEffect(() => {
+    if (authRequired && !auth.user) return; // ещё не вошёл — решать рано
+    const key = auth.user?.id || "local";
+    if (tutorialCheckedRef.current === key) return;
+    tutorialCheckedRef.current = key;
+    if (!hasSeenTutorial(auth.user?.id || null)) setTutorial("short");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authRequired, auth.user?.id]);
+
+  // Флаг ставит только РЕАЛЬНЫЙ показ: закрытие или «Пропустить» (оба зовут
+  // onClose), а не сам факт входа.
   function closeTutorial() {
     setTutorial(null);
-    try {
-      localStorage.setItem("tutorialSeen", "1");
-    } catch {
-      // ignore
-    }
+    markTutorialSeen(auth.user?.id || null);
   }
 
   // Тема оформления Ember: 'light' | 'dark' (по умолчанию тёмная). Стартовая
@@ -745,34 +764,9 @@ export default function App() {
 
   // «Что нового» при заходе: считается ОДИН раз за сессию (ref-гейт), показывается
   // один раз и переходам по экранам не мешает. null — показывать нечего.
+  // Сам расчёт — ниже, когда человек уже дошёл до основного приложения (inMainApp).
   const [whatsNew, setWhatsNew] = useState(null);
   const whatsNewCheckedRef = useRef(false);
-
-  // Отметка захода + разовая запись источника. Эффект срабатывает, как только
-  // становится известен пользователь — это ОБА случая: свежий логин (null → user)
-  // и открытие с уже живой сессией (getSession в useAuth восстановил её:
-  // undefined → user). Тихий best-effort.
-  //
-  // КРИТИЧНЫЙ ПОРЯДОК (иначе гонка): сперва СЧИТАТЬ старый last_seen и посчитать
-  // «Что нового» (resolveWhatsNew), показать записи — и ТОЛЬКО ПОТОМ обновить
-  // last_seen на текущее время (touchLastSeen). Если обновить раньше расчёта,
-  // «Что нового» всегда увидит last_seen = «сейчас» и решит, что нового нет.
-  useEffect(() => {
-    if (!auth.user) return;
-    const userId = auth.user.id;
-    (async () => {
-      // 1) Читаем СТАРЫЙ last_seen и решаем, что показать (один раз за сессию).
-      if (!whatsNewCheckedRef.current) {
-        whatsNewCheckedRef.current = true;
-        const res = await resolveWhatsNew(userId);
-        if (res) setWhatsNew(res);
-      }
-      // 2) И только теперь двигаем last_seen на now() (после расчёта выше).
-      await touchLastSeen(userId);
-      recordSignupSource(userId);
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.user?.id]);
 
   // Последний «содержательный» экран — контекст для отзыва (кнопка отзыва живёт
   // в настройках, но интересно, откуда пользователь на неё пришёл).
@@ -799,9 +793,12 @@ export default function App() {
   // устройство и перезагружаемся — пользователь попадает на стартовый экран.
   // Ошибку пробрасываем: её показывает окно подтверждения.
   async function handleDeleteAccount() {
+    const userId = auth.user?.id || null;
     await deleteAccountRequest();
     clearLocalProgress();
-    clearAccountCache();
+    // Аккаунта больше нет — убираем и его персональный флаг туториала: тот, кто
+    // зарегистрируется на этом устройстве заново, начинает со знакомства.
+    clearAccountCache(userId);
     try {
       await auth.signOut();
     } catch {
@@ -1422,15 +1419,46 @@ export default function App() {
     );
   }
 
-  // «Что нового» показываем только в основном приложении — не поверх сплэша,
-  // экрана входа, переноса, теста уровня или онбординга (needsSetup покрывает и
-  // случай ещё не выбранной пары). Так окно не наслаивается на эти состояния.
+  // Человек «в основном приложении», только если его не задержал НИ ОДИН из
+  // гейтов выше. Список повторяет цепочку выбора content один в один — включая
+  // восстановление пароля и загрузку языков, которых здесь раньше не было:
+  // накладки (туториал, «Что нового») не должны появляться поверх экрана нового
+  // пароля или сплэша. Это же условие решает, когда считать «Что нового».
   const inMainApp =
+    !auth.recovery &&
     (!authRequired || Boolean(auth.user)) &&
     !auth.loading &&
     !migrationAsk &&
+    !(auth.user && userLangs.loading && !activeLanguage) &&
     !placement &&
     !needsSetup;
+
+  // Отметка захода + «Что нового» + разовая запись источника. Считаем ТОЛЬКО
+  // когда человек дошёл до основного приложения: у новичка впереди онбординг и
+  // знакомство, и приветствие не должно ни опережать их, ни «сгорать» (last_seen
+  // сдвинулся бы, а окно так и не показали — при следующем заходе показывать
+  // было бы уже нечего). Тихий best-effort.
+  //
+  // КРИТИЧНЫЙ ПОРЯДОК (иначе гонка): сперва СЧИТАТЬ старый last_seen и посчитать
+  // «Что нового» (resolveWhatsNew) — и ТОЛЬКО ПОТОМ обновить last_seen на
+  // текущее время (touchLastSeen). Если обновить раньше расчёта, «Что нового»
+  // всегда увидит last_seen = «сейчас» и решит, что нового нет.
+  useEffect(() => {
+    if (!auth.user || !inMainApp) return;
+    const userId = auth.user.id;
+    (async () => {
+      // 1) Читаем СТАРЫЙ last_seen и решаем, что показать (один раз за сессию).
+      if (!whatsNewCheckedRef.current) {
+        whatsNewCheckedRef.current = true;
+        const res = await resolveWhatsNew(userId);
+        if (res) setWhatsNew(res);
+      }
+      // 2) И только теперь двигаем last_seen на now() (после расчёта выше).
+      await touchLastSeen(userId);
+      recordSignupSource(userId);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.user?.id, inMainApp]);
 
   return (
     <I18nProvider lang={nativeLang}>
@@ -1467,8 +1495,10 @@ export default function App() {
             нового». Раньше здесь стояла проверка одного лишь входа, поэтому у
             нового пользователя туториал открывался ПОВЕРХ онбординга (окно
             position:fixed) — до того, как выбран родной язык, и потому на чужом
-            языке. Теперь порядок жёсткий: онбординг → туториал.
-            Короткая версия при первом входе, подробная — из настроек/4-го экрана. */}
+            языке. Теперь порядок жёсткий: онбординг → туториал → «Что нового»,
+            и он одинаков для всех путей входа (пароль, регистрация, ссылка
+            подтверждения email) — показ решает состояние человека, а не путь.
+            Короткая версия — один раз на аккаунт, подробная — из настроек/4-го экрана. */}
         {tutorial && inMainApp && (
           <Tutorial
             key={tutorial}
