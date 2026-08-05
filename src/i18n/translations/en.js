@@ -90,6 +90,11 @@ export default {
     remaining: "Left in batch: {n}",
     countLabel: "Cards:",
     plural: "pl.",
+    // Collapsed card "Details" (transcription and plural), example translation
+    // behind a tap, and the secondary-actions block under the card.
+    details: "Details",
+    showTranslation: "Translation",
+    more: "More",
     // Verb conjugation table (on request, verbs only).
     conjugation: "Conjugation",
     conjLoading: "Building the table…",
@@ -613,6 +618,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      calmerCard: {
+        title: "A calmer card",
+        desc: "The new-words screen pulled your eyes everywhere at once: everything was shown up front, the card didn't fit on screen, and every swipe left you scrolled halfway down. Now only what you need for the \"know / take\" decision is visible: the word, its translation and an example. Transcription and the plural form moved into a \"Details\" row — present on every card. The example's translation opens on tap, so you get a chance to work it out yourself first. At the bottom there are two buttons instead of three — \"I know it\" and \"Take\" — with \"Skip\" as a small link underneath (you need it less often, mainly when you've hit the active-words limit). Generating, \"Surprise me\", your own word, reading and listening are folded into a \"More\" block; once a batch is finished it opens straight away, because there it's the main thing to do.",
+      },
       audioStuckFix: {
         title: "Audio no longer goes silent",
         desc: "Sometimes the speaker button stopped working: you tapped it and got silence, and only reloading the page helped. There were two causes. First, the app makes sure only one sound plays at a time, but that busy state was never cleared after a track finished, failed, or was paused — so the next sound was muted before it even started. It is now always cleared. Second, if the audio failed to load, the button simply stayed quiet; now the app retries once with a fresh link and only then shows an error. Rapid taps on different buttons also no longer kill the previous one: an interrupted playback is normal, not a failure.",

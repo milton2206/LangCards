@@ -12,7 +12,10 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  /* Промежутки между блоками экрана поджаты (было 14): на телефоне это ещё
+     ~20px в пользу карточки — их не хватало глагольным карточкам с панелью
+     спряжения, чтобы поместиться без прокрутки. */
+  gap: 10px;
   /* Тёплый фон экрана карточки (уголь в тёмной теме, глина в светлой). */
   background-color: var(--ember-bg);
   color: var(--ember-text);
@@ -240,8 +243,11 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 24px;
-  padding: 28px 22px;
+  /* Отступы поджаты (было 24/28): освободившиеся ~45px — это ровно тот запас,
+     который нужен редким карточкам с ярлыком регистра, пометкой «когда так
+     говорят» или панелью спряжения, чтобы не выталкивать содержимое за экран. */
+  gap: 18px;
+  padding: 22px 20px;
   background-color: var(--ember-card);
   border: 1px solid var(--ember-border);
   border-radius: var(--ember-radius);
@@ -306,12 +312,22 @@
   margin-top: 6px; /* оптическое выравнивание с первой строкой слова */
 }
 
-/* Метка «ПРИМЕР» + кнопка озвучки примера */
-.cards__example-label-row {
+/* Текст примера + кнопка озвучки в одной строке (отдельной строки-заголовка
+   «ПРИМЕР» больше нет — блок и так отделён терракотовой полосой слева). */
+.cards__example-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.cards__example-row .cards__example-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.cards__example-row .playbtn {
+  flex: 0 0 auto;
+  margin-top: 2px; /* оптическое выравнивание с первой строкой примера */
 }
 
 /* «Контекст носителей»: маленький ярлык стиля/регистра над выражением.
@@ -347,38 +363,67 @@
   -webkit-hyphens: auto;
 }
 
-/* Множественное число: компактная строка под словом — маленький ярлык «мн. ч.»
-   + сама форма в Alegreya (три алфавита читаются ровно). У слов без мн. числа
-   блок не рендерится (см. JSX) — пустого места нет. */
-.cards__plural {
+/* ---------- «Детали»: транскрипция и мн. число по запросу ---------- */
+/* Строка есть на каждой карточке — второстепенное лежит в одном предсказуемом
+   месте и не растит основной вид. */
+.cards__details {
   display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
+  margin-top: 2px;
+}
+
+.cards__details-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px; /* перекрывает глобальный button min-height 44px */
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Стрелка-индикатор: вниз = свёрнуто, вверх = развёрнуто (как в «Что нового»). */
+.cards__details-chevron {
+  transition: transform 0.2s ease;
+}
+
+.cards__details-btn.is-open {
+  color: var(--ember-accent);
+}
+
+.cards__details-btn.is-open .cards__details-chevron {
+  transform: rotate(180deg);
+}
+
+.cards__details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Множественное число — простая строка «мн. ч. — die Flughäfen»: плашки-ярлыка
+   больше нет, внутри «Деталей» она была бы лишним шумом. */
+.cards__plural {
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .cards__plural-label {
-  flex: 0 0 auto;
-  align-self: center;
-  padding: 2px 9px;
-  border: 1px solid var(--ember-border);
-  border-radius: 999px;
   color: var(--ember-text-muted);
-  font-family: var(--font-ui);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
 .cards__plural-form {
   font-family: var(--font-word);
-  font-size: 20px;
   font-weight: 700;
-  line-height: 1.3;
   color: var(--ember-text);
-  overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 .cards__translit {
@@ -406,14 +451,6 @@
   border-left: 3px solid var(--ember-accent);
 }
 
-.cards__example-label {
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ember-text-muted);
-}
-
 .cards__example-text {
   /* Пример на изучаемом языке — тоже Alegreya Sans (контент, не интерфейс). */
   font-family: var(--font-word);
@@ -432,6 +469,27 @@
   color: var(--ember-text-muted);
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+/* «Перевод» — неприметная кнопка на месте перевода примера: сначала попытка
+   понять самому. После тапа заменяется самим переводом. */
+.cards__reveal {
+  align-self: flex-start;
+  min-height: 32px; /* перекрывает глобальный button min-height 44px */
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px dashed
+    color-mix(in srgb, var(--ember-text-muted) 55%, transparent);
+}
+
+.cards__reveal:active {
+  color: var(--ember-accent);
+  border-bottom-color: var(--ember-accent);
 }
 
 /* Тапабельное слово в примере — выглядит как обычный текст с лёгким пунктиром
@@ -512,7 +570,7 @@
 /* Озвучка примера — та же форма, что у слова: скруглённый ПРЯМОУГОЛЬНИК (не
    круг), только меньше и мягче. Радиус пропорционален кнопке слова (14px на
    44px → ~10px на 30px), заливка — тёплая терракота, иконка терракотовая. */
-.cards__example-label-row .playbtn--ember {
+.cards__example-row .playbtn--ember {
   width: 30px;
   height: 30px;
   min-height: 30px;
@@ -522,25 +580,63 @@
   color: var(--ember-accent);
 }
 
-.cards__example-label-row .playbtn--ember.playbtn--playing {
+.cards__example-row .playbtn--ember.playbtn--playing {
   background-color: color-mix(in srgb, var(--ember-accent) 30%, transparent);
 }
 
-.cards__example-label-row .playbtn--ember .playbtn__spinner {
+.cards__example-row .playbtn--ember .playbtn__spinner {
   border-color: color-mix(in srgb, var(--ember-accent) 30%, transparent);
   border-top-color: var(--ember-accent);
 }
 
-/* ---------- Три действия ---------- */
-/* Вторичные действия (режим/количество/генерация) — в обычном потоке под
-   карточкой, прокручиваются вместе с контентом. Нижний отступ = высота плавающей
-   панели кнопок + запас + safe-area, чтобы последняя кнопка/строка не пряталась
+/* ---------- Два действия + «Ещё» ---------- */
+/* Вторичные действия свёрнуты в строку «Ещё» и прокручиваются вместе с
+   контентом. Нижний отступ = высота плавающей панели кнопок (две кнопки +
+   ссылка «Пропустить») + запас + safe-area, чтобы последняя строка не пряталась
    под закреплёнными кнопками. */
 .cards__actions {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  padding-bottom: calc(112px + env(safe-area-inset-bottom));
+}
+
+/* Строка-раскрывашка «Ещё» — тихая, во всю ширину: её видно, но она не спорит
+   с карточкой за внимание. */
+.cards__more-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 38px;
+  padding: 6px 12px;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: transparent;
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cards__more-chevron {
+  transition: transform 0.2s ease;
+}
+
+.cards__more-btn.is-open {
+  color: var(--ember-accent);
+  border-color: color-mix(in srgb, var(--ember-accent) 40%, transparent);
+}
+
+.cards__more-btn.is-open .cards__more-chevron {
+  transform: rotate(180deg);
+}
+
+.cards__more-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* Плавающая панель основных кнопок (Знаю/Пропустить/Взять): закреплена внизу
@@ -719,8 +815,8 @@
   gap: 12px;
 }
 
-/* Три кнопки-дубля свайпа: Знаю (терракота) · Пропустить (нейтральный) · Взять
-   (оливковый). Цвета совпадают с переливом рамки при свайпе в ту же сторону. */
+/* Две кнопки-дубля свайпа: Знаю (терракота) · Взять (оливковый). Цвета совпадают
+   с переливом рамки при свайпе в ту же сторону. */
 .cards__swipe-buttons {
   display: flex;
   gap: 8px;
@@ -729,7 +825,7 @@
 .cards__swipe-btn {
   flex: 1;
   min-width: 0;
-  min-height: 52px;
+  min-height: 48px;
   padding: 8px 6px;
   border: 1px solid transparent;
   border-radius: var(--ember-radius-sm);
@@ -753,10 +849,21 @@
   color: var(--ember-on-accent);
 }
 
-.cards__swipe-btn--skip {
-  background-color: var(--ember-surface);
-  border-color: var(--ember-border);
+/* «Пропустить» («не сейчас») — мелкой ссылкой под кнопками, не третьим
+   равноправным решением. Панель плавает над контентом, поэтому под текстом
+   нужна непрозрачная подложка цвета экрана — иначе проезжающая карточка делает
+   ссылку нечитаемой. */
+.cards__skip-link {
+  align-self: center;
+  min-height: 30px;
+  padding: 2px 14px;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--ember-bg);
   color: var(--ember-text-muted);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .cards__swipe-btn--take {

@@ -1,11 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
-import WordCard from "./WordCard.jsx";
+import WordCard, { ExampleBlock } from "./WordCard.jsx";
 import WordLookupSheet from "./WordLookupSheet.jsx";
-import PlayButton from "./PlayButton.jsx";
 import Icon from "./icons/Icon.jsx";
-import { splitWords } from "../lib/highlightWord.js";
 import "./Tutorial.css";
 
 // ============================================================================
@@ -206,39 +204,16 @@ export default function Tutorial({
           {/* ----- Тап по слову: пример + реальная всплывашка перевода ----- */}
           {step.kind === "lookup" && (
             <div className="tut__demo">
+              {/* Тот же ExampleBlock, что на карточке: и озвучка в строке с
+                  текстом, и перевод примера по тапу — механика в туториале
+                  ровно та, которую человек встретит в приложении. */}
               <div className="cards__card tut__example-card">
-                <div className="cards__example">
-                  <div className="cards__example-label-row">
-                    <span className="cards__example-label">
-                      {t("cards.example")}
-                    </span>
-                    <PlayButton
-                      text={DEMO_EXAMPLE}
-                      learnLang={DEMO_LEARN}
-                      kind="example"
-                      appearance="ember"
-                    />
-                  </div>
-                  <p className="cards__example-text" lang={DEMO_LEARN}>
-                    {splitWords(DEMO_EXAMPLE).map((seg, i) =>
-                      seg.isWord ? (
-                        <button
-                          key={i}
-                          type="button"
-                          className="cards__example-word"
-                          onClick={() => openDemoLookup(seg.text)}
-                        >
-                          {seg.text}
-                        </button>
-                      ) : (
-                        <span key={i}>{seg.text}</span>
-                      ),
-                    )}
-                  </p>
-                  <p className="cards__example-translation">
-                    {t("tutorial.demo.exampleTranslation")}
-                  </p>
-                </div>
+                <ExampleBlock
+                  example={DEMO_EXAMPLE}
+                  exampleTranslation={t("tutorial.demo.exampleTranslation")}
+                  learnLang={DEMO_LEARN}
+                  onWordTap={openDemoLookup}
+                />
               </div>
               <p className="tut__hint">
                 <Icon name="spark" size={15} className="tut__hint-icon" />

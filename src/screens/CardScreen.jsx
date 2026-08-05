@@ -67,6 +67,60 @@ function GenerateModePicker({ value, onChange }) {
   );
 }
 
+// Вторичные действия (что генерировать и куда ещё сходить) — ОДИН список на два
+// места, чтобы они не разъезжались. Под карточкой он спрятан в «Ещё»: для
+// решения «знаю / беру» он не нужен и только уводит глаза. На пустом экране и
+// после разбора порции показывается сразу — там это и есть главное действие,
+// поэтому там же кнопка генерации акцентная (primaryGenerate).
+function SecondaryActions({
+  generateMode,
+  onChangeGenerateMode,
+  generateCount,
+  onChangeGenerateCount,
+  onGenerate,
+  onGenerateRandom,
+  onOpenAddWord,
+  onOpenReading,
+  onOpenListening,
+  primaryGenerate = false,
+}) {
+  const { t } = useI18n();
+  return (
+    <>
+      <GenerateModePicker value={generateMode} onChange={onChangeGenerateMode} />
+      <GenerateCountPicker
+        value={generateCount}
+        onChange={onChangeGenerateCount}
+        label={t("cards.countLabel")}
+      />
+      <button
+        type="button"
+        className={primaryGenerate ? "cards__retry" : "cards__generate"}
+        onClick={onGenerate}
+      >
+        {t("cards.generate")}
+      </button>
+      <button
+        type="button"
+        className="cards__surprise"
+        onClick={onGenerateRandom}
+      >
+        🎲 {t("cards.surprise")}
+      </button>
+      <button type="button" className="cards__generate" onClick={onOpenAddWord}>
+        ➕ {t("addWord.entry")}
+      </button>
+      <button type="button" className="cards__generate" onClick={onOpenReading}>
+        📖 {t("reading.entry")}
+      </button>
+      {/* Ещё один способ позаниматься сегодняшним языком (фаза 6.2) */}
+      <button type="button" className="cards__generate" onClick={onOpenListening}>
+        🎧 {t("listening.entry")}
+      </button>
+    </>
+  );
+}
+
 /**
  * Главный экран. Карточки НЕ генерируются автоматически — только по кнопке
  * «Сгенерировать новые карточки». Текущая порция берётся из props (persist
@@ -124,6 +178,10 @@ export default function CardScreen({
     const timer = setTimeout(() => setLimitNotice(false), 4000);
     return () => clearTimeout(timer);
   }, [limitNotice]);
+
+  // «Ещё» под карточкой — по умолчанию закрыто: на экране одно решение, всё
+  // остальное открывается по запросу.
+  const [moreOpen, setMoreOpen] = useState(false);
 
   function handleTake(word) {
     const ok = take(word);
@@ -187,6 +245,14 @@ export default function CardScreen({
       : "transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease",
   };
 
+  // Сменилась карточка (взял/знаю/пропустил) — возвращаем прокрутку в начало.
+  // После разгрузки экрана карточка помещается целиком, так что это страховка:
+  // если человек раскрывал «Ещё» и уехал вниз, следующее слово он всё равно
+  // встретит сверху, а не серединой экрана. Без анимации — переход мгновенный.
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [card?.word]);
+
   if (loading) {
     return (
       <section className="cards cards--status">
@@ -234,7 +300,6 @@ export default function CardScreen({
   const remaining = total - learnedInBatch;
 
   const topbar = (
-    <>
       <header className="cards__topbar">
         {/* Возврат к плану занятия — компактная иконка (чтобы верхний ряд
             помещался по ширине экрана и без движка тоже). */}
@@ -303,8 +368,12 @@ export default function CardScreen({
         </button>
       </div>
       </header>
-      {/* Блок «новые слова» из движка заданий: подсказка объёма + выход к плану. */}
-      {sessionNewBlock && (
+  );
+
+  // Баннер блока «новые слова» из движка заданий: подсказка объёма + выход к
+  // плану. Пока в руках карточка, его НЕ показываем — там решается «знаю/беру»,
+  // а к плану всегда можно вернуться стрелкой в верхней панели.
+  const sessionBanner = sessionNewBlock ? (
         <div className="cards__session-banner">
           <div className="cards__session-banner-text">
             <p className="cards__session-banner-title">
@@ -324,9 +393,7 @@ export default function CardScreen({
             {t("session.blockDone")}
           </button>
         </div>
-      )}
-    </>
-  );
+  ) : null;
 
   // Ежедневная сводка: ведём пользователя, а не заставляем решать самому.
   // Приоритет — повтору (закрепить выученное раньше, чем брать новое),
@@ -385,6 +452,7 @@ export default function CardScreen({
     return (
       <section className="cards">
         {topbar}
+        {sessionBanner}
         {dailySummary}
         {weekStrip}
         <div className="cards__center">
@@ -437,6 +505,7 @@ export default function CardScreen({
     return (
       <section className="cards">
         {topbar}
+        {sessionBanner}
         {dailySummary}
         {balanceStrip}
         {weekStrip}
@@ -474,6 +543,7 @@ export default function CardScreen({
     return (
       <section className="cards">
         {topbar}
+        {sessionBanner}
         {dailySummary}
         {balanceStrip}
         {weekStrip}
@@ -500,48 +570,21 @@ export default function CardScreen({
               </p>
             </>
           )}
+          {/* Здесь вторичные действия — не «ещё», а единственное, что можно
+              сделать: показываем раскрытыми и с акцентной кнопкой генерации. */}
           <div className="cards__status-actions">
-            <GenerateModePicker
-              value={generateMode}
-              onChange={onChangeGenerateMode}
+            <SecondaryActions
+              generateMode={generateMode}
+              onChangeGenerateMode={onChangeGenerateMode}
+              generateCount={generateCount}
+              onChangeGenerateCount={onChangeGenerateCount}
+              onGenerate={onGenerate}
+              onGenerateRandom={onGenerateRandom}
+              onOpenAddWord={onOpenAddWord}
+              onOpenReading={onOpenReading}
+              onOpenListening={onOpenListening}
+              primaryGenerate
             />
-            <GenerateCountPicker
-              value={generateCount}
-              onChange={onChangeGenerateCount}
-              label={t("cards.countLabel")}
-            />
-            <button type="button" className="cards__retry" onClick={onGenerate}>
-              {t("cards.generate")}
-            </button>
-            <button
-              type="button"
-              className="cards__surprise"
-              onClick={onGenerateRandom}
-            >
-              🎲 {t("cards.surprise")}
-            </button>
-            <button
-              type="button"
-              className="cards__generate"
-              onClick={onOpenAddWord}
-            >
-              ➕ {t("addWord.entry")}
-            </button>
-            <button
-              type="button"
-              className="cards__generate"
-              onClick={onOpenReading}
-            >
-              📖 {t("reading.entry")}
-            </button>
-            {/* Ещё один способ позаниматься сегодняшним языком (фаза 6.2) */}
-            <button
-              type="button"
-              className="cards__generate"
-              onClick={onOpenListening}
-            >
-              🎧 {t("listening.entry")}
-            </button>
           </div>
         </div>
       </section>
@@ -549,11 +592,13 @@ export default function CardScreen({
   }
 
   return (
+    // Пока в руках карточка — на экране одно решение. Баннеры занятия и
+    // ежедневная сводка (в т.ч. «Повторить сейчас»), разбивка нормы по языкам и
+    // обзор недели сюда не идут: для «знаю/беру» они не нужны, а места занимают
+    // столько, что карточка переставала помещаться в экран телефона. Их место —
+    // на экране занятия и в состоянии «порция разобрана».
     <section className="cards" aria-labelledby="card-word">
       {topbar}
-      {dailySummary}
-      {balanceStrip}
-      {weekStrip}
 
       <div className="cards__progressbar" aria-hidden="true">
         <span
@@ -584,56 +629,35 @@ export default function CardScreen({
         className="cards__card--wiggle"
       />
 
-      {/* Вторичные действия прокручиваются вместе с контентом (у их подписей нет
-          фона, поэтому над контентом они бы не читались). Нижний отступ = высота
-          плавающей панели кнопок + запас, чтобы последняя кнопка не пряталась под
-          закреплёнными кнопками. */}
+      {/* Всё, что не нужно для решения «знаю / беру», — под одной свёрнутой
+          строкой «Ещё». Прокручивается вместе с контентом (у подписей нет фона,
+          над контентом они бы не читались); нижний отступ = высота плавающей
+          панели кнопок + запас, чтобы последняя строка не пряталась под ней. */}
       <div className="cards__actions">
-        <GenerateModePicker
-          value={generateMode}
-          onChange={onChangeGenerateMode}
-        />
-        <GenerateCountPicker
-          value={generateCount}
-          onChange={onChangeGenerateCount}
-          label={t("cards.countLabel")}
-        />
         <button
           type="button"
-          className="cards__generate"
-          onClick={onGenerate}
+          className={"cards__more-btn" + (moreOpen ? " is-open" : "")}
+          onClick={() => setMoreOpen((v) => !v)}
+          aria-expanded={moreOpen}
         >
-          {t("cards.generate")}
+          {t("cards.more")}
+          <Icon name="chevron" size={16} className="cards__more-chevron" />
         </button>
-        <button
-          type="button"
-          className="cards__surprise"
-          onClick={onGenerateRandom}
-        >
-          🎲 {t("cards.surprise")}
-        </button>
-        <button
-          type="button"
-          className="cards__generate"
-          onClick={onOpenAddWord}
-        >
-          ➕ {t("addWord.entry")}
-        </button>
-        <button
-          type="button"
-          className="cards__generate"
-          onClick={onOpenReading}
-        >
-          📖 {t("reading.entry")}
-        </button>
-        {/* Ещё один способ позаниматься сегодняшним языком (фаза 6.2) */}
-        <button
-          type="button"
-          className="cards__generate"
-          onClick={onOpenListening}
-        >
-          🎧 {t("listening.entry")}
-        </button>
+        {moreOpen && (
+          <div className="cards__more-body">
+            <SecondaryActions
+              generateMode={generateMode}
+              onChangeGenerateMode={onChangeGenerateMode}
+              generateCount={generateCount}
+              onChangeGenerateCount={onChangeGenerateCount}
+              onGenerate={onGenerate}
+              onGenerateRandom={onGenerateRandom}
+              onOpenAddWord={onOpenAddWord}
+              onOpenReading={onOpenReading}
+              onOpenListening={onOpenListening}
+            />
+          </div>
+        )}
       </div>
 
       {/* Плавающая панель основных действий: закреплена внизу. Фон панели
@@ -646,9 +670,9 @@ export default function CardScreen({
             {t("common.activeLimit", { max: MAX_ACTIVE_WORDS })}
           </p>
         )}
-        {/* Три кнопки дублируют свайп. Цвета совпадают со стороной жеста:
-            влево = Знаю (синий), вправо = Взять (зелёный), Пропустить —
-            нейтральная. Порядок слева-направо повторяет направления свайпа. */}
+        {/* Две кнопки дублируют свайп — ровно то самое решение. Цвета совпадают
+            со стороной жеста: влево = Знаю (терракота), вправо = Взять
+            (оливковый), порядок слева-направо повторяет направления свайпа. */}
         <div className="cards__swipe-buttons">
           <button
             type="button"
@@ -659,19 +683,22 @@ export default function CardScreen({
           </button>
           <button
             type="button"
-            className="cards__swipe-btn cards__swipe-btn--skip"
-            onClick={() => skip(card.word)}
-          >
-            {t("action.skip")}
-          </button>
-          <button
-            type="button"
             className="cards__swipe-btn cards__swipe-btn--take"
             onClick={() => handleTake(card.word)}
           >
             {t("action.take")}
           </button>
         </div>
+        {/* «Пропустить» — это «не сейчас», а не решение о слове: нужно, когда
+            упёрся в лимит активных слов. Оставляем мелкой ссылкой под кнопками,
+            чтобы не выглядело третьим равноправным выбором. */}
+        <button
+          type="button"
+          className="cards__skip-link"
+          onClick={() => skip(card.word)}
+        >
+          {t("action.skip")}
+        </button>
       </div>
 
       {/* Шторка просмотра слова — общая с режимом чтения (фаза 6.1) */}
