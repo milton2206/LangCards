@@ -349,7 +349,6 @@ export default {
     false: "False",
     right: "Correct",
     wrong: "Not quite",
-    why: "Why",
     next: "Next",
     finish: "Finish",
     progress: "Question {n} of {total}",
@@ -618,6 +617,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      flatterComprehension: {
+        title: "A simpler answer breakdown",
+        desc: "In comprehension questions the result block was doing too much: a second panel sat inside the first one — its own border, its own background, a \"WHY\" label — and the explanation opened by repeating the verdict, often retelling the whole sentence together with its translation. Now \"Correct\" or \"Not quite\" is a single heading line in its own colour, and the explanation follows it as plain text, no box inside a box. The explanations themselves are shorter and to the point: one or two sentences, a brief reference to the content in its own words, no half-block quotation. Key words are translated more carefully too — false friends and look-alikes are checked, so \"light luggage\" no longer turns into a bonfire. Answer highlighting is unchanged: both options stay neutral until you answer, then the correct one turns green and a wrong pick turns red.",
+      },
       calmerCard: {
         title: "A calmer card",
         desc: "The new-words screen pulled your eyes everywhere at once: everything was shown up front, the card didn't fit on screen, and every swipe left you scrolled halfway down. Now only what you need for the \"know / take\" decision is visible: the word, its translation and an example. Transcription and the plural form moved into a \"Details\" row — present on every card. The example's translation opens on tap, so you get a chance to work it out yourself first. At the bottom there are two buttons instead of three — \"I know it\" and \"Take\" — with \"Skip\" as a small link underneath (you need it less often, mainly when you've hit the active-words limit). Generating, \"Surprise me\", your own word, reading and listening are folded into a \"More\" block; once a batch is finished it opens straight away, because there it's the main thing to do.",

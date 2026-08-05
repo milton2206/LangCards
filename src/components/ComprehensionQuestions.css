@@ -91,29 +91,23 @@
   background-color: color-mix(in srgb, var(--ember-danger) 7%, transparent);
 }
 
+/* Вердикт — единственный заголовок блока, в смысловом цвете. */
 .comp__verdict {
   font-size: 15px;
   font-weight: 700;
 }
 
-/* Объяснение: почему ответ такой, со ссылкой на диалог/текст */
-.comp__why {
-  padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid color-mix(in srgb, var(--ember-accent) 25%, transparent);
-  background-color: color-mix(in srgb, var(--ember-accent) 8%, transparent);
+.comp__result.is-correct .comp__verdict {
+  color: var(--ember-learned);
 }
 
-.comp__why-label {
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 4px;
+.comp__result.is-wrong .comp__verdict {
+  color: var(--ember-danger);
 }
 
-.comp__why-text {
+/* Объяснение: просто текст под вердиктом — без своей рамки, фона и коробки
+   отступов (плашка внутри плашки перегружала разбор ответа). */
+.comp__explain {
   font-size: 14px;
   line-height: 1.55;
   overflow-wrap: break-word;
@@ -268,14 +262,8 @@
   background-color: color-mix(in srgb, var(--ember-danger) 8%, transparent);
 }
 
-.comp--ember .comp__why {
-  border-radius: var(--ember-radius-sm);
-  border-color: color-mix(in srgb, var(--ember-accent) 25%, transparent);
-  background-color: color-mix(in srgb, var(--ember-accent) 8%, transparent);
-}
-
-.comp--ember .comp__why-label {
-  color: var(--ember-text-muted);
+.comp--ember .comp__explain {
+  color: var(--ember-text);
 }
 
 .comp--ember .comp__next {

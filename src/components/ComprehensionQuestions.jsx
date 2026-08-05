@@ -195,13 +195,13 @@ export default function ComprehensionQuestions({
               ? `✅ ${t("comprehension.right")}`
               : `❌ ${t("comprehension.wrong")}`}
           </p>
+          {/* Объяснение — просто текст под вердиктом: своей плашки у него нет
+              (плашка внутри плашки), лейбла «Почему» тоже — вердикт над ним и
+              есть заголовок. */}
           {!result.correct && current.explanation && (
-            <div className="comp__why">
-              <p className="comp__why-label">{t("comprehension.why")}</p>
-              <p className="comp__why-text" lang={nativeLang}>
-                {current.explanation}
-              </p>
-            </div>
+            <p className="comp__explain" lang={nativeLang}>
+              {current.explanation}
+            </p>
           )}
           <button type="button" className="comp__next" onClick={next}>
             {index + 1 < total
