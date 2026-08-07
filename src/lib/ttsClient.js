@@ -6,7 +6,7 @@
 // кнопка play становится неактивной, карточки продолжают работать.
 
 // Совпадает с серверным MAX_TTS_TEXT_LEN — не гоняем заведомо неудачные запросы.
-import { apiFetch } from "./apiClient.js";
+import { apiFetch, parseApiError } from "./apiClient.js";
 
 export const MAX_TTS_TEXT_LEN = 300;
 
@@ -95,13 +95,38 @@ export function forgetTtsUrl({ text, learnLang, rate = DEFAULT_RATE }) {
   urlCache.delete(`${learnLang}|${rate}|${clean}`);
 }
 
-export async function fetchTtsUrl({ text, learnLang, rate = DEFAULT_RATE }) {
+/**
+ * То же, что fetchTtsUrl, но с ПРИЧИНОЙ неудачи: { url } либо { url: null, reason }.
+ *
+ * Зачем отдельно: раньше любая неудача сворачивалась в null, и плеер показывал
+ * одно «Нет аудио» — что бы ни случилось. Человеку это ничего не объясняет и не
+ * подсказывает, поможет ли повтор. Причины (их различает плеер):
+ *   offline      — нет сети или сервер недоступен;
+ *   rateLimit    — суточный лимит озвучки исчерпан (RATE_LIMITS.tts). Считает и
+ *                  решает СЕРВЕР — клиент только показывает его ответ;
+ *   rateCooldown — слишком часто, надо подождать пару секунд;
+ *   sessionExpired — сессия истекла;
+ *   unavailable  — текст пустой или длиннее лимита (повтор не поможет);
+ *   failed       — синтез не удался (ошибка сервера, пустой ответ).
+ */
+export async function fetchTtsUrlResult({
+  text,
+  learnLang,
+  rate = DEFAULT_RATE,
+}) {
   const clean = String(text ?? "").trim();
-  if (!clean || !learnLang || clean.length > MAX_TTS_TEXT_LEN) return null;
+  if (!clean || !learnLang || clean.length > MAX_TTS_TEXT_LEN) {
+    return { url: null, reason: "unavailable" };
+  }
 
   // Скорость — часть ключа: на сервере это отдельная запись в кэше (фаза 6.2).
   const key = `${learnLang}|${rate}|${clean}`;
-  if (urlCache.has(key)) return urlCache.get(key);
+  if (urlCache.has(key)) return { url: urlCache.get(key) };
+
+  // Заведомо офлайн — не ходим на сервер и сразу называем причину.
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return { url: null, reason: "offline" };
+  }
 
   try {
     const res = await apiFetch("/api/tts", {
@@ -109,18 +134,36 @@ export async function fetchTtsUrl({ text, learnLang, rate = DEFAULT_RATE }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text: clean, learnLang, rate }),
     });
-    // Озвучка не критична: любой не-ok (в т.ч. 429-лимит) → null, кнопка play
-    // просто становится неактивной, карточки продолжают работать.
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const info = await parseApiError(res);
+      const known = ["rateLimit", "rateCooldown", "sessionExpired"];
+      return {
+        url: null,
+        reason: known.includes(info.code) ? info.code : "failed",
+        params: info.params,
+      };
+    }
     const data = await res.json();
     if (data && data.url) {
       urlCache.set(key, data.url);
-      return data.url;
+      return { url: data.url };
     }
-    return null;
+    // Ответ без ссылки — синтез не состоялся.
+    return { url: null, reason: "failed" };
   } catch {
-    return null;
+    // fetch не дошёл: сеть или сервер. Кэш не трогаем — повтор сходит заново.
+    return { url: null, reason: "offline" };
   }
+}
+
+/**
+ * URL озвучки или null. Прежний контракт: неудача любой природы — просто null
+ * (кнопка play становится неактивной, карточки продолжают работать). Там, где
+ * причина важна для UI, зовите fetchTtsUrlResult.
+ */
+export async function fetchTtsUrl(params) {
+  const { url } = await fetchTtsUrlResult(params);
+  return url;
 }
 
 /**

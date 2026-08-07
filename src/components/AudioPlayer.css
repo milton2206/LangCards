@@ -57,6 +57,62 @@
   text-align: right;
 }
 
+/* ---------- Строка «озвучка не загрузилась» ---------- */
+/* Соседний элемент плеера (не обёртка): в блочной раскладке встаёт следующей
+   строкой, во flex-ряду (шапка текста в чтении) занимает свою строку целиком. */
+.aplayer__error {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--ember-danger) 30%, transparent);
+  background-color: color-mix(in srgb, var(--ember-danger) 7%, transparent);
+}
+
+.aplayer__error-text {
+  flex: 1 1 180px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.aplayer__retry {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.aplayer__retry:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.aplayer__error--ember {
+  border-radius: var(--ember-radius);
+}
+
+.aplayer__error--ember .aplayer__error-text {
+  color: var(--ember-text-muted);
+}
+
+.aplayer__error--ember .aplayer__retry {
+  border-color: var(--ember-border);
+  background-color: var(--ember-card);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+}
+
 /* ---------- Полоса перемотки (input[type=range]) ---------- */
 /* Крупная зона тапа на мобильном: высокий прозрачный трек, тонкая видимая линия. */
 .aplayer__bar {

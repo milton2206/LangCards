@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
-  fetchTtsUrl,
+  fetchTtsUrlResult,
   forgetTtsUrl,
   claimAudio,
   releaseAudio,
@@ -77,6 +77,11 @@ export default function AudioPlayer({
   const playOnLoadRef = useRef(false);
 
   const [phase, setPhase] = useState("idle"); // idle | preparing | ready | error
+  // Почему озвучка не получилась (см. fetchTtsUrlResult): offline | rateLimit |
+  // rateCooldown | sessionExpired | unavailable | failed. Нужна, чтобы объяснить
+  // человеку причину, а не показывать одно «Нет аудио» на все случаи.
+  const [errorReason, setErrorReason] = useState(null);
+  const [errorParams, setErrorParams] = useState(null);
   // Право на ОДИН автоповтор при сбое загрузки (сбрасывается при смене содержимого).
   const retriedRef = useRef(false);
   const [urls, setUrls] = useState(null);
@@ -133,6 +138,8 @@ export default function AudioPlayer({
     seekOnLoadRef.current = null;
     playOnLoadRef.current = false;
     setPhase("idle");
+    setErrorReason(null);
+    setErrorParams(null);
     setUrls(null);
     setDurations([]);
     setIndex(0);
@@ -155,17 +162,22 @@ export default function AudioPlayer({
   }, [pauseSelf]);
 
   // Готовим все треки: URL-ы из общего кэша + длительности для общей шкалы.
+  // При неудаче запоминаем ПРИЧИНУ — по ней плеер объясняет, что случилось.
   const prepare = useCallback(async () => {
     setPhase("preparing");
+    setErrorReason(null);
+    setErrorParams(null);
     try {
       const resolved = [];
       for (const tr of tracks || []) {
-        const url = await fetchTtsUrl({
+        const { url, reason, params } = await fetchTtsUrlResult({
           text: tr.text,
           learnLang: tr.learnLang,
           rate: tr.rate,
         });
         if (!url) {
+          setErrorReason(reason || "failed");
+          setErrorParams(params || null);
           setPhase("error");
           return null;
         }
@@ -177,6 +189,7 @@ export default function AudioPlayer({
       setPhase("ready");
       return resolved;
     } catch {
+      setErrorReason("failed");
       setPhase("error");
       return null;
     }
@@ -233,6 +246,7 @@ export default function AudioPlayer({
     setPlaying(false);
     releaseAudio(pauseSelf);
     if (retriedRef.current) {
+      setErrorReason("failed");
       setPhase("error");
       return;
     }
@@ -311,6 +325,31 @@ export default function AudioPlayer({
     }
   }
 
+  /**
+   * ПОВТОРИТЬ ОЗВУЧКУ — явное действие для уже готового содержимого: сходить за
+   * звуком заново, ничего не пересоздавая (в аудировании это значит «не трогая
+   * диалог» — новый диалог стоил бы вызова модели и нового синтеза).
+   *
+   * Не путать с кнопкой ↺ рядом с play: та переслушивает уже загруженное с
+   * начала и живёт только в состоянии ready. Эта — единственный выход из
+   * состояния «не загрузилось», и раньше её просто не было: повтор был спрятан
+   * в кнопку play, и по виду плеера догадаться о нём было нельзя.
+   */
+  async function handleRetryAudio() {
+    if (busy) return;
+    // Свежие ссылки: если в кэш попал URL, который потом не проиграть,
+    // повтор не должен подсунуть его же.
+    for (const tr of tracks || []) {
+      forgetTtsUrl({ text: tr.text, learnLang: tr.learnLang, rate: tr.rate });
+    }
+    retriedRef.current = false; // снова даём право на авто-повтор при сбое загрузки
+    const resolved = await prepare();
+    if (!resolved) return;
+    setActivated(true);
+    seekOnLoadRef.current = posInTrack || 0;
+    playOnLoadRef.current = true; // заиграет по загрузке метаданных
+  }
+
   // Повтор с начала — отдельная кнопка.
   function handleRestart() {
     if (phase !== "ready") return;
@@ -377,15 +416,37 @@ export default function AudioPlayer({
   const disabled = offline;
   const label = ariaLabel || t("audio.player");
 
+  // Нет сети мы знаем и без запроса — она главнее причины прошлой попытки.
+  const reason = offline ? "offline" : errorReason || "failed";
+  // Короткая подпись вместо таймера и развёрнутое объяснение под плеером.
+  const shortKey =
+    reason === "offline"
+      ? "audio.offlineShort"
+      : reason === "rateLimit" || reason === "rateCooldown"
+        ? "audio.limitShort"
+        : "audio.failedShort";
+  const reasonKey = {
+    offline: "audio.errOffline",
+    rateLimit: "audio.errLimit",
+    rateCooldown: "audio.errCooldown",
+    sessionExpired: "audio.errSession",
+    unavailable: "audio.errUnavailable",
+    failed: "audio.errFailed",
+  }[reason];
+
   // Компактная кнопка (до первого запуска) — для списка предложений в чтении.
   if (compact && !activated) {
     return (
       <button
         type="button"
         className={`aplayer-mini${ember ? " aplayer-mini--ember" : ""}${disabled || failed ? " is-disabled" : ""}`}
-        onClick={handlePlayPause}
+        // После неудачи тап — это ПОВТОР озвучки (со свежими ссылками), а не
+        // обычный запуск: подпись говорит об этом прямо.
+        onClick={failed ? handleRetryAudio : handlePlayPause}
         disabled={disabled}
-        aria-label={disabled ? t("audio.unavailable") : label}
+        aria-label={
+          disabled ? t("audio.unavailable") : failed ? t("audio.retry") : label
+        }
       >
         {busy ? (
           <span className="aplayer__spinner" aria-hidden="true" />
@@ -399,6 +460,9 @@ export default function AudioPlayer({
   }
 
   return (
+    // Фрагмент, а не обёртка: .aplayer остаётся тем же элементом для внешних
+    // раскладок (напр. .reading__text-head), а строка ошибки просто встаёт следом.
+    <>
     <div className={`aplayer${ember ? " aplayer--ember" : ""}${disabled ? " is-disabled" : ""}`}>
       <audio
         ref={audioRef}
@@ -455,8 +519,35 @@ export default function AudioPlayer({
       />
 
       <span className="aplayer__time" aria-hidden="true">
-        {failed ? t("audio.failedShort") : `${fmt(displayTime)} / ${fmt(total)}`}
+        {failed ? t(shortKey) : `${fmt(displayTime)} / ${fmt(total)}`}
       </span>
     </div>
+
+    {/* Не загрузилось: называем причину и даём повторить ОЗВУЧКУ — содержимое
+        (диалог, текст) при этом не трогается и заново не генерируется. */}
+    {failed && (
+      <div
+        className={`aplayer__error${ember ? " aplayer__error--ember" : ""}`}
+        role="status"
+      >
+        <span className="aplayer__error-text">
+          {t(reasonKey, { seconds: errorParams?.seconds ?? 1 })}
+        </span>
+        {/* «Текст не озвучить» повтором не лечится — кнопку не показываем.
+            Офлайн кнопку показываем, но выключенной: она оживёт сама, когда
+            вернётся связь (слушаем события online/offline выше). */}
+        {reason !== "unavailable" && (
+          <button
+            type="button"
+            className="aplayer__retry"
+            onClick={handleRetryAudio}
+            disabled={busy || offline}
+          >
+            {busy ? t("audio.retrying") : t("audio.retry")}
+          </button>
+        )}
+      </div>
+    )}
+    </>
   );
 }

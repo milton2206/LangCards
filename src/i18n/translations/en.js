@@ -427,7 +427,20 @@ export default {
     restart: "Restart",
     seek: "Seek",
     unavailable: "Audio unavailable",
+    // Short label in place of the timer — by failure reason.
     failedShort: "No audio",
+    offlineShort: "Offline",
+    limitShort: "Limit",
+    // Full explanation under the player + retry of the AUDIO only.
+    retry: "Retry audio",
+    retrying: "Loading…",
+    errFailed: "Couldn't get the audio. The exercise itself is still here.",
+    errOffline: "Can't reach the server. Check your connection and try again.",
+    errLimit:
+      "You've used today's audio limit. It resets tomorrow (at 00:00 UTC).",
+    errCooldown: "Too often. Wait {seconds}s and try again.",
+    errSession: "Your session has expired. Please sign in again.",
+    errUnavailable: "This text can't be voiced.",
   },
 
   // Weekly language schedule (phase 4.5).
@@ -617,6 +630,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      audioRetry: {
+        title: "Retry the audio without creating a new dialogue",
+        desc: "It used to happen that a listening dialogue was generated but its audio never loaded — the player showed \"No audio\" and stayed that way. The only apparent way out was \"New dialogue\", even though only the audio had failed: the app pointlessly wrote a fresh conversation and synthesised it all over again. Now a \"Retry audio\" button appears under the player — it requests the sound for the same dialogue again, touching neither the conversation nor its questions. It also says why it failed: no connection to the server, today's audio limit used up (it resets at 00:00 UTC), or the synthesis itself failed. All three used to look identical. The ↺ button next to play is unchanged — that one replays what's already loaded from the start.",
+      },
       migrationOnlyWhenNeeded: {
         title: "The transfer question only when there's something to transfer",
         desc: "Newcomers were shown a \"transfer your progress or start fresh\" screen even when there was nothing to transfer, and afterwards they landed straight in the app — no choice of languages, topic and level, and no intro. \"Start fresh\" didn't really work either: the words came back from the old storage format, and the session counter still showed the previous ones. Now the question is only asked when the device actually holds words; if there are none, the screen never appears. \"Start fresh\" clears everything, including the old lists and today's session snapshot, so the account really does start empty. \"Transfer progress\" still keeps the words and merges them with the cloud. And whichever choice is made, the usual newcomer path follows: set up languages, topic and level, then the short intro. A language, topic and level left on the device by a previous owner no longer carry over to the new account either.",
