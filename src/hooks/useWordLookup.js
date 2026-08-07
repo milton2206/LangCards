@@ -26,13 +26,33 @@ import { useI18n } from "../i18n/I18nContext.jsx";
  *   span        — { sentence, sentenceTranslation, words[], from, to, origin }
  *                 или null, если вызвавший экран не дал контекст предложения
  *                 (тогда стрелок расширения нет — поведение как раньше).
+ *   confirm     — подтверждение взятия ОБОРОТА в изучение (у одного слова его
+ *                 нет, там путь прежний): { lemma, translation, source,
+ *                 example, exampleTranslation }.
+ *
+ * takenWords — активные слова пары: нужны, чтобы не заводить второй такой же
+ * оборот (у обычного взятия дубликат просто молча не добавлялся бы).
  */
 
 // Пауза перед запросом перевода оборота: три тапа по стрелке подряд должны
 // стоить ОДИН вызов, а не три. Выделение и подсветка при этом двигаются сразу.
 const EXTEND_DEBOUNCE_MS = 600;
 
-export function useWordLookup({ learnLang, nativeLang, level, onAdd }) {
+// Сравнение слов/оборотов «по смыслу»: регистр и лишние пробелы не считаются.
+function sameEntry(a, b) {
+  return (
+    String(a ?? "").trim().toLowerCase().replace(/\s+/g, " ") ===
+    String(b ?? "").trim().toLowerCase().replace(/\s+/g, " ")
+  );
+}
+
+export function useWordLookup({
+  learnLang,
+  nativeLang,
+  level,
+  onAdd,
+  takenWords = [],
+}) {
   const { t } = useI18n();
   const [lookup, setLookup] = useState(null);
 
@@ -97,7 +117,15 @@ export function useWordLookup({ learnLang, nativeLang, level, onAdd }) {
         if (reqIdRef.current !== reqId) return;
         setLookup((prev) =>
           prev
-            ? { ...prev, status: "ready", card: null, translation: res.translation }
+            ? {
+                ...prev,
+                status: "ready",
+                card: null,
+                translation: res.translation,
+                // Словарная форма пришла тем же вызовом — в изучение оборот
+                // уедет в ней, а не буквальным куском текста.
+                lemma: res.lemma || "",
+              }
             : prev,
         );
       } catch (err) {
@@ -137,6 +165,8 @@ export function useWordLookup({ learnLang, nativeLang, level, onAdd }) {
                 status: "ready",
                 card: originCardRef.current.card,
                 translation: null,
+                lemma: "",
+                confirm: null,
               }
             : prev,
         );
@@ -154,6 +184,10 @@ export function useWordLookup({ learnLang, nativeLang, level, onAdd }) {
               span,
               card: null,
               translation: ready || null,
+              // Целое предложение показывается из готового перевода, без вызова,
+              // а значит и словарной формы у него нет — в изучение не предлагаем.
+              lemma: "",
+              confirm: null,
               errorText: null,
               status: ready ? "ready" : "loading",
             }
@@ -198,7 +232,7 @@ export function useWordLookup({ learnLang, nativeLang, level, onAdd }) {
         };
       }
 
-      setLookup({ word, status: "loading", span });
+      setLookup({ word, status: "loading", span, confirm: null });
       loadWord(word, span, reqId);
     },
     [cancelPending, loadWord],
@@ -228,13 +262,78 @@ export function useWordLookup({ learnLang, nativeLang, level, onAdd }) {
   // Добавление в изучение: onAdd вернёт false при достижении лимита активных слов.
   // Важно: onAdd вызываем В ОБРАБОТЧИКЕ, а не внутри updater-а setLookup —
   // иначе он обновлял бы состояние App во время рендера (React ругается).
+  //
+  // ОДНО СЛОВО — прежний путь, без подтверждения. ОБОРОТ — сначала показываем,
+  // что именно сохранится: диапазон стрелками легко промахнуть, и «but kept
+  // putting» в списке слов никому не нужен.
   const add = useCallback(() => {
-    if (!lookup || !lookup.card) return;
-    const ok = onAdd(lookup.card);
+    if (!lookup) return;
+    const span = lookup.span;
+    const isPhrase = Boolean(span && span.to > span.from);
+
+    if (!isPhrase) {
+      if (!lookup.card) return;
+      const ok = onAdd(lookup.card);
+      setLookup((prev) =>
+        prev ? { ...prev, status: ok ? "added" : "limit" } : prev,
+      );
+      return;
+    }
+
+    // Без словарной формы (её даёт тот же вызов, что и перевод) сохранять нечего.
+    if (!lookup.lemma || !lookup.translation) return;
     setLookup((prev) =>
-      prev ? { ...prev, status: ok ? "added" : "limit" } : prev,
+      prev
+        ? {
+            ...prev,
+            confirm: {
+              lemma: prev.lemma,
+              translation: prev.translation,
+              // Как оборот выглядел в тексте — показываем отдельной строкой,
+              // чтобы было видно, что сохраняется НЕ буквальный кусок.
+              source: prev.word,
+              // Пример карточки — предложение, из которого выделили, с его
+              // готовым переводом. Отдельной генерации примера не делаем.
+              example: span.sentence,
+              exampleTranslation: span.sentenceTranslation || "",
+            },
+          }
+        : prev,
     );
   }, [lookup, onAdd]);
+
+  // Подтвердить сохранение оборота: те же проверки, что и при обычном взятии
+  // (лимит активных слов), плюс защита от второго такого же оборота.
+  const confirmAdd = useCallback(() => {
+    const data = lookup?.confirm;
+    if (!data) return;
+    if ((takenWords || []).some((w) => sameEntry(w, data.lemma))) {
+      setLookup((prev) =>
+        prev ? { ...prev, confirm: null, status: "duplicate" } : prev,
+      );
+      return;
+    }
+    const ok = onAdd({
+      word: data.lemma,
+      translation: data.translation,
+      translit: "",
+      example: data.example,
+      exampleTranslation: data.exampleTranslation,
+      // Оборот — не часть речи: таблицу спряжения для него не показываем
+      // (её рисуют только при pos === "verb").
+      pos: "phrase",
+    });
+    setLookup((prev) =>
+      prev
+        ? { ...prev, confirm: null, status: ok ? "added" : "limit" }
+        : prev,
+    );
+  }, [lookup, onAdd, takenWords]);
+
+  // Отмена: возвращаемся к шторке с ТЕМ ЖЕ диапазоном — выделение не сбрасываем.
+  const cancelAdd = useCallback(() => {
+    setLookup((prev) => (prev ? { ...prev, confirm: null } : prev));
+  }, []);
 
   const close = useCallback(() => {
     cancelPending();
@@ -242,5 +341,5 @@ export function useWordLookup({ learnLang, nativeLang, level, onAdd }) {
     setLookup(null);
   }, [cancelPending]);
 
-  return { lookup, open, extend, reset, add, close };
+  return { lookup, open, extend, reset, add, confirmAdd, cancelAdd, close };
 }

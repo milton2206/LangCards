@@ -148,6 +148,12 @@ export default {
     extendHint: "Use the arrows to grab neighbouring words",
     phrase: "Translation of the whole phrase",
     phraseLoading: "Translating the phrase…",
+    // Taking a phrase into study — via confirmation.
+    takePhrase: "Take the phrase into study",
+    confirmTitle: "Save it like this?",
+    inText: "In the text:",
+    confirmSave: "Save",
+    alreadyTaken: "This phrase is already in your list.",
   },
 
   // Migrating local (anonymous) progress into the account on first sign-in.
@@ -638,6 +644,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      phraseToStudy: {
+        title: "Take a phrase into study",
+        desc: "A phrase you'd selected with the arrows could only be translated — there was no \"Take\" button for it. Now there is, but with a confirmation step: it's easy to overshoot with the arrows, and nobody needs \"but kept putting\" in their word list. The app first shows exactly what will be saved: the phrase in its dictionary form, its translation, and the sentence from the text as an example. A separate line shows how it appeared in the text — \"in the text: kept putting it off\" — while what gets saved is \"to put something off\". That matters more than it looks: the saved form becomes the review key and goes into text generation, where it will show up again, so a stray fragment would spoil both. The example is the very sentence you selected it from, together with its translation — two weeks later at review you'll still see where the phrase came from. If that phrase is already in your list, the app says so instead of creating a second one. For a single word, \"Take\" works exactly as before, with no extra steps.",
+      },
       phraseLookup: {
         title: "Translate a whole phrase, not just one word",
         desc: "In reading and in the example on a card, tapping a word gave you the translation of exactly that word. That doesn't work for phrases: \"kept putting it off\" word by word is \"kept\", \"putting\", \"it\", \"off\", while together it means to keep postponing something. The lookup window now has arrows: left and right attach neighbouring words, and the translation is rebuilt for the whole phrase. The selected stretch is highlighted right in the text, so you can see what is being translated, and \"↺\" takes you back to a single word. The selection never leaves its own sentence — the arrow goes dim at the edge. Stretch it across the entire sentence and you get the sentence's existing translation, with no request to the server. For a phrase we show only the translation in context: transcription, an example and a forms table make no sense for it, and it isn't added to studying — that's for words. Tapping a word behaves exactly as before.",

@@ -9,7 +9,7 @@ import { apiFetch, makeApiError } from "./apiClient.js";
 
 const TEXTS_KEY = "readingTexts"; // { "de-ru|mixed": [ {…текст}, … ] }
 const GRAMMAR_KEY = "readingGrammar"; // { "<hash>": { points: [] } }
-const PHRASE_KEY = "readingPhrases"; // { "<hash>": { translation: "" } }
+const PHRASE_KEY = "readingPhrases"; // { "<hash>": { translation, lemma } }
 
 // Сколько недавних текстов держим на пару+источник. Не для листалки (её нет —
 // «Новый текст» заменяет текущий), а чтобы отдать модели заголовки недавних
@@ -145,10 +145,21 @@ export async function requestReadingText({
 
 const phraseMemory = new Map(); // хеш → { translation }
 
+// Годная запись кэша: и перевод, и словарная форма. Записи без формы остались
+// от прошлой версии (тогда сервер её не отдавал) — их перезапрашиваем, иначе
+// оборот нельзя было бы взять в изучение в словарном виде.
+function usablePhrase(entry) {
+  return Boolean(entry?.translation && entry?.lemma);
+}
+
 /**
- * Перевод ФРАГМЕНТА предложения (оборота). Сначала память → localStorage → API,
- * ровно как у объяснений грамматики. Ключ кэша — хеш(фраза + языковая пара):
- * тот же оборот второй раз (и в другом тексте тоже) отдаётся мгновенно.
+ * Перевод ФРАГМЕНТА предложения (оборота) + его словарная форма, ОДНИМ вызовом.
+ * Сначала память → localStorage → API, ровно как у объяснений грамматики. Ключ
+ * кэша — хеш(фраза + языковая пара): тот же оборот второй раз (и в другом тексте
+ * тоже) отдаётся мгновенно.
+ *
+ * Возвращает { translation, lemma }. lemma — тот вид, в котором оборот попадёт
+ * в изучение («kept putting it off» → «to put something off»).
  *
  * Целое предложение сюда НЕ попадает: его перевод уже лежит в данных чтения,
  * и вызывающий код показывает готовый, не обращаясь к API (см. useWordLookup).
@@ -164,10 +175,10 @@ export async function requestPhrase({
   if (!clean) return null;
 
   const key = hashKey(`${learnLang}|${nativeLang}|${clean}`);
-  if (phraseMemory.has(key)) return phraseMemory.get(key);
+  if (usablePhrase(phraseMemory.get(key))) return phraseMemory.get(key);
 
   const store = loadJSON(PHRASE_KEY, {});
-  if (store[key]) {
+  if (usablePhrase(store[key])) {
     phraseMemory.set(key, store[key]);
     return store[key];
   }
@@ -204,7 +215,7 @@ export async function requestPhrase({
     throw err;
   }
 
-  const value = { translation };
+  const value = { translation, lemma: String(data?.lemma ?? "").trim() || clean };
   phraseMemory.set(key, value);
   const keys = Object.keys(store);
   if (keys.length >= MAX_PHRASE_ENTRIES) {

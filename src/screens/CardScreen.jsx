@@ -206,6 +206,8 @@ export default function CardScreen({
     nativeLang,
     level,
     onAdd: onAddWordFromExample,
+    // Для проверки «такой оборот уже взят» при взятии выделенной фразы.
+    takenWords: vocab.takenWords,
   });
 
   // Запоминаем данные показанных карточек для экранов «Мои слова»/«Известные».
@@ -713,6 +715,8 @@ export default function CardScreen({
         learnLang={learnLang}
         nativeLang={nativeLang}
         onAdd={lookup.add}
+        onConfirmAdd={lookup.confirmAdd}
+        onCancelAdd={lookup.cancelAdd}
         onExtend={lookup.extend}
         onReset={lookup.reset}
         onClose={lookup.close}

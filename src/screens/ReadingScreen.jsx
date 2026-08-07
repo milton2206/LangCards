@@ -116,6 +116,9 @@ export default function ReadingScreen({
     nativeLang,
     level,
     onAdd: onAddWord,
+    // Для проверки «такой оборот уже взят» (обычное взятие слова дубликат просто
+    // молча проглотило бы).
+    takenWords,
   });
 
   // Что сейчас выделено в тексте (слово или раздвинутый оборот) — чтобы было
@@ -517,6 +520,8 @@ export default function ReadingScreen({
         learnLang={learnLang}
         nativeLang={nativeLang}
         onAdd={lookup.add}
+        onConfirmAdd={lookup.confirmAdd}
+        onCancelAdd={lookup.cancelAdd}
         onExtend={lookup.extend}
         onReset={lookup.reset}
         onClose={lookup.close}
