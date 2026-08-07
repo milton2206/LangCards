@@ -18,6 +18,9 @@ export function ExampleBlock({
   exampleTranslation,
   learnLang,
   onWordTap,
+  // Выделенный кусок примера (слово или раздвинутый оборот) — из шторки
+  // просмотра: { sentence, from, to }. Нужен только для подсветки.
+  span = null,
 }) {
   const { t } = useI18n();
   const [revealed, setRevealed] = useState(false);
@@ -34,20 +37,41 @@ export function ExampleBlock({
         {/* Каждое слово примера тапабельно: перевод + добавление в изучение
             прямо из контекста (лёгкий пунктир снизу — намёк на тап). */}
         <p className="cards__example-text" lang={learnLang}>
-          {splitWords(example).map((seg, i) =>
-            seg.isWord && onWordTap ? (
-              <button
-                key={i}
-                type="button"
-                className="cards__example-word"
-                onClick={() => onWordTap(seg.text)}
-              >
-                {seg.text}
-              </button>
-            ) : (
-              <span key={i}>{seg.text}</span>
-            ),
-          )}
+          {(() => {
+            // Номер слова в примере: он же — граница расширения просмотра до
+            // оборота (предложением здесь служит сам пример) и ключ подсветки.
+            let wordIndex = -1;
+            return splitWords(example).map((seg, i) => {
+              if (!seg.isWord || !onWordTap) {
+                return <span key={i}>{seg.text}</span>;
+              }
+              wordIndex += 1;
+              const wi = wordIndex;
+              const picked =
+                span &&
+                span.sentence === example &&
+                wi >= span.from &&
+                wi <= span.to;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  className={
+                    "cards__example-word" + (picked ? " is-picked" : "")
+                  }
+                  onClick={() =>
+                    onWordTap(seg.text, {
+                      sentence: example,
+                      sentenceTranslation: exampleTranslation,
+                      wordIndex: wi,
+                    })
+                  }
+                >
+                  {seg.text}
+                </button>
+              );
+            });
+          })()}
         </p>
         <PlayButton
           text={example}
@@ -87,9 +111,11 @@ export function ExampleBlock({
  *
  * card — { word, register?, plural?, translit?, translation, example,
  *          exampleTranslation, note?, pos? }.
- * onWordTap(word) — тап по слову примера (перевод/добавление); на карточке это
- *   lookup.open, в туториале — демо-просмотр. Если не передан — слова не
- *   тапабельны (обычный текст).
+ * onWordTap(word, context) — тап по слову примера (перевод/добавление); на
+ *   карточке это lookup.open, в туториале — демо-просмотр. context несёт
+ *   предложение примера и номер слова: по ним просмотр можно раздвинуть до
+ *   оборота. Если onWordTap не передан — слова не тапабельны (обычный текст).
+ * lookupSpan — что сейчас выделено в примере (для подсветки), из lookup.span.
  * innerRef / style / className — прокидываются на <article> для свайпа и анимаций.
  */
 export default function WordCard({
@@ -97,6 +123,7 @@ export default function WordCard({
   learnLang,
   nativeLang,
   onWordTap,
+  lookupSpan = null,
   innerRef,
   style,
   className = "",
@@ -180,6 +207,7 @@ export default function WordCard({
         exampleTranslation={card.exampleTranslation}
         learnLang={learnLang}
         onWordTap={onWordTap}
+        span={lookupSpan}
       />
 
       {/* «Контекст носителей»: пометка об уместности/регистре выражения.

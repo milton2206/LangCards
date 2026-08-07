@@ -140,6 +140,14 @@ export default {
   lookup: {
     loading: "Looking up…",
     added: "Added to studying",
+    // Extending the selection into a phrase (arrows in the lookup sheet).
+    spanAria: "Extend selection",
+    extendLeft: "Add the word on the left",
+    extendRight: "Add the word on the right",
+    resetWord: "Back to a single word",
+    extendHint: "Use the arrows to grab neighbouring words",
+    phrase: "Translation of the whole phrase",
+    phraseLoading: "Translating the phrase…",
   },
 
   // Migrating local (anonymous) progress into the account on first sign-in.
@@ -630,6 +638,10 @@ export default {
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
     start: "Get started",
     entries: {
+      phraseLookup: {
+        title: "Translate a whole phrase, not just one word",
+        desc: "In reading and in the example on a card, tapping a word gave you the translation of exactly that word. That doesn't work for phrases: \"kept putting it off\" word by word is \"kept\", \"putting\", \"it\", \"off\", while together it means to keep postponing something. The lookup window now has arrows: left and right attach neighbouring words, and the translation is rebuilt for the whole phrase. The selected stretch is highlighted right in the text, so you can see what is being translated, and \"↺\" takes you back to a single word. The selection never leaves its own sentence — the arrow goes dim at the edge. Stretch it across the entire sentence and you get the sentence's existing translation, with no request to the server. For a phrase we show only the translation in context: transcription, an example and a forms table make no sense for it, and it isn't added to studying — that's for words. Tapping a word behaves exactly as before.",
+      },
       audioRetry: {
         title: "Retry the audio without creating a new dialogue",
         desc: "It used to happen that a listening dialogue was generated but its audio never loaded — the player showed \"No audio\" and stayed that way. The only apparent way out was \"New dialogue\", even though only the audio had failed: the app pointlessly wrote a fresh conversation and synthesised it all over again. Now a \"Retry audio\" button appears under the player — it requests the sound for the same dialogue again, touching neither the conversation nor its questions. It also says why it failed: no connection to the server, today's audio limit used up (it resets at 00:00 UTC), or the synthesis itself failed. All three used to look identical. The ↺ button next to play is unchanged — that one replays what's already loaded from the start.",

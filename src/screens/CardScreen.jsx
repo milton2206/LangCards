@@ -133,6 +133,9 @@ export default function CardScreen({
   error,
   learnLang,
   nativeLang,
+  // Уровень пользователя — только для просмотра слова/оборота из примера
+  // (перевод под уровень). На саму генерацию карточек здесь не влияет.
+  level,
   languages,
   multiLangMode,
   activeLanguage,
@@ -201,6 +204,7 @@ export default function CardScreen({
   const lookup = useWordLookup({
     learnLang,
     nativeLang,
+    level,
     onAdd: onAddWordFromExample,
   });
 
@@ -624,6 +628,7 @@ export default function CardScreen({
         learnLang={learnLang}
         nativeLang={nativeLang}
         onWordTap={lookup.open}
+        lookupSpan={lookup.lookup?.span || null}
         innerRef={swipe.cardRef}
         style={cardStyle}
         className="cards__card--wiggle"
@@ -701,12 +706,15 @@ export default function CardScreen({
         </button>
       </div>
 
-      {/* Шторка просмотра слова — общая с режимом чтения (фаза 6.1) */}
+      {/* Шторка просмотра слова — общая с режимом чтения (фаза 6.1), вместе со
+          стрелками расширения до оборота: границей служит предложение примера. */}
       <WordLookupSheet
         lookup={lookup.lookup}
         learnLang={learnLang}
         nativeLang={nativeLang}
         onAdd={lookup.add}
+        onExtend={lookup.extend}
+        onReset={lookup.reset}
         onClose={lookup.close}
       />
     </section>

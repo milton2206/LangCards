@@ -35,14 +35,31 @@ export function splitWords(text) {
 }
 
 // Разбивает текст на слова-токены с их позициями в исходной строке.
-function tokenize(text) {
+// Экспортируется как sentenceWords: расширение просмотра слова до оборота
+// считает границы по НОМЕРАМ слов предложения (см. useWordLookup).
+export function tokenize(text) {
   const re = /[\p{L}\p{M}][\p{L}\p{M}'-]*/gu;
   const tokens = [];
   let m;
-  while ((m = re.exec(text))) {
+  while ((m = re.exec(String(text ?? "")))) {
     tokens.push({ text: m[0], start: m.index, end: m.index + m[0].length });
   }
   return tokens;
+}
+
+export { tokenize as sentenceWords };
+
+/**
+ * Кусок предложения от слова from до слова to ВКЛЮЧИТЕЛЬНО — как в оригинале,
+ * вместе со знаками и пробелами внутри («putting it off», «не всё, что»).
+ * Индексы за границами прижимаются к краям: расширять дальше предложения нельзя.
+ */
+export function sliceByWords(text, from, to) {
+  const src = String(text ?? "");
+  const words = tokenize(src);
+  if (words.length === 0) return "";
+  const clamp = (i) => Math.max(0, Math.min(i, words.length - 1));
+  return src.slice(words[clamp(from)].start, words[clamp(to)].end);
 }
 
 function commonPrefixLen(a, b) {

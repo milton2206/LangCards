@@ -513,6 +513,13 @@
   border-bottom-color: var(--ember-accent);
 }
 
+/* Что сейчас переводится в примере: слово или раздвинутый оборот. */
+.cards__example-word.is-picked {
+  background-color: color-mix(in srgb, var(--ember-accent) 26%, transparent);
+  border-bottom-color: var(--ember-accent);
+  border-radius: 3px;
+}
+
 
 /* «Контекст носителей»: пометка об уместности/регистре выражения (когда и как
    это говорят). Только у карточек-идиом; у обычных слов поле пустое. */

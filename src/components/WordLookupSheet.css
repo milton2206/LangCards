@@ -56,6 +56,44 @@
   gap: 8px;
 }
 
+/* ---------- Расширение выделения до оборота ---------- */
+.lookup__span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lookup__span-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 1px solid var(--ember-border);
+  border-radius: 999px;
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.lookup__span-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.lookup__span-hint {
+  flex: 1 1 auto;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ember-text-muted);
+}
+
 .lookup__close {
   flex: 0 0 auto;
   width: 36px;

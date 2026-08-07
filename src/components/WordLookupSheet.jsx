@@ -9,19 +9,34 @@ import "./WordLookupSheet.css";
  * (переиспользует PlayButton и общий TTS-кэш фазы 5.1) и кнопка «Взять».
  * Общая для примера на карточке и для текста в режиме чтения — см.
  * useWordLookup, который держит состояние и логику добавления в SRS.
+ *
+ * РАСШИРЕНИЕ ДО ОБОРОТА (общее для обоих мест, двух поведений не заводим):
+ * стрелки присоединяют соседнее слово того же предложения, «↺» возвращает к
+ * одному слову. У оборота показываем ТОЛЬКО перевод в контексте: транскрипция,
+ * пример, таблица форм и «Взять в изучение» для него бессмысленны.
+ * Стрелки появляются, если вызвавший экран дал контекст предложения (span).
  */
 export default function WordLookupSheet({
   lookup,
   learnLang,
   nativeLang,
   onAdd,
+  onExtend,
+  onReset,
   onClose,
 }) {
   const { t } = useI18n();
   if (!lookup) return null;
 
-  const card = lookup.card;
+  const span = lookup.span || null;
+  const isPhrase = Boolean(span && span.to > span.from);
+  // У оборота заголовок — сама фраза; у одного слова, как и раньше, заголовочная
+  // форма из карточки (может отличаться от тапнутой словоформы).
+  const card = isPhrase ? null : lookup.card;
   const shownWord = card ? card.word : lookup.word;
+  const canLeft = Boolean(span && span.from > 0 && onExtend);
+  const canRight = Boolean(span && span.to < span.words.length - 1 && onExtend);
+  const canReset = Boolean(isPhrase && onReset);
 
   return (
     // Тап по подложке закрывает; сама шторка клики не пропускает.
@@ -37,11 +52,11 @@ export default function WordLookupSheet({
             {shownWord}
           </span>
           <div className="lookup__head-actions">
-            {card && (
+            {(card || isPhrase) && (
               <PlayButton
-                text={card.word}
+                text={card ? card.word : lookup.word}
                 learnLang={learnLang}
-                kind="word"
+                kind={isPhrase ? "example" : "word"}
                 appearance="ember"
               />
             )}
@@ -56,12 +71,61 @@ export default function WordLookupSheet({
           </div>
         </div>
 
+        {/* Раздвинуть выделение на соседнее слово того же предложения. Стрелка
+            гаснет, когда в эту сторону предложение кончилось. */}
+        {span && onExtend && (
+          <div className="lookup__span" role="group" aria-label={t("lookup.spanAria")}>
+            <button
+              type="button"
+              className="lookup__span-btn"
+              onClick={() => onExtend(-1)}
+              disabled={!canLeft}
+              aria-label={t("lookup.extendLeft")}
+            >
+              ←
+            </button>
+            <span className="lookup__span-hint">
+              {isPhrase ? t("lookup.phrase") : t("lookup.extendHint")}
+            </span>
+            <button
+              type="button"
+              className="lookup__span-btn"
+              onClick={() => onReset()}
+              disabled={!canReset}
+              aria-label={t("lookup.resetWord")}
+            >
+              ↺
+            </button>
+            <button
+              type="button"
+              className="lookup__span-btn"
+              onClick={() => onExtend(1)}
+              disabled={!canRight}
+              aria-label={t("lookup.extendRight")}
+            >
+              →
+            </button>
+          </div>
+        )}
+
         {lookup.status === "loading" && (
-          <p className="lookup__hint">{t("lookup.loading")}</p>
+          <p className="lookup__hint">
+            {isPhrase ? t("lookup.phraseLoading") : t("lookup.loading")}
+          </p>
         )}
 
         {lookup.status === "error" && (
           <p className="lookup__error">{lookup.errorText}</p>
+        )}
+
+        {/* Оборот: только перевод в контексте — ни транскрипции, ни примера,
+            ни таблицы форм, они для оборота ничего не значат. */}
+        {isPhrase && lookup.translation && (
+          <div className="lookup__body">
+            <p className="lookup__translation" lang={nativeLang}>
+              {lookup.translation}
+            </p>
+          </div>
         )}
 
         {card && (
@@ -116,7 +180,8 @@ export default function WordLookupSheet({
           </p>
         )}
 
-        {lookup.status === "ready" && (
+        {/* «Взять в изучение» — только для одного слова: оборот в SRS не кладём. */}
+        {lookup.status === "ready" && card && (
           <button type="button" className="lookup__add" onClick={onAdd}>
             {t("addWord.add")}
           </button>

@@ -193,6 +193,14 @@
   border-bottom-color: var(--ember-accent);
 }
 
+/* Что сейчас переводится: одно слово или раздвинутый оборот. Тёплая заливка
+   поверх строки — видно, где начинается и где кончается выделение. */
+.reading__word.is-picked {
+  background-color: color-mix(in srgb, var(--ember-accent) 26%, transparent);
+  border-bottom-color: var(--ember-accent);
+  border-radius: 3px;
+}
+
 /* Уже знакомое слово — оливковым (спокойный зелёный, без заливки). */
 .reading__word.is-known {
   color: var(--ember-learned);

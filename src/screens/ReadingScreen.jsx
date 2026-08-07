@@ -111,7 +111,16 @@ export default function ReadingScreen({
     setGrammar(null);
   }, [texts]);
 
-  const lookup = useWordLookup({ learnLang, nativeLang, onAdd: onAddWord });
+  const lookup = useWordLookup({
+    learnLang,
+    nativeLang,
+    level,
+    onAdd: onAddWord,
+  });
+
+  // Что сейчас выделено в тексте (слово или раздвинутый оборот) — чтобы было
+  // видно, что именно переводится. Границы приходят из шторки просмотра.
+  const span = lookup.lookup?.span || null;
 
   // Уже знакомые слова помечаем неброско. Сопоставляем по нижнему регистру и
   // по ядру без артикля; словоформы (падежи/времена) не ловим — это подсказка
@@ -339,10 +348,19 @@ export default function ReadingScreen({
           <p className="reading__body" lang={learnLang}>
             {current.sentences.map((sentence, si) => {
               const open = grammar && grammar.sentence === sentence.text;
+              // Номер слова внутри предложения: по нему считаются границы
+              // расширения и подсветка выбранного оборота.
+              let wordIndex = -1;
+              const inThis = span && span.sentence === sentence.text;
               return (
                 <span key={si} className="reading__sentence">
-                  {splitWords(sentence.text).map((seg, i) =>
-                    seg.isWord ? (
+                  {splitWords(sentence.text).map((seg, i) => {
+                    if (!seg.isWord) return <span key={i}>{seg.text}</span>;
+                    wordIndex += 1;
+                    const wi = wordIndex;
+                    const picked =
+                      inThis && wi >= span.from && wi <= span.to;
+                    return (
                       <button
                         key={i}
                         type="button"
@@ -350,16 +368,24 @@ export default function ReadingScreen({
                           "reading__word" +
                           (knownSet.has(seg.text.toLowerCase())
                             ? " is-known"
-                            : "")
+                            : "") +
+                          (picked ? " is-picked" : "")
                         }
-                        onClick={() => lookup.open(seg.text)}
+                        onClick={() =>
+                          lookup.open(seg.text, {
+                            sentence: sentence.text,
+                            // Перевод предложения уже есть в данных чтения:
+                            // растянув выделение на всё предложение, покажем
+                            // его без обращения к API.
+                            sentenceTranslation: sentence.translation,
+                            wordIndex: wi,
+                          })
+                        }
                       >
                         {seg.text}
                       </button>
-                    ) : (
-                      <span key={i}>{seg.text}</span>
-                    ),
-                  )}
+                    );
+                  })}
                   {/* Разбор грамматики этого предложения (лимит 300 символов —
                       к одному предложению, а не ко всему тексту). */}
                   <button
@@ -491,6 +517,8 @@ export default function ReadingScreen({
         learnLang={learnLang}
         nativeLang={nativeLang}
         onAdd={lookup.add}
+        onExtend={lookup.extend}
+        onReset={lookup.reset}
         onClose={lookup.close}
       />
     </section>

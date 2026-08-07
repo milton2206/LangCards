@@ -1204,6 +1204,7 @@ export default function App() {
             error={error}
             learnLang={learnLang}
             nativeLang={nativeLang}
+            level={settings.level}
             languages={userLangs.languages}
             multiLangMode={userLangs.multiLangMode}
             activeLanguage={activeLanguage}

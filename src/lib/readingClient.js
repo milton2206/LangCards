@@ -9,6 +9,7 @@ import { apiFetch, makeApiError } from "./apiClient.js";
 
 const TEXTS_KEY = "readingTexts"; // { "de-ru|mixed": [ {…текст}, … ] }
 const GRAMMAR_KEY = "readingGrammar"; // { "<hash>": { points: [] } }
+const PHRASE_KEY = "readingPhrases"; // { "<hash>": { translation: "" } }
 
 // Сколько недавних текстов держим на пару+источник. Не для листалки (её нет —
 // «Новый текст» заменяет текущий), а чтобы отдать модели заголовки недавних
@@ -16,6 +17,8 @@ const GRAMMAR_KEY = "readingGrammar"; // { "<hash>": { points: [] } }
 const MAX_TEXTS_PER_PAIR = 5;
 // Сколько объяснений храним всего (по всем предложениям).
 const MAX_GRAMMAR_ENTRIES = 200;
+// Столько же переводов оборотов: записи короче объяснений, но и появляются чаще.
+const MAX_PHRASE_ENTRIES = 200;
 
 // Короткий стабильный хеш строки (djb2). Криптостойкость не нужна — это ключ кэша.
 function hashKey(str) {
@@ -136,6 +139,82 @@ export async function requestReadingText({
     throw err;
   }
   return { ...data, createdAt: new Date().toISOString() };
+}
+
+// ---------- Перевод оборота в контексте предложения ----------
+
+const phraseMemory = new Map(); // хеш → { translation }
+
+/**
+ * Перевод ФРАГМЕНТА предложения (оборота). Сначала память → localStorage → API,
+ * ровно как у объяснений грамматики. Ключ кэша — хеш(фраза + языковая пара):
+ * тот же оборот второй раз (и в другом тексте тоже) отдаётся мгновенно.
+ *
+ * Целое предложение сюда НЕ попадает: его перевод уже лежит в данных чтения,
+ * и вызывающий код показывает готовый, не обращаясь к API (см. useWordLookup).
+ */
+export async function requestPhrase({
+  phrase,
+  sentence,
+  learnLang,
+  nativeLang,
+  level,
+}) {
+  const clean = String(phrase ?? "").trim();
+  if (!clean) return null;
+
+  const key = hashKey(`${learnLang}|${nativeLang}|${clean}`);
+  if (phraseMemory.has(key)) return phraseMemory.get(key);
+
+  const store = loadJSON(PHRASE_KEY, {});
+  if (store[key]) {
+    phraseMemory.set(key, store[key]);
+    return store[key];
+  }
+
+  let res;
+  try {
+    res = await apiFetch("/api/reading", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "phrase",
+        phrase: clean,
+        sentence: String(sentence ?? "").trim() || clean,
+        learnLang,
+        nativeLang,
+        level,
+      }),
+    });
+  } catch {
+    const err = new Error("offline");
+    err.code = "offline";
+    throw err;
+  }
+
+  if (!res.ok) {
+    throw await makeApiError(res);
+  }
+
+  const data = await res.json();
+  const translation = String(data?.translation ?? "").trim();
+  if (!translation) {
+    const err = new Error("server");
+    err.code = "server";
+    throw err;
+  }
+
+  const value = { translation };
+  phraseMemory.set(key, value);
+  const keys = Object.keys(store);
+  if (keys.length >= MAX_PHRASE_ENTRIES) {
+    for (const k of keys.slice(0, keys.length - MAX_PHRASE_ENTRIES + 1)) {
+      delete store[k];
+    }
+  }
+  store[key] = value;
+  saveJSON(PHRASE_KEY, store);
+  return value;
 }
 
 // ---------- Кэш объяснений грамматики ----------
