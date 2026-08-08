@@ -645,8 +645,8 @@ export default {
     start: "Get started",
     entries: {
       conjugationInList: {
-        title: "The conjugation table, right in My words",
-        desc: "You could only see a verb's forms on the card, in the flow of new words. But you usually come back to a word later, in the list — and there the table was missing, so you had to recall how it conjugated. Verbs in My words now have a \"Forms\" button: the table opens right inside the row, the list stays a list, and the form the word is saved under is highlighted, so you can see where it sits in the system. It's the same table as on the card, and they share one memory: if you've opened that verb's conjugation anywhere already, it appears in the list instantly and without a request — even when a different form of it is what you saved. A verb is recognised by its part-of-speech mark, so words added before this update won't have the button: they simply don't carry that mark. Along the way, a fix: part of speech and the \"Native context\" notes used to be lost when words synced between devices.",
+        title: "The conjugation table, right in your word lists",
+        desc: "You could only see a verb's forms on the card, in the flow of new words. But you usually come back to a word later, in a list — and there the table was missing, so you had to recall how it conjugated. Verbs now have a \"Forms\" button in both lists — My words and Known: the table opens right inside the row, the list stays a list, and the form the word is saved under is highlighted, so you can see where it sits in the system. It's the same table everywhere, and it shares one memory: if you've opened that verb's conjugation anywhere already — on the card or in the other list — it appears instantly and without a request, even when a different form of it is what you saved. A verb is recognised by its part-of-speech mark, so words added before this update won't have the button: they simply don't carry that mark. Along the way, a fix: part of speech and the \"Native context\" notes used to be lost when words synced between devices.",
       },
       phraseToStudy: {
         title: "Take a phrase into study",

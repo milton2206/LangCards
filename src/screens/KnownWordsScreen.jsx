@@ -4,6 +4,7 @@ import { useWordSelection } from "../hooks/useWordSelection.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import SelectBar from "../components/SelectBar.jsx";
 import WordListTabs from "../components/WordListTabs.jsx";
+import ConjugationPanel from "../components/ConjugationPanel.jsx";
 import Icon from "../components/icons/Icon.jsx";
 import "./MyWordsScreen.css";
 
@@ -15,6 +16,11 @@ import "./MyWordsScreen.css";
  *
  * Режим выбора («Выбрать») позволяет отметить слова чекбоксами и удалить
  * их совсем (из списков и хранилища) с подтверждением.
+ *
+ * У глаголов строка раскрывается таблицей спряжения — ровно так же, как в «Моих
+ * словах»: тот же признак (pos === "verb"), тот же ConjugationPanel, тот же
+ * клиентский путь и общий кэш по начальной форме. Открытое на карточке или в
+ * «Моих словах» спряжение здесь появляется мгновенно, без обращения к API.
  */
 export default function KnownWordsScreen({
   knownWords,
@@ -186,6 +192,21 @@ export default function KnownWordsScreen({
                       </p>
                     )}
                   </div>
+                )}
+
+                {/* Глаголы: таблица форм по запросу — как в «Моих словах».
+                    У слов без pos (старых записей) и не-глаголов панели нет.
+                    В режиме выбора не показываем: там строка работает как
+                    чекбокс. */}
+                {!sel.selectMode && item.pos === "verb" && (
+                  <ConjugationPanel
+                    word={item.word}
+                    // Подсвечиваем форму, под которой слово сохранено.
+                    form={item.word}
+                    learnLang={learnLang}
+                    nativeLang={nativeLang}
+                    variant="mywords"
+                  />
                 )}
               </li>
             );
