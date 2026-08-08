@@ -522,7 +522,6 @@ export default {
     doneHint: "New words to review will appear when they're due.",
     remaining: "Left to review: {n}",
     reveal: "Show translation",
-    exampleTranslation: "Example translation",
     replayNow: "review now",
   },
   // Anki-style short terms — familiar to flashcard-app users, keeps buttons short.
@@ -646,7 +645,7 @@ export default {
     entries: {
       reviewFrontExample: {
         title: "Review now starts with a sentence, not a bare word",
-        desc: "Review used to open with a single word set large in the middle of the screen, and the example only appeared together with the answer. You had to recall it in a vacuum, even though the whole point of the app is that a word lives in context. The front of the card is now the full sentence with the word you're learning highlighted, and a play button for the example beside it — you read the living phrase first and try to recall the word from it. Transcription has moved off the front: it gave the pronunciation away too early. \"Show translation\" is unchanged — the word itself, transcription, its translation, the sentence translation and the note, followed by the four self-assessment buttons with their real intervals. The review logic itself hasn't shifted a step. Words saved long ago without an example still show the word on the front — there's nothing else to show there.",
+        desc: "Review used to open with a single word set large in the middle of the screen, and the example only appeared together with the answer. You had to recall it in a vacuum, even though the whole point of the app is that a word lives in context. The front of the card is now the full sentence with the word you're learning highlighted, and a play button for the example beside it — you read the living phrase first and try to recall the word from it. Transcription has moved off the front: it gave the pronunciation away too early. \"Show translation\" opens the breakdown, and that got tidier too: the sentence's translation now sits directly beneath it (it used to hide at the end, behind the word and its transcription), with the word's own breakdown below — word, transcription, translation, note. Then the four self-assessment buttons with their real intervals. The review logic itself hasn't shifted a step. Words saved long ago without an example still show the word on the front — there's nothing else to show there.",
       },
       conjugationInList: {
         title: "The conjugation table, right in your word lists",

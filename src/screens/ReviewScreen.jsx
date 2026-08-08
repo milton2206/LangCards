@@ -221,28 +221,37 @@ export default function ReviewScreen({
             </button>
           </div>
         ) : (
-          /* Оборот (после тапа): пример целиком с выделенным словом + разбор
-             (слово, транскрипция, перевод, перевод примера, заметка) — как было. */
+          /* Оборот (после тапа): сверху ПАРА «предложение → его перевод» (они
+             читаются вместе, поэтому стоят рядом), ниже разбор самого слова —
+             слово, транскрипция, перевод слова, заметка. */
           <>
             {hasExample ? (
-              <div className="review__sentence-row">
-                <p className="review__sentence" lang={learnLang}>
-                  {segments.map((seg, i) =>
-                    seg.highlight ? (
-                      <mark key={i} className="review__highlight">
-                        {seg.text}
-                      </mark>
-                    ) : (
-                      <span key={i}>{seg.text}</span>
-                    ),
-                  )}
-                </p>
-                <PlayButton
-                  text={info.example}
-                  learnLang={learnLang}
-                  kind="example"
-                  appearance="ember"
-                />
+              <div className="review__example-block">
+                <div className="review__sentence-row">
+                  <p className="review__sentence" lang={learnLang}>
+                    {segments.map((seg, i) =>
+                      seg.highlight ? (
+                        <mark key={i} className="review__highlight">
+                          {seg.text}
+                        </mark>
+                      ) : (
+                        <span key={i}>{seg.text}</span>
+                      ),
+                    )}
+                  </p>
+                  <PlayButton
+                    text={info.example}
+                    learnLang={learnLang}
+                    kind="example"
+                    appearance="ember"
+                  />
+                </div>
+                {/* Прямо под примером — подписи не нужно, пара очевидна. */}
+                {info.exampleTranslation && (
+                  <p className="review__sentence-translation" lang={nativeLang}>
+                    {info.exampleTranslation}
+                  </p>
+                )}
               </div>
             ) : (
               // Нет сохранённого примера (редкий случай для старых данных) —
@@ -273,19 +282,6 @@ export default function ReviewScreen({
               )}
               {info.translation && (
                 <p className="review__translation">{info.translation}</p>
-              )}
-              {info.exampleTranslation && (
-                <div className="review__sentence-translation-block">
-                  <span className="review__sentence-translation-label">
-                    {t("review.exampleTranslation")}
-                  </span>
-                  <p
-                    className="review__sentence-translation"
-                    lang={nativeLang}
-                  >
-                    {info.exampleTranslation}
-                  </p>
-                </div>
               )}
               {info.note && (
                 <div className="review__sentence-translation-block">
