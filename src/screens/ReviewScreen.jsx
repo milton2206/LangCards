@@ -164,23 +164,53 @@ export default function ReviewScreen({
 
       <article className="review__card">
         {!revealed ? (
-          /* Лицо: само слово по центру карточки, крупно (Alegreya) — фокус на
-             нём, без лишней пустоты. При наличии — транскрипция под словом.
-             Пример и перевод открываются по тапу «Показать перевод». */
-          <div className="review__front">
-            <div className="review__front-word">
-              <h1 id="review-word" className="review__word" lang={learnLang}>
-                {currentWord}
-              </h1>
-              <PlayButton
-                text={currentWord}
-                learnLang={learnLang}
-                kind="word"
-                appearance="ember"
-              />
-            </div>
-            {info.translit && (
-              <p className="review__translit">{info.translit}</p>
+          /* Лицо: ПРИМЕР целиком с выделенным изучаемым словом — слово
+             вспоминается в контексте, а не в пустоте. Транскрипции здесь нет
+             намеренно: она подсказывала бы ответ раньше времени. Разбор (слово,
+             транскрипция, переводы, заметка) открывается по «Показать перевод». */
+          <div
+            className={
+              "review__front" + (hasExample ? " review__front--example" : "")
+            }
+          >
+            {hasExample ? (
+              <div className="review__sentence-row">
+                <p
+                  id="review-word"
+                  className="review__sentence"
+                  lang={learnLang}
+                >
+                  {segments.map((seg, i) =>
+                    seg.highlight ? (
+                      <mark key={i} className="review__highlight">
+                        {seg.text}
+                      </mark>
+                    ) : (
+                      <span key={i}>{seg.text}</span>
+                    ),
+                  )}
+                </p>
+                <PlayButton
+                  text={info.example}
+                  learnLang={learnLang}
+                  kind="example"
+                  appearance="ember"
+                />
+              </div>
+            ) : (
+              // Нет сохранённого примера (старые записи в wordInfo) — лицом
+              // остаётся само слово: рабочий фолбэк, экран не ломается.
+              <div className="review__front-word">
+                <h1 id="review-word" className="review__word" lang={learnLang}>
+                  {currentWord}
+                </h1>
+                <PlayButton
+                  text={currentWord}
+                  learnLang={learnLang}
+                  kind="word"
+                  appearance="ember"
+                />
+              </div>
             )}
             <button
               type="button"
