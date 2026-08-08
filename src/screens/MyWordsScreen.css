@@ -341,6 +341,19 @@
 }
 
 /* ---------- Пример предложения ---------- */
+/* Таблица спряжения внутри строки списка (общий ConjugationPanel, variant
+   "mywords"). Строка остаётся строкой: панель компактнее, чем на карточке, и
+   раскрывается на месте. */
+.conj--mywords {
+  gap: 8px;
+}
+
+.conj--mywords .conj__btn {
+  min-height: 36px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
 .mywords__example {
   display: flex;
   flex-direction: column;

@@ -11,6 +11,11 @@ function uniq(list) {
 }
 
 // wordInfo: для каждого слова берём наиболее полные поля (непустые побеждают).
+//
+// ВАЖНО: перечислять надо ВСЕ поля записи. Здесь запись собирается заново, и
+// всё неупомянутое пропадает при первой же синхронизации — так до этой правки
+// молча терялись register/note (пометки «Контекста носителей») и потерялся бы
+// pos, по которому списки предлагают таблицу спряжения.
 function mergeInfo(aInfo = {}, bInfo = {}) {
   const out = {};
   const words = new Set([...Object.keys(aInfo), ...Object.keys(bInfo)]);
@@ -22,6 +27,9 @@ function mergeInfo(aInfo = {}, bInfo = {}) {
       translation: b.translation || a.translation || "",
       example: b.example || a.example || "",
       exampleTranslation: b.exampleTranslation || a.exampleTranslation || "",
+      register: b.register || a.register || "",
+      note: b.note || a.note || "",
+      pos: b.pos || a.pos || "",
     };
   }
   return out;

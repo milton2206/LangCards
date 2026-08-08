@@ -684,6 +684,10 @@ export function useWordLists(pairKey, user, options = {}) {
             // register — короткий ярлык стиля, note — уместность/ситуация.
             register: c.register || "",
             note: c.note || "",
+            // Часть речи с карточки. Нужна спискам: по pos === "verb" они
+            // предлагают таблицу спряжения — тем же признаком, что и карточка.
+            // У слов, сохранённых до появления поля, его нет — и действия тоже.
+            pos: c.pos || "",
           };
         }
         return { ...cur, wordInfo: info };
