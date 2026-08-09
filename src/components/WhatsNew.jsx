@@ -11,35 +11,56 @@ import "./WhatsNew.css";
  *   list     — ВСЯ история обновлений, сгруппированная по датам (сессиям).
  * Показывается один раз за заход, закрывается, переходам по экранам не мешает.
  *
- * В режиме list рисуем ВСЕ сессии из CHANGELOG (сегодняшняя сверху, дальше в
- * глубь истории). Каждая сессия — сворачиваемый блок (аккордеон), ИЗНАЧАЛЬНО все
- * свёрнуты: виден компактный список дат, тап раскрывает содержимое. Что и когда
- * ПОКАЗЫВАТЬ решает resolveWhatsNew (greeting/list/ничего) — эту логику не трогаем,
- * меняется только вид: аккордеон по сессиям вместо плоского списка записей.
+ * В режиме list показываем ПОСЛЕДНИЕ записи, сгруппированные по датам (сессиям);
+ * остальная история — под кнопкой «Показать всю историю», ничего не удаляется.
+ * Каждая сессия — сворачиваемый блок (аккордеон), ИЗНАЧАЛЬНО все свёрнуты: виден
+ * компактный список дат, тап раскрывает содержимое. Что и когда ПОКАЗЫВАТЬ решает
+ * resolveWhatsNew (greeting/list/ничего) — эту логику не трогаем.
  */
+
+// Сколько ЗАПИСЕЙ (а не сессий) видно сразу. Считаем именно записи: иначе
+// «десять последних дней» могло бы означать и три пункта, и полсотни. Если
+// десятая запись попала в середину дня, день показывается до неё, а хвост
+// уезжает под кнопку — так граница не зависит от того, сколько всего было
+// сделано в тот день.
+const VISIBLE_ENTRIES = 10;
+
+// Записи одного дня — в одну сессию. Порядок внутри и между сессиями: свежие
+// сверху (устойчиво к случайному непорядку в самом массиве).
+function groupByDay(entries) {
+  const byDay = new Map();
+  for (const entry of entries) {
+    const day = String(entry.date).slice(0, 10); // YYYY-MM-DD
+    if (!byDay.has(day)) byDay.set(day, { day, date: entry.date, items: [] });
+    byDay.get(day).items.push(entry);
+  }
+  const list = [...byDay.values()];
+  for (const s of list) {
+    s.items.sort((a, b) => new Date(b.date) - new Date(a.date));
+  }
+  list.sort((a, b) => new Date(b.date) - new Date(a.date));
+  return list;
+}
+
 export default function WhatsNew({ mode, onClose }) {
   const { t, lang } = useI18n();
   const isGreeting = mode === "greeting";
 
   // Изначально все сессии свёрнуты — храним набор раскрытых ключей-дней.
   const [expanded, setExpanded] = useState(() => new Set());
+  // Вся история раскрыта (по кнопке под списком).
+  const [showAll, setShowAll] = useState(false);
 
-  // Группируем записи по дню (сессии). CHANGELOG — от новых к старым; дополнительно
-  // сортируем сессии и записи внутри по дате (устойчиво к случайному непорядку).
-  const sessions = useMemo(() => {
-    const byDay = new Map();
-    for (const entry of CHANGELOG) {
-      const day = String(entry.date).slice(0, 10); // YYYY-MM-DD
-      if (!byDay.has(day)) byDay.set(day, { day, date: entry.date, items: [] });
-      byDay.get(day).items.push(entry);
-    }
-    const list = [...byDay.values()];
-    for (const s of list) {
-      s.items.sort((a, b) => new Date(b.date) - new Date(a.date));
-    }
-    list.sort((a, b) => new Date(b.date) - new Date(a.date));
-    return list;
-  }, []);
+  // Плоский список от новых к старым — по нему и режем ровно по записям.
+  const ordered = useMemo(
+    () => [...CHANGELOG].sort((a, b) => new Date(b.date) - new Date(a.date)),
+    [],
+  );
+  const hiddenCount = Math.max(0, ordered.length - VISIBLE_ENTRIES);
+  const sessions = useMemo(
+    () => groupByDay(showAll ? ordered : ordered.slice(0, VISIBLE_ENTRIES)),
+    [ordered, showAll],
+  );
 
   // Закрытие по Escape + блокировка прокрутки фона (как в остальных окнах).
   useEffect(() => {
@@ -164,6 +185,18 @@ export default function WhatsNew({ mode, onClose }) {
                 </div>
               );
             })}
+
+            {/* Остальная история — по кнопке. Ничего не удаляем, просто не
+                вываливаем всё сразу. */}
+            {!showAll && hiddenCount > 0 && (
+              <button
+                type="button"
+                className="whatsnew__more"
+                onClick={() => setShowAll(true)}
+              >
+                {t("whatsnew.showAll")}
+              </button>
+            )}
           </div>
         )}
 

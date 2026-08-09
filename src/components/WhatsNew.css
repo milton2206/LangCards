@@ -11,6 +11,22 @@
   gap: 10px;
 }
 
+/* «Показать всю историю» — скромная строка под списком: остальное никуда не
+   делось, просто не вываливается сразу. */
+.whatsnew__more {
+  align-self: center;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--ember-border);
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* Сессия — тёплая плашка-аккордеон. */
 .whatsnew__session {
   border: 1px solid var(--ember-border);
