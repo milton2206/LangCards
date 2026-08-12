@@ -83,6 +83,12 @@ function SecondaryActions({
   onOpenReading,
   onOpenListening,
   primaryGenerate = false,
+  // Сколько мест свободно и хватает ли их на целую порцию. Генерация запускается
+  // ТОЛЬКО когда порция поместится целиком: иначе часть карточек пропала бы, а
+  // деньги за них уже потрачены. Добрать из готовой колоды можно и при одном
+  // свободном месте — это ничего не стоит.
+  freeSlots = Infinity,
+  roomForBatch = true,
 }) {
   const { t } = useI18n();
   return (
@@ -97,6 +103,7 @@ function SecondaryActions({
         type="button"
         className={primaryGenerate ? "cards__retry" : "cards__generate"}
         onClick={onGenerate}
+        disabled={!roomForBatch}
       >
         {t("cards.generate")}
       </button>
@@ -104,9 +111,16 @@ function SecondaryActions({
         type="button"
         className="cards__surprise"
         onClick={onGenerateRandom}
+        disabled={!roomForBatch}
       >
         🎲 {t("cards.surprise")}
       </button>
+      {/* Почему генерация недоступна — прямо под кнопками, с обоими числами. */}
+      {!roomForBatch && (
+        <p className="cards__slots cards__slots--why" role="status">
+          {t("cards.needRoomForBatch", { need: generateCount, free: freeSlots })}
+        </p>
+      )}
       <button type="button" className="cards__generate" onClick={onOpenAddWord}>
         ➕ {t("addWord.entry")}
       </button>
@@ -173,14 +187,26 @@ export default function CardScreen({
   const { t, tp } = useI18n();
   const { takenWords, knownWords, take, skip, markKnown, rememberCards } = vocab;
 
-  // Мягкое сообщение при достижении лимита активных слов (см. MAX_ACTIVE_WORDS
-  // в useWordLists.js) — не блокировка, просто понятная подсказка на пару секунд.
+  // Место под активные слова считает слой данных (см. useWordLists), экран
+  // только показывает. Два разных состояния:
+  //   мест нет вовсе      — «Взять» недоступно, карточка под замком;
+  //   мест меньше порции  — брать из колоды можно, генерировать новую нельзя.
+  const freeSlots = vocab.freeSlots;
+  const noRoom = vocab.atActiveLimit;
+  const roomForBatch = freeSlots >= generateCount;
+
+  // Объяснение, почему «Взять» не сработало. Показывается плашкой ПОД карточкой
+  // (не тостом): текст длинный, и в нём есть выход, а не только запрет.
   const [limitNotice, setLimitNotice] = useState(false);
   useEffect(() => {
     if (!limitNotice) return;
-    const timer = setTimeout(() => setLimitNotice(false), 4000);
+    const timer = setTimeout(() => setLimitNotice(false), 8000);
     return () => clearTimeout(timer);
   }, [limitNotice]);
+  // Сменилась карточка или освободилось место — объяснение больше не к месту.
+  useEffect(() => {
+    setLimitNotice(false);
+  }, [freeSlots]);
 
   // «Ещё» под карточкой — по умолчанию закрыто: на экране одно решение, всё
   // остальное открывается по запросу.
@@ -589,6 +615,8 @@ export default function CardScreen({
               onOpenAddWord={onOpenAddWord}
               onOpenReading={onOpenReading}
               onOpenListening={onOpenListening}
+              freeSlots={freeSlots}
+              roomForBatch={roomForBatch}
               primaryGenerate
             />
           </div>
@@ -625,16 +653,45 @@ export default function CardScreen({
           пачки (article временно исчезает под экраном загрузки и монтируется
           заново). Листание свайпами перемонтажа не вызывает — второе и далее
           слова не качаются. */}
-      <WordCard
-        card={card}
-        learnLang={learnLang}
-        nativeLang={nativeLang}
-        onWordTap={lookup.open}
-        lookupSpan={lookup.lookup?.span || null}
-        innerRef={swipe.cardRef}
-        style={cardStyle}
-        className="cards__card--wiggle"
-      />
+      {/* Мест нет — карточка приглушена и с замком: видно, что разбирать её
+          сейчас можно только в «Знаю»/«Пропустить». */}
+      <div className={"cards__card-wrap" + (noRoom ? " is-locked" : "")}>
+        <WordCard
+          card={card}
+          learnLang={learnLang}
+          nativeLang={nativeLang}
+          onWordTap={lookup.open}
+          lookupSpan={lookup.lookup?.span || null}
+          innerRef={swipe.cardRef}
+          style={cardStyle}
+          className="cards__card--wiggle"
+        />
+        {noRoom && (
+          <span className="cards__lock" aria-hidden="true">
+            <Icon name="lock" size={18} />
+          </span>
+        )}
+      </div>
+
+      {/* Объяснение к заблокированному «Взять» — плашкой под карточкой, а не
+          тостом: текст длинный и заканчивается выходом, а не запретом. */}
+      {limitNotice && (
+        <p className="cards__limit-notice" role="status">
+          {t("common.activeLimit", { max: MAX_ACTIVE_WORDS })}
+        </p>
+      )}
+
+      {/* Состояние мест под колодой. Ноль — «мест нет»; меньше порции —
+          объясняем, что добрать из колоды можно, а новую порцию пока нет. */}
+      {noRoom ? (
+        <p className="cards__slots cards__slots--full">
+          {t("cards.slotsFull", { max: MAX_ACTIVE_WORDS })}
+        </p>
+      ) : !roomForBatch ? (
+        <p className="cards__slots">
+          {t("cards.slotsFew", { free: freeSlots })}
+        </p>
+      ) : null}
 
       {/* Всё, что не нужно для решения «знаю / беру», — под одной свёрнутой
           строкой «Ещё». Прокручивается вместе с контентом (у подписей нет фона,
@@ -662,6 +719,8 @@ export default function CardScreen({
               onOpenAddWord={onOpenAddWord}
               onOpenReading={onOpenReading}
               onOpenListening={onOpenListening}
+              freeSlots={freeSlots}
+              roomForBatch={roomForBatch}
             />
           </div>
         )}
@@ -672,14 +731,10 @@ export default function CardScreen({
           фоном и тенью для читаемости над проезжающим контентом). Прозрачные
           зоны пропускают тач/скролл к контенту под ними. */}
       <div className="cards__actionbar">
-        {limitNotice && (
-          <p className="cards__limit-notice" role="status">
-            {t("common.activeLimit", { max: MAX_ACTIVE_WORDS })}
-          </p>
-        )}
         {/* Две кнопки дублируют свайп — ровно то самое решение. Цвета совпадают
             со стороной жеста: влево = Знаю (терракота), вправо = Взять
-            (оливковый), порядок слева-направо повторяет направления свайпа. */}
+            (оливковый), порядок слева-направо повторяет направления свайпа.
+            «Знаю» работает и при полном лимите: она слот не занимает. */}
         <div className="cards__swipe-buttons">
           <button
             type="button"
@@ -692,6 +747,7 @@ export default function CardScreen({
             type="button"
             className="cards__swipe-btn cards__swipe-btn--take"
             onClick={() => handleTake(card.word)}
+            disabled={noRoom}
           >
             {t("action.take")}
           </button>

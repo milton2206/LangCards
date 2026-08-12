@@ -58,6 +58,11 @@ export function buildSession({
   readingAvailable = false,
   listeningAvailable = false,
   rotationDay = 0,
+  // Свободные места под активные слова. Ноль — блок новых слов в план НЕ
+  // попадает вовсе: предлагать взять слова, которые некуда положить, значит
+  // выдавать заведомо невыполнимое задание. Повторения от этого не зависят
+  // НИКОГДА и идут в полном объёме.
+  freeSlots = Infinity,
 }) {
   const review = Math.max(0, Number(reviewCount) || 0);
   // База второстепенному дню — плотнее (навёрстывать), приоритетному — обычная.
@@ -70,7 +75,14 @@ export function buildSession({
 
   // Выходной по расписанию: только повторения (+ предложение позаниматься в UI).
   if (restDay) {
-    return { accent: null, secondary: isSecondaryDay, restDay: true, blocks, extras: [] };
+    return {
+      accent: null,
+      secondary: isSecondaryDay,
+      restDay: true,
+      blocks,
+      extras: [],
+      noRoomForNew: false, // в выходной новых слов нет и без лимита
+    };
   }
 
   // Порядок учебных форматов: акцент дня — первым, дальше по кругу ротации.
@@ -84,7 +96,10 @@ export function buildSession({
   const volFor = (fmt, boostAccent) => {
     const boost = boostAccent && fmt === accent ? ACCENT_BOOST : 1;
     if (fmt === "newWords") {
-      return { count: Math.max(1, Math.round(limit * BASE.newFactor * catchUp * boost)) };
+      const wanted = Math.max(1, Math.round(limit * BASE.newFactor * catchUp * boost));
+      // Больше, чем поместится, не просим: цель «Новые слова · 15» при трёх
+      // свободных местах — то же невыполнимое задание, только тише.
+      return { count: Math.max(1, Math.min(wanted, freeSlots)) };
     }
     if (fmt === "reading") {
       return { sentences: clamp(Math.round(BASE.sentences * catchUp * boost), 3, 8) };
@@ -92,11 +107,13 @@ export function buildSession({
     return { questions: clamp(Math.round(BASE.questions * catchUp * boost), 2, 4) };
   };
 
-  // Новые слова — базовая активность, есть всегда; чтение/аудио — по доступности.
+  // Новые слова — базовая активность, но только пока есть куда их класть;
+  // чтение/аудио — по доступности.
+  const roomForNew = !Number.isFinite(freeSlots) || freeSlots > 0;
   const available = {
     listening: listeningAvailable,
     reading: readingAvailable,
-    newWords: true,
+    newWords: roomForNew,
   };
 
   // База: полный набор доступных форматов в порядке ротации (акцент первым).
@@ -119,5 +136,13 @@ export function buildSession({
     extras.push({ type: fmt, extra: true, ...volFor(fmt, false) });
   }
 
-  return { accent, secondary: isSecondaryDay, blocks, extras };
+  return {
+    accent,
+    secondary: isSecondaryDay,
+    blocks,
+    extras,
+    // Блок новых слов выпал ИМЕННО из-за нехватки мест (а не потому, что
+    // формата нет) — экран занятия объясняет это строкой вместо блока.
+    noRoomForNew: !roomForNew,
+  };
 }

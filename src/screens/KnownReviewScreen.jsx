@@ -28,6 +28,9 @@ export default function KnownReviewScreen({
   nativeLang,
   onRestore,
   onBack,
+  // Мест под активные слова нет — «Вернуть в изучение» недоступно (та же
+  // проверка, что и на карточке). Самопроверка при этом работает целиком.
+  atLimit = false,
 }) {
   const { t } = useI18n();
   // Локальная очередь сессии: перемешана один раз при входе.
@@ -151,7 +154,8 @@ export default function KnownReviewScreen({
         )}
       </article>
 
-      {limitNotice && (
+      {/* При полном лимите объясняем постоянно: кнопка «Вернуть» неактивна. */}
+      {(limitNotice || atLimit) && (
         <p className="knownreview__limit" role="status">
           {t("common.activeLimit", { max: MAX_ACTIVE_WORDS })}
         </p>
@@ -163,6 +167,7 @@ export default function KnownReviewScreen({
             type="button"
             className="knownreview__btn knownreview__btn--restore"
             onClick={handleRestore}
+            disabled={atLimit}
           >
             {t("knownReview.restore")}
           </button>

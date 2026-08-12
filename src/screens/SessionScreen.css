@@ -77,6 +77,27 @@
   flex: 0 0 auto;
 }
 
+/* Мест под новые слова нет: блока в плане нет, вместо него спокойная строка.
+   Тон оливковый, а не тревожный — полный лимит это нормальное состояние. */
+.session__no-room {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid color-mix(in srgb, var(--ember-learned) 30%, transparent);
+  background-color: color-mix(in srgb, var(--ember-learned) 10%, transparent);
+  color: var(--ember-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.session__no-room-icon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--ember-learned);
+}
+
 .session__note {
   color: var(--ember-text-muted);
   font-size: 13px;

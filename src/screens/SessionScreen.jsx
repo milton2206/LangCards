@@ -1,5 +1,6 @@
 import Flag from "../components/icons/Flag.jsx";
 import Icon from "../components/icons/Icon.jsx";
+import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./SessionScreen.css";
 
@@ -162,6 +163,16 @@ export default function SessionScreen({
           <p className="session__rest-hint">{t("session.restHint")}</p>
         </div>
       ) : null}
+
+      {/* Мест под новые слова нет — блока в плане нет, и вместо него честная
+          строка. Повторения при этом идут полностью: они от лимита активных
+          слов не зависят. Тон без укора — это нормальное состояние. */}
+      {plan?.noRoomForNew && !plan?.restDay && (
+        <p className="session__no-room" role="status">
+          <Icon name="check" size={16} className="session__no-room-icon" />
+          {t("session.noRoomForNew", { max: MAX_ACTIVE_WORDS })}
+        </p>
+      )}
 
       {/* План блоков на сегодня — как путь: статус-кружки + соединяющая линия. */}
       {blocks.length > 0 ? (

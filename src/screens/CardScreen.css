@@ -708,6 +708,50 @@
   line-height: 1.4;
 }
 
+/* ---------- Места под активные слова ---------- */
+/* Карточка под замком: мест нет, разобрать её можно только «Знаю»/«Пропустить».
+   Приглушаем саму карточку, но НЕ кнопки под ней — они рабочие. */
+.cards__card-wrap {
+  position: relative;
+}
+
+.cards__card-wrap.is-locked .cards__card {
+  opacity: 0.55;
+}
+
+.cards__lock {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--ember-border);
+  background-color: var(--ember-surface);
+  color: var(--ember-text-muted);
+}
+
+/* Строка состояния мест под колодой. Спокойная: полный лимит — не провал. */
+.cards__slots {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ember-text-muted);
+}
+
+.cards__slots--full {
+  font-weight: 700;
+}
+
+/* Почему генерация недоступна — под самими кнопками генерации. */
+.cards__slots--why {
+  margin-top: 2px;
+}
+
 /* Переключатель «сколько карточек генерировать» — рядом с кнопкой генерации */
 .cards__count-picker {
   display: flex;

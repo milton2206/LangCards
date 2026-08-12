@@ -33,6 +33,9 @@ export default function KnownWordsScreen({
   onBack,
   onOpenMyWords,
   onOpenKnownReview,
+  // Мест под активные слова нет — «Вернуть» недоступно (та же проверка, что и
+  // на карточке: слово из известных занимает такой же слот).
+  atLimit = false,
 }) {
   const { t } = useI18n();
   const items = knownWords.map((word) => ({
@@ -110,7 +113,9 @@ export default function KnownWordsScreen({
           </button>
         )}
 
-        {limitNotice && (
+        {/* При полном лимите объясняем ПОСТОЯННО, а не по тапу: кнопки «Вернуть»
+            неактивны, и без строки было бы непонятно почему. */}
+        {(limitNotice || atLimit) && (
           <p className="mywords__limit-notice" role="status">
             {t("common.activeLimit", { max: MAX_ACTIVE_WORDS })}
           </p>
@@ -172,6 +177,7 @@ export default function KnownWordsScreen({
                       type="button"
                       className="mywords__restore"
                       onClick={() => handleRestore(item.word)}
+                      disabled={atLimit}
                     >
                       {t("words.restore")}
                     </button>

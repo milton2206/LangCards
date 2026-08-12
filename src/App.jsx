@@ -602,6 +602,9 @@ export default function App() {
         readingAvailable,
         listeningAvailable,
         rotationDay: sessionRotationDay,
+        // Нет свободных мест — блок новых слов в план не попадёт (повторения
+        // при этом идут полностью, они от лимита не зависят).
+        freeSlots: vocab.freeSlots,
       }),
     [
       reviewTarget,
@@ -611,6 +614,7 @@ export default function App() {
       readingAvailable,
       listeningAvailable,
       sessionRotationDay,
+      vocab.freeSlots,
     ],
   );
 
@@ -1366,6 +1370,7 @@ export default function App() {
             learnLang={learnLang}
             nativeLang={nativeLang}
             onRestore={vocab.restoreToStudy}
+            atLimit={vocab.atActiveLimit}
             onDelete={vocab.deleteWords}
             onBack={() => setScreen("session")}
             onOpenMyWords={() => setScreen("mywords")}
@@ -1380,6 +1385,7 @@ export default function App() {
             learnLang={learnLang}
             nativeLang={nativeLang}
             onRestore={vocab.restoreToStudy}
+            atLimit={vocab.atActiveLimit}
             onBack={() => setScreen("known")}
           />
         )}

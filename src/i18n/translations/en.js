@@ -11,7 +11,7 @@ export default {
     gotIt: "Got it",
     retry: "Retry",
     activeLimit:
-      "Review or learn some active words first — you already have {max} in progress.",
+      "You have {max} words in progress — there's no room for more. Keep reviewing what you took: the ones you know well can move to your known words and free up space.",
   },
 
   plural: {
@@ -89,6 +89,12 @@ export default {
     surprise: "Surprise me",
     remaining: "Left in batch: {n}",
     countLabel: "Cards:",
+    // Room for active words: deck state and why generation is unavailable.
+    slotsFull: "No room · {max} of {max}",
+    slotsFew:
+      "{free} places free. Not enough for a new batch, but you can still take from the deck.",
+    needRoomForBatch:
+      "A new batch needs {need} free places. You have {free} right now.",
     plural: "pl.",
     // Collapsed card "Details" (transcription and plural), example translation
     // behind a tap, and the secondary-actions block under the card.
@@ -384,6 +390,9 @@ export default {
     },
     progress: "{n} of {total}",
     allDoneShort: "All done",
+    // No room for new words — the new-words block is left out, this line instead.
+    noRoomForNew:
+      "No new words today — {max} already in progress. Let's reinforce what you took.",
     start: "Start session",
     continue: "Continue: {block}",
     allDone: "Session complete. Great work!",
@@ -644,6 +653,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      roomForWords: {
+        title: "Up to 150 words at once",
+        desc: "The limit went up from 50. When there's no room, the app says so plainly instead of offering new words.",
+      },
       highlightForms: {
         title: "Highlighting catches any form",
         desc: "The word you're learning is highlighted in the example even when it appears in a different form or was saved as a phrase.",

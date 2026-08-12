@@ -23,10 +23,20 @@ const LEGACY = {
 // На сколько дней «Пропустить» откладывает слово.
 export const SKIP_DAYS = 3;
 
-// Максимум слов в активном изучении одновременно (takenWords). Легко менять —
-// одна константа. При достижении лимита новые слова не добавляются, пока
-// часть активных не перейдёт в «Знаю» (или не будет временно возвращена).
-export const MAX_ACTIVE_WORDS = 50;
+// Максимум слов в активном изучении одновременно (takenWords). Считается
+// ОТДЕЛЬНО для каждой языковой пары — суммарного лимита по всем языкам нет.
+// Нижнего порога («нельзя брать, пока не разгрузишь до N») тоже нет намеренно:
+// освободилось место — можно брать, иначе человек ждал бы неделями.
+export const MAX_ACTIVE_WORDS = 150;
+
+/**
+ * Сколько слов ещё поместится. ОДНА функция на все двери, которыми слово
+ * попадает в активные (взятие из колоды, своё слово, слово или оборот из
+ * чтения, возврат из «Известных»), — условие не размножаем по компонентам.
+ */
+export function freeSlotsFor(takenCount) {
+  return Math.max(0, MAX_ACTIVE_WORDS - Math.max(0, Number(takenCount) || 0));
+}
 
 // Сколько взятых слов пары считаем достаточным, чтобы текст в режиме чтения
 // уже ощущался «узнаваемым» и подсказки были не нужны (фаза 6.1).
@@ -535,16 +545,27 @@ export function useWordLists(pairKey, user, options = {}) {
     [pairKey],
   );
 
+  // Сколько слов ещё поместится и упёрлись ли в потолок. Отсюда это берут ВСЕ
+  // экраны: и чтобы показать состояние, и чтобы заранее погасить кнопку.
+  // Само разрешение всё равно спрашивается у take/restoreToStudy — они
+  // последняя инстанция, показ лишь повторяет их ответ.
+  const slotsLeft = freeSlotsFor(takenWords.length);
+  const atActiveLimit = slotsLeft === 0;
+
+  // Уже взятое слово места не занимает — повторное «взять» не должно упираться
+  // в лимит. Общая проверка для обеих дверей (взять и вернуть из известных).
+  const hasRoomFor = useCallback(
+    (word) => takenWords.includes(word) || freeSlotsFor(takenWords.length) > 0,
+    [takenWords],
+  );
+
   // ВЗЯТЬ — в личный список изучения; убрать из отложенных.
   // Заодно заводим стартовую запись интервального повторения для этого слова.
   // При достижении MAX_ACTIVE_WORDS новое слово не добавляется — вызывающий
   // код (UI) сам решает, как мягко об этом сообщить (по возвращаемому false).
   const take = useCallback(
     (word) => {
-      const alreadyTaken = takenWords.includes(word);
-      if (!alreadyTaken && takenWords.length >= MAX_ACTIVE_WORDS) {
-        return false;
-      }
+      if (!hasRoomFor(word)) return false;
       const today = toDayKey(new Date());
       updatePair((cur) => {
         const srs = cur.srsByWord || {};
@@ -559,7 +580,7 @@ export function useWordLists(pairKey, user, options = {}) {
       });
       return true;
     },
-    [updatePair, takenWords],
+    [updatePair, hasRoomFor],
   );
 
   // ЗНАЮ — исключить навсегда (в т.ч. из взятых и отложенных).
@@ -600,12 +621,7 @@ export function useWordLists(pairKey, user, options = {}) {
   // было бы обойти, массово возвращая известные слова обратно.
   const restoreToStudy = useCallback(
     (word) => {
-      if (
-        !takenWords.includes(word) &&
-        takenWords.length >= MAX_ACTIVE_WORDS
-      ) {
-        return false;
-      }
+      if (!hasRoomFor(word)) return false;
       const today = toDayKey(new Date());
       updatePair((cur) => {
         const srs = cur.srsByWord || {};
@@ -620,7 +636,7 @@ export function useWordLists(pairKey, user, options = {}) {
       });
       return true;
     },
-    [updatePair, takenWords],
+    [updatePair, hasRoomFor],
   );
 
   // ПОВТОР — применить самооценку к взятому слову (интервальное повторение).
@@ -708,6 +724,10 @@ export function useWordLists(pairKey, user, options = {}) {
     skip,
     restoreToStudy,
     reviewWord, // самооценка при интервальном повторении (Этап 2)
+    // Место под активные слова: сколько ещё влезет и упёрлись ли в потолок.
+    // Экраны показывают состояние по ним, а не считают лимит сами.
+    freeSlots: slotsLeft,
+    atActiveLimit,
     rememberCards,
     deleteWords, // полное удаление слов (режим выбора в списках)
     takenTodayByPair, // взято новых слов сегодня по каждой паре (фаза 4.3)
