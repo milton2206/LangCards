@@ -12,32 +12,12 @@ import { supabase } from "./supabase.js";
 import { PLACEMENT_LEVELS } from "./placementAlgorithm.js";
 import { apiFetch } from "./apiClient.js";
 
-// ВЕРСИЯ кэша банка. Поднимать при КАЖДОЙ чистке банка в базе: ключ меняется,
-// старый снимок перестаёт находиться, и банк перечитывается при первом же
-// прохождении — а не через месяц, когда истечёт TTL. Без этого после чистки
-// устройства продолжали бы показывать снятые с эксплуатации задания.
-// v2 — чистка после правки промпта (размытые определения в vocab).
-const CACHE_VERSION = 2;
-const CACHE_KEY = `placementBank_v${CACHE_VERSION}`; // { de: { items, savedAt } }
-// Ключи прошлых версий — удаляем, чтобы не занимали место в localStorage.
-// Первая версия жила без суффикса, дальше — по номерам.
-const LEGACY_CACHE_KEYS = [
-  "placementBank",
-  ...Array.from({ length: CACHE_VERSION - 2 }, (_, i) => `placementBank_v${i + 2}`),
-];
+const CACHE_KEY = "placementBank"; // { de: { items: [...], savedAt } }
 // Банк почти не меняется, но и вечно держать первый (возможно неполный) снимок
 // не хочется — через месяц перечитываем.
 const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 // Ниже этого числа заданий считаем кэш неполноценным и перечитываем банк.
 const MIN_USABLE_ITEMS = 40;
-
-// Разовая уборка прошлых версий кэша. Модуль загружается вместе с приложением,
-// так что это один removeItem на заход — дешевле, чем таскать мёртвый снимок.
-try {
-  for (const key of LEGACY_CACHE_KEYS) localStorage.removeItem(key);
-} catch {
-  // хранилище недоступно — не критично, старый ключ просто останется лежать
-}
 
 function loadCache() {
   try {
