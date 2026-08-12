@@ -12,6 +12,7 @@ import {
   estimateLevel,
   pickItem,
 } from "../lib/placementAlgorithm.js";
+import { shuffled } from "../../lib/shuffle.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import Icon from "../components/icons/Icon.jsx";
 import LevelBars from "../components/icons/LevelBars.jsx";
@@ -26,6 +27,9 @@ import "./PlacementScreen.css";
  * Задания берутся из ОБЩЕГО банка (placement_items) — под пользователя ничего
  * не генерируется. Адаптивность и подсчёт живут в placementAlgorithm.js, здесь
  * только состояние прохождения и экран.
+ *
+ * Варианты ответа перемешиваются при показе (см. options ниже): в банке
+ * правильный почти всегда стоит первым, и без этого тест проходился бы вслепую.
  *
  * Оформление Ember: тёплый фон, терракота-акцент, вопрос — Alegreya, варианты —
  * плашки. ДО ответа варианты нейтральны и одинаковы (правильный не подсказан);
@@ -120,6 +124,20 @@ export default function PlacementScreen({
   const result = useMemo(
     () => (finished ? estimateLevel(history) : null),
     [finished, history],
+  );
+
+  // Порядок вариантов задаём МЫ, а не модель: она почти всегда ставит правильный
+  // первым, и тест проходился без чтения заданий. Перемешиваем ИМЕННО на показе —
+  // так чинятся и задания, уже лежащие в общем банке со старым порядком, без
+  // миграции и перегенерации. Кэш банка при этом не трогается: он хранит задания,
+  // а порядок показа живёт только здесь.
+  //
+  // Зависимость — id задания: пересобирать на каждый рендер нельзя, иначе
+  // варианты прыгали бы под пальцем, а подсветка ответа съезжала бы.
+  const options = useMemo(
+    () => shuffled(item?.options || []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [item?.id],
   );
 
   // Ответ дан — только фиксируем его в истории и раскрываем зелёный/красный.
@@ -329,10 +347,11 @@ export default function PlacementScreen({
           </p>
 
           <div className="placement__options">
-            {item.options.map((option, i) => {
+            {options.map((option, i) => {
               // Раскрытие результата: правильный — оливковым, ошибочный выбор —
-              // красноватым. ДО ответа классов нет: все варианты одинаковы и
-              // нейтральны, правильный не подсказан.
+              // красноватым. Сравниваем по ЗНАЧЕНИЮ, а не по индексу, — поэтому
+              // перемешивание подсветку не задевает. ДО ответа классов нет: все
+              // варианты одинаковы и нейтральны, правильный не подсказан.
               let mark = "";
               if (answered) {
                 if (option === item.correctAnswer) mark = " is-correct";

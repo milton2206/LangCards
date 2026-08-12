@@ -644,6 +644,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      shuffledPlacement: {
+        title: "An honest level test",
+        desc: "Answer options are shuffled now. The correct one used to come first almost every time, so the test could be passed unread.",
+      },
       reviewFrontExample: {
         title: "Review starts with context",
         desc: "You see the sentence with the word highlighted first. The translation opens when you're ready.",
