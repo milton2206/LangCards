@@ -14,14 +14,8 @@ async function readBody(req) {
 
 /**
  * Серверная функция теста на уровень (фаза 6.3). Один эндпоинт на два действия:
- *   { action: "ensure", learnLang, level? } — наполнить банк, если он пуст;
- *   { action: "count",  learnLang }         — сколько заданий уже есть.
- *
- * Банк собирает СИЛЬНАЯ модель (ANTHROPIC_MODEL_PLACEMENT, по умолчанию Sonnet),
- * а она заметно медленнее Haiku. Поэтому за один вызов наполняется столько
- * уровней, сколько влезает в бюджет времени функции; недобранные приходят в
- * remaining, и их доберёт следующий вызов — запись идемпотентна, дублей нет.
- * level позволяет наполнить ровно один уровень (ручной запуск).
+ *   { action: "ensure", learnLang }        — наполнить банк, если он пуст;
+ *   { action: "count",  learnLang }        — сколько заданий уже есть.
  *
  * Сами задания клиент читает НЕ отсюда, а прямо из placement_items (RLS даёт
  * select всем авторизованным) — эндпоинт нужен только для разовой генерации.
@@ -43,7 +37,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { action, learnLang, level } = await readBody(req);
+    const { action, learnLang } = await readBody(req);
     // "count" — дешёвое чтение, лимитом не облагаем; "ensure" может запустить
     // генерацию (5 уровней) — тратим единицу квоты placement.
     const { userId } = await authenticateRequest(req);
@@ -53,9 +47,7 @@ export default async function handler(req, res) {
     const result =
       action === "count"
         ? await countBank(learnLang)
-        : // level (необязателен) — наполнить ровно один уровень. Без него
-          // берутся все недостающие, сколько влезет в бюджет времени функции.
-          await ensurePlacementBank({ learnLang, force: false, level });
+        : await ensurePlacementBank({ learnLang, force: false });
     res.status(200).json(result);
   } catch (err) {
     const status = err.status || 500;
