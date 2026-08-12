@@ -644,6 +644,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      highlightForms: {
+        title: "Highlighting catches any form",
+        desc: "The word you're learning is highlighted in the example even when it appears in a different form or was saved as a phrase.",
+      },
       reviewFrontExample: {
         title: "Review starts with context",
         desc: "You see the sentence with the word highlighted first. The translation opens when you're ready.",

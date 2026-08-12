@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { highlightWordInExample } from "../lib/highlightWord.js";
+import { lemmaOfForm } from "../lib/conjugationClient.js";
 import { formatInterval } from "../i18n/format.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { nextSrs } from "../hooks/useWordLists.js";
@@ -134,7 +135,12 @@ export default function ReviewScreen({
   const info = wordInfo[currentWord] || {};
   const hasExample = Boolean(info.example);
   const segments = hasExample
-    ? highlightWordInExample(info.example, currentWord)
+    ? // Третьим аргументом — доступ к уже накопленному индексу начальных форм:
+      // только им связываются формы с другой основой (ging ↔ gehen). Сети за
+      // ним нет, промах индекса штатен — сработает сравнение по основе.
+      highlightWordInExample(info.example, currentWord, (form) =>
+        lemmaOfForm(learnLang, form),
+      )
     : [];
 
   // Какой интервал реально применится при каждой оценке — считаем той же

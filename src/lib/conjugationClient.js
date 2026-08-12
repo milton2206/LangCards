@@ -79,6 +79,32 @@ function trim(store, max) {
 }
 
 /**
+ * Начальная форма слова ИЗ УЖЕ НАКОПЛЕННОГО индекса — без сети и без API.
+ * Возвращает лемму, "" (точно не глагол) или null (про эту форму ничего не
+ * знаем). Нужна подсветке слова в примере: «ging» и «gehen» одной основы не
+ * имеют, и связать их можно только через таблицу форм. Отдельной лемматизации
+ * ради подсветки не заводим — пользуемся тем, что уже сложила кнопка «Формы».
+ *
+ * Синхронная намеренно: подсветка считается при рендере, ждать сеть там нельзя,
+ * а промах индекса — штатная ситуация (сработает сравнение по основе).
+ */
+export function lemmaOfForm(learnLang, form) {
+  const clean = String(form ?? "").trim();
+  if (!clean || !learnLang) return null;
+  const key = formKey(learnLang, clean);
+  if (memoryForms.has(key)) return memoryForms.get(key);
+  try {
+    const store = loadJSON(FORMS_KEY, {});
+    const value = store[key];
+    if (value === undefined) return null;
+    memoryForms.set(key, value);
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Таблица спряжения по слову В ЛЮБОЙ ФОРМЕ. Порядок: память → localStorage → API.
  * Возвращает { isVerb:false } | { isVerb:true, lemma, conjugation:{present,past,future} }.
  * Бросает Error с .code (offline | server | rateLimit | …) для сообщения в UI.

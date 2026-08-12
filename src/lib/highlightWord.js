@@ -1,3 +1,7 @@
+// Модуль намеренно БЕЗ зависимостей: это чистая работа с текстом, её зовут на
+// каждый рендер. Начальную форму (её знает только кэш спряжений) вызывающий
+// передаёт функцией lemmaOf — тянуть сюда клиент Supabase ради подсветки нельзя.
+
 // Убирает распространённые артикли/детерминативы в начале слова, чтобы
 // выделять именно смысловое ядро: "der Chef" -> "Chef", "η δουλειά" -> "δουλειά".
 const ARTICLE_RE =
@@ -8,8 +12,6 @@ const ARTICLE_RE =
 export function coreWord(word) {
   return String(word).replace(ARTICLE_RE, "").trim();
 }
-
-const LETTER_RE = /[\p{L}\p{M}]/u;
 
 /**
  * Разбивает текст на сегменты для рендера с тапабельными словами:
@@ -69,88 +71,139 @@ function commonPrefixLen(a, b) {
   return i;
 }
 
-// Для однословного ядра ищем лучший по совпадению токен в предложении:
-// точное совпадение — лучший вариант; иначе — словоформа с почти тем же
-// префиксом (отличается максимум последней буквой), чтобы ловить и
-// добавленные окончания (Kaffee -> Kaffees), и другие падежные формы
-// (греч. καφές -> καφέ, где меняется сама концовка, а не только длина).
-function findWordRange(example, core) {
-  const lowerCore = core.toLowerCase();
-  const tokens = tokenize(example);
+const lower = (value) => String(value ?? "").trim().toLowerCase();
 
+// Служебные слова, которые есть в заголовочной фразе, но в живом предложении
+// стоят иначе или отсутствуют вовсе: «to put SOMETHING off» → «putting it off».
+// Их пропускаем при сопоставлении, иначе фраза не найдётся никогда.
+const FILLER_RE =
+  /^(to|the|a|an|sich|jemanden|jemandem|jemand|etwas|something|someone|somebody|sth|smb|se|lo|la|el|los|las|ο|η|το|οι|τα)$/iu;
+
+/**
+ * Одна ли это словоформа. Точной морфологии тут нет и не нужно: сравниваем по
+ * общей основе, чтобы ловить «feel → feeling», «Kaffee → Kaffees», «καφές →
+ * καφέ». Требуем заметное совпадение начала и не даём словам разъезжаться
+ * хвостом, иначе «morning» начнёт совпадать с «morgen».
+ */
+function sameForm(a, b) {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const prefix = commonPrefixLen(a, b);
+  const minLen = Math.min(a.length, b.length);
+  const maxLen = Math.max(a.length, b.length);
+  if (minLen < 3 || prefix < 3) return false;
+  return prefix >= Math.ceil(minLen * 0.7) && maxLen - prefix <= 4;
+}
+
+/**
+ * Совпадают ли слова ПО НАЧАЛЬНОЙ ФОРМЕ. lemmaOf — функция вызывающего; сейчас
+ * это уже накопленный индекс спряжений (кнопка «Формы»), сети за ней нет.
+ * Это единственный способ связать формы с разной основой: ging ↔ gehen.
+ */
+function sameLemma(lemmaOf, a, b) {
+  if (typeof lemmaOf !== "function") return false;
+  // "" (точно не глагол) и null (ничего не знаем) одинаково бесполезны.
+  const la = lower(lemmaOf(a));
+  if (!la) return false;
+  const lb = lower(lemmaOf(b));
+  return Boolean(lb) && la === lb;
+}
+
+// Насколько хорошо токен предложения соответствует искомому слову.
+// Точное совпадение важнее совпадения по лемме, лемма — важнее общей основы:
+// так при нескольких кандидатах подсветится самый очевидный.
+function scoreToken(tokenText, target, lemmaOf) {
+  const a = lower(tokenText);
+  const b = lower(target);
+  if (a === b) return 1000;
+  if (sameLemma(lemmaOf, a, b)) return 800;
+  if (sameForm(a, b)) return 500 + commonPrefixLen(a, b);
+  return 0;
+}
+
+// Однословное ядро: берём лучший по соответствию токен предложения.
+function findWordRange(example, core, lemmaOf) {
   let best = null;
-  for (const t of tokens) {
-    const tw = t.text.toLowerCase();
-    let score = 0;
-    if (tw === lowerCore) {
-      score = 1000;
-    } else {
-      const prefix = commonPrefixLen(tw, lowerCore);
-      const minLen = Math.min(tw.length, lowerCore.length);
-      if (minLen >= 3 && prefix >= 3 && prefix >= minLen - 1) {
-        score = 500 + prefix;
-      }
-    }
+  for (const t of tokenize(example)) {
+    const score = scoreToken(t.text, core, lemmaOf);
     if (score > 0 && (!best || score > best.score)) {
       best = { start: t.start, end: t.end, score };
     }
   }
-
   return best ? [best.start, best.end] : null;
 }
 
-// Для ядра из нескольких слов (фразовые глаголы вроде "to check in") ищем
-// точное вхождение фразы как подстроки — падежных склонений тут не бывает.
-function findPhraseRange(example, core) {
-  const lowerExample = example.toLowerCase();
-  const lowerCore = core.toLowerCase();
+// Между словами фразы в живом предложении может вклиниться пара чужих слов:
+// «put it off», «feeling really sick». Больше двух — уже не та фраза.
+const MAX_PHRASE_GAP = 2;
 
-  let boundaryIdx = -1;
-  let firstIdx = -1;
-  let searchFrom = 0;
-  for (;;) {
-    const found = lowerExample.indexOf(lowerCore, searchFrom);
-    if (found === -1) break;
-    if (firstIdx === -1) firstIdx = found;
-    const prevChar = found > 0 ? example[found - 1] : "";
-    if (!prevChar || !LETTER_RE.test(prevChar)) {
-      boundaryIdx = found;
-      break;
+/**
+ * Ядро из нескольких слов (фразовые глаголы, устойчивые обороты). Ищем не
+ * подстроку, а ПОСЛЕДОВАТЕЛЬНОСТЬ словоформ: слова фразы должны встретиться
+ * по порядку, каждое — в любой своей форме, с небольшими промежутками.
+ * Подсвечиваем найденный фрагмент целиком, от первого слова до последнего.
+ */
+function findPhraseRange(example, core, lemmaOf) {
+  const wanted = tokenize(core)
+    .map((t) => lower(t.text))
+    .filter((w) => w && !FILLER_RE.test(w));
+  if (wanted.length === 0) return null;
+  if (wanted.length === 1) return findWordRange(example, wanted[0], lemmaOf);
+
+  const tokens = tokenize(example);
+  for (let start = 0; start < tokens.length; start += 1) {
+    if (!scoreToken(tokens[start].text, wanted[0], lemmaOf)) continue;
+
+    let matched = 1;
+    let lastIdx = start;
+    for (
+      let i = start + 1;
+      i < tokens.length && matched < wanted.length && i - lastIdx - 1 <= MAX_PHRASE_GAP;
+      i += 1
+    ) {
+      if (scoreToken(tokens[i].text, wanted[matched], lemmaOf)) {
+        lastIdx = i;
+        matched += 1;
+      }
     }
-    searchFrom = found + 1;
+    if (matched === wanted.length) {
+      return [tokens[start].start, tokens[lastIdx].end];
+    }
   }
-
-  const idx = boundaryIdx !== -1 ? boundaryIdx : firstIdx;
-  if (idx === -1) return null;
-
-  let end = idx + core.length;
-  while (end < example.length && LETTER_RE.test(example[end])) {
-    end += 1;
-  }
-  return [idx, end];
+  return null;
 }
 
 /**
  * Ищет в предложении диапазон [start, end), который стоит выделить как
  * «то самое слово». Возвращает null, если ничего похожего не нашли.
  */
-function findHighlightRange(example, word) {
+function findHighlightRange(example, word, lemmaOf) {
   const core = coreWord(word);
   if (!core) return null;
   return core.includes(" ")
-    ? findPhraseRange(example, core)
-    : findWordRange(example, core);
+    ? findPhraseRange(example, core, lemmaOf)
+    : findWordRange(example, core, lemmaOf);
 }
 
 /**
  * Разбивает предложение на сегменты для рендера с выделением изучаемого
- * слова: [{ text, highlight }]. Если найти слово в примере не удалось,
- * возвращает предложение одним невыделенным сегментом (без выделения, но
- * без ошибок) — так и должно быть, если данные ИИ не совпали дословно.
+ * слова: [{ text, highlight }].
+ *
+ * Слово ищется ПО ФОРМЕ, а не по строке: артикль у заголовочного слова
+ * отбрасывается, словоформы сопоставляются по основе, многословная фраза
+ * ищется как последовательность форм и подсвечивается целиком.
+ *
+ * lemmaOf (необязателен) — функция (форма) → начальная форма | "" | null.
+ * Включает сверку по начальной форме: только ею ловятся формы с другой основой
+ * (ging ↔ gehen). Сейчас это уже накопленный индекс спряжений.
+ *
+ * Не нашли ВООБЩЕ — возвращаем предложение одним невыделенным сегментом:
+ * карточка работает как обычно, просто без подсветки. Это последняя линия, а
+ * не нормальный путь.
  */
-export function highlightWordInExample(example, word) {
+export function highlightWordInExample(example, word, lemmaOf = null) {
   if (!example) return [];
-  const range = word ? findHighlightRange(example, word) : null;
+  const range = word ? findHighlightRange(example, word, lemmaOf) : null;
   if (!range) return [{ text: example, highlight: false }];
 
   const [start, end] = range;
