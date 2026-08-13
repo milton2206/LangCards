@@ -681,6 +681,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      realComprehension: {
+        title: "Comprehension questions are real now",
+        desc: "Statements used to repeat the source word for word, so the answer could be found by matching strings. Now they're rephrased, and some require connecting two places and drawing a conclusion — you can't answer without understanding the content. This applies to both reading and listening.",
+      },
       bulkPromote: {
         title: "Move words to known as a list",
         desc: "Words you remember confidently no longer have to be moved one at a time: “My words” now has a mature-word review — checkboxes, “select all”, and a bulk move. It frees up room for new words in a single pass.",
