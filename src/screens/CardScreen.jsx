@@ -145,6 +145,9 @@ export default function CardScreen({
   cards,
   loading,
   error,
+  // Пачка пришла меньше запрошенной: { got, asked } — спокойная пометка, а не
+  // ошибка. Раньше карточки просто молча не доходили, и это выглядело поломкой.
+  shortfall = null,
   learnLang,
   nativeLang,
   // Уровень пользователя — только для просмотра слова/оборота из примера
@@ -295,13 +298,21 @@ export default function CardScreen({
     // error: { code, params?, raw? }. Показываем ТОЛЬКО локализованный текст:
     // серверная строка (raw) написана по-русски и в другом интерфейсе выглядела
     // бы чужой — она остаётся в объекте для отладки.
+    //
+    // «Новых слов не нашлось» — НЕ сбой: модель отработала, но всё, что она
+    // предложила, человек уже знает. Заголовок «Не удалось сгенерировать» тут
+    // врал бы и толкал жать «Повторить» до бесконечности, поэтому случай
+    // разведён отдельно (сбой сервера/сети остаётся с прежним текстом).
+    const noNewWords = error.code === "noNewWords";
     const errorText = apiErrorText(error, t, "errors.generateFailed");
     return (
       <section className="cards cards--status cards--error">
         <div className="cards__status-badge" aria-hidden="true">
           <Icon name="alert" size={30} />
         </div>
-        <h1 className="cards__status-title">{t("errors.title")}</h1>
+        <h1 className="cards__status-title">
+          {t(noNewWords ? "errors.noNewWordsTitle" : "errors.title")}
+        </h1>
         <p className="cards__status-hint">{errorText}</p>
         <div className="cards__status-actions">
           {/* Повторяем именно упавшую генерацию (обычную или «Удиви меня») —
@@ -477,6 +488,17 @@ export default function CardScreen({
   // а не остановка: карточки идут дальше, брать можно без подтверждений и без
   // кнопки-обхода. Норма — ориентир, а не запрет (запрет — только лимит
   // активных слов, у него и текст другой).
+  // Недобор: карточек пришло меньше, чем просили. Раньше они просто молча не
+  // доходили — человек видел пачку из двух-трёх и решал, что приложение сломано.
+  const shortNote = shortfall ? (
+    <p className="cards__short-note" role="status">
+      {t("cards.shortBatch", {
+        got: shortfall.got,
+        asked: shortfall.asked,
+      })}
+    </p>
+  ) : null;
+
   const quotaNote = dailyNorm?.reached ? (
     <p className="cards__quota-note" role="status">
       <span className="cards__quota-check" aria-hidden="true">
@@ -551,6 +573,7 @@ export default function CardScreen({
         {dailySummary}
         {balanceStrip}
         {weekStrip}
+        {shortNote}
         {quotaNote}
         <div className="cards__center">
           {empty ? (
@@ -616,6 +639,7 @@ export default function CardScreen({
       <p className="cards__remaining">
         {t("cards.remaining", { n: remaining })}
       </p>
+      {shortNote}
       {quotaNote}
 
       {/* Чистая карточка: никаких наложений на текст. Подсказка жеста — это

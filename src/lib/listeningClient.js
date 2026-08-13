@@ -14,7 +14,7 @@
 // gap — то же объяснение грамматики, что и в 6.1.
 
 import { requestReadingText } from "./readingClient.js";
-import { highlightWordInExample, coreWord } from "./highlightWord.js";
+import { highlightWordInExample, coreWord } from "../../lib/highlightWord.js";
 import { apiFetch, makeApiError } from "./apiClient.js";
 
 const SETS_KEY = "listeningSets"; // { "de-ru": { format, items, index, … } }

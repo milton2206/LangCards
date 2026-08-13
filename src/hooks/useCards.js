@@ -50,15 +50,19 @@ export function useCards(pairKey) {
   const [store, setStore] = useState(loadStore);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // Пачка пришла меньше запрошенной: { got, asked }. Не ошибка — пояснение к
+  // ТЕКУЩЕЙ пачке, поэтому живёт рядом с ней и гаснет при новой генерации.
+  const [shortfall, setShortfall] = useState(null);
 
   useEffect(() => {
     localStorage.setItem(STORE_KEY, JSON.stringify(store));
   }, [store]);
 
-  // При смене пары сбрасываем транзиентные загрузку/ошибку.
+  // При смене пары сбрасываем транзиентные загрузку/ошибку/пометку недобора.
   useEffect(() => {
     setLoading(false);
     setError(null);
+    setShortfall(null);
   }, [pairKey]);
 
   const cards = store[pairKey] || EMPTY;
@@ -70,6 +74,7 @@ export function useCards(pairKey) {
     async (params) => {
       setLoading(true);
       setError(null);
+      setShortfall(null);
       try {
         const res = await apiFetch("/api/cards", {
           method: "POST",
@@ -80,21 +85,38 @@ export function useCards(pairKey) {
         if (!res.ok) {
           // Лимит/сессия/ошибка сервера → структура { code?, params?, raw? };
           // CardScreen сам локализует по code (или покажет raw).
-          setError(await parseApiError(res));
+          const info = await parseApiError(res);
+          // Статус в консоль: по экрану таймаут (504) и сбой модели (502)
+          // выглядят одинаково, и без этой строки диагностика шла вслепую.
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[cards] генерация не удалась: HTTP ${res.status}, code=${info.code ?? "—"}`,
+            info.raw || "",
+          );
+          setError(info);
           return;
         }
 
         const data = await res.json();
         const batch = Array.isArray(data) ? data : data.cards;
         if (!Array.isArray(batch) || batch.length === 0) {
+          // eslint-disable-next-line no-console
+          console.warn("[cards] сервер вернул пустую пачку (HTTP 200)");
           setError({ code: "noCards" });
           return;
         }
+        // Недобор — не молчаливая пропажа: экран честно скажет, сколько нашлось.
+        // Сравниваем с тем, что РЕАЛЬНО просили (params.count уже ужат дневной
+        // нормой в buildParams), иначе сообщение врало бы про норму.
+        const asked = Number(params.count) || batch.length;
+        setShortfall(batch.length < asked ? { got: batch.length, asked } : null);
         setStore((prev) => ({ ...prev, [pairKey]: batch }));
         // Озвучка создаётся в момент создания карточек (фаза 5.1): фоновый
         // прогрев кэша, чтобы кнопка play не ждала генерацию при тапе.
         prewarmTts(batch, params.learnLang);
       } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn("[cards] запрос генерации сорвался:", e?.message || e);
         setError(
           e.message === "Failed to fetch"
             ? { code: "offline" }
@@ -109,5 +131,5 @@ export function useCards(pairKey) {
 
   const clearError = useCallback(() => setError(null), []);
 
-  return { cards, loading, error, generate, clearError };
+  return { cards, loading, error, shortfall, generate, clearError };
 }

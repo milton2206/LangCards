@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { highlightWordInExample } from "../lib/highlightWord.js";
+import { highlightWordInExample } from "../../lib/highlightWord.js";
 import { lemmaOfForm } from "../lib/conjugationClient.js";
 import { formatInterval } from "../i18n/format.js";
 import { useI18n } from "../i18n/I18nContext.jsx";

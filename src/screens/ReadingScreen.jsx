@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { splitWords, coreWord } from "../lib/highlightWord.js";
+import { splitWords, coreWord } from "../../lib/highlightWord.js";
 import {
   loadTexts,
   saveText,

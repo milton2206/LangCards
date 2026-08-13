@@ -95,6 +95,8 @@ export default {
       "{free} places free. Not enough for a new batch, but you can still take from the deck.",
     needRoomForBatch:
       "A new batch needs {need} free places. You have {free} right now.",
+    // Short batch: fewer cards arrived than asked for.
+    shortBatch: "Only {got} of {asked} words turned out to be new.",
     plural: "pl.",
     // Collapsed card "Details" (transcription and plural), example translation
     // behind a tap, and the secondary-actions block under the card.
@@ -524,6 +526,10 @@ export default {
     noCards: "Server returned no cards. Please try again.",
     server: "Server error ({status})",
     generateFailed: "Couldn't generate cards.",
+    // Not a failure: the model worked, but you already know everything it offered.
+    noNewWordsTitle: "No new words found",
+    noNewWords:
+      "For this topic and level you already know almost everything that came back. Try again, switch the topic, or take “Native context” — those are living expressions rather than single words.",
     rateLimit:
       "You've hit today's limit. It resets tomorrow (at 00:00 UTC). Thanks for helping keep the app free.",
     rateCooldown: "Too fast. Wait {seconds}s and try again.",
@@ -687,6 +693,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      smarterGeneration: {
+        title: "Generation no longer comes up short in silence",
+        desc: "Cards with words you already knew used to be dropped quietly — so instead of ten you got two or three with no explanation. Now the app asks for replacements, and if there are still fewer new words, it says how many. It also explains plainly when there simply were no new words for the topic.",
+      },
       realComprehension: {
         title: "Comprehension questions are real now",
         desc: "Statements used to repeat the source word for word, so the answer could be found by matching strings. Now they're rephrased, and some require connecting two places and drawing a conclusion — you can't answer without understanding the content. This applies to both reading and listening.",

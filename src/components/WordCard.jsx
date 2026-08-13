@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { splitWords } from "../lib/highlightWord.js";
+import { splitWords } from "../../lib/highlightWord.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import PlayButton from "./PlayButton.jsx";
 import ConjugationPanel from "./ConjugationPanel.jsx";

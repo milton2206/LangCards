@@ -334,7 +334,8 @@ export default function App() {
 
   // Слова: синхронизация придержана, пока не решён вопрос переноса прогресса.
   const vocab = useWordLists(pairKey, auth.user, { holdSync: migrationAsk });
-  const { cards, loading, error, generate, clearError } = useCards(pairKey);
+  const { cards, loading, error, shortfall, generate, clearError } =
+    useCards(pairKey);
 
   // Сколько карточек генерировать за раз — сохраняется между сессиями.
   const [generateCount, setGenerateCount] = useState(loadGenerateCount);
@@ -1233,6 +1234,7 @@ export default function App() {
             cards={cards}
             loading={loading}
             error={error}
+            shortfall={shortfall}
             learnLang={learnLang}
             nativeLang={nativeLang}
             level={settings.level}

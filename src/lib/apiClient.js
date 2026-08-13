@@ -99,6 +99,9 @@ export async function parseApiError(res) {
   // Серверную строку не тащим: она написана по-русски и в украинском или
   // английском интерфейсе выглядела бы чужой.
   if (code === "generationFailed") return { code: "generationFailed" };
+  // Модель отработала, но всё предложенное пользователь уже знает. Это НЕ сбой,
+  // и текст у него свой: «повторить» тут помогает мало, полезнее сменить формат.
+  if (code === "noNewWords") return { code: "noNewWords" };
   // raw оставляем в объекте ошибки (пригодится в консоли/логах), но показывать
   // его пользователю нельзя — сервер не знает языка интерфейса.
   const raw = body?.error || null;
@@ -142,6 +145,18 @@ export function apiErrorText(err, t, fallbackKey) {
       });
     case "sessionExpired":
       return t("errors.sessionExpired");
+    // Не сбой, а результат: новых слов не нашлось. Раньше это выглядело как
+    // «не удалось сгенерировать» — человек жал «Повторить» и получал то же.
+    case "noNewWords":
+      return t("errors.noNewWords");
+    // Сбой сервера или сети (500/502/504, недоступный ответ). Показываем текст
+    // ЭКРАНА, а не «Ошибка сервера (504)»: человеку важно, что именно не
+    // получилось, а действие у всех этих случаев одно — повторить. Сам статус
+    // не теряется: он лежит в err.params.status и пишется в консоль (useCards).
+    case "server":
+      return t(fallbackKey || "errors.server", {
+        status: err.params?.status ?? 0,
+      });
     default:
       return t(fallbackKey || "errors.server");
   }

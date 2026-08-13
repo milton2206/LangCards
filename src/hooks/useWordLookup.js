@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { requestManualCard } from "../lib/manualCard.js";
 import { requestPhrase } from "../lib/readingClient.js";
-import { sentenceWords, sliceByWords } from "../lib/highlightWord.js";
+import { sentenceWords, sliceByWords } from "../../lib/highlightWord.js";
 import { apiErrorText } from "../lib/apiClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 
