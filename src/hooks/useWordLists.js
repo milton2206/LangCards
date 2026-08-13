@@ -292,6 +292,11 @@ export function useWordLists(pairKey, user, options = {}) {
   // нагрузки, фаза 4.3). Считаем по takenDate в srs-записи; старые записи без
   // takenDate (тихий фолбэк) взятыми сегодня не считаются. Повторения (SRS)
   // сюда не входят — их никогда не режем.
+  //
+  // Источник значения не важен: takenDate ставят ОБЕ двери в изучение — take()
+  // (свайп из колоды, слово/оборот из чтения, слово из примера, «Своё слово» —
+  // все они идут через неё) и restoreToStudy() (возврат из известных). Поэтому
+  // в норму попадает всё, что стало активным сегодня, а не только колода.
   const takenTodayByPair = useMemo(() => {
     const result = {};
     for (const [pair, data] of Object.entries(store)) {
@@ -619,6 +624,10 @@ export function useWordLists(pairKey, user, options = {}) {
   // Гарантируем srs-запись (если её ещё нет) — слово снова участвует в повторе.
   // Тот же лимит MAX_ACTIVE_WORDS, что и для «Взять» — иначе лимит можно
   // было бы обойти, массово возвращая известные слова обратно.
+  // takenDate ставим СЕГОДНЯШНИЙ и у слов со старой srs-записью: возврат из
+  // известных — такая же новая нагрузка на день, как взятое из колоды слово,
+  // и в дневную норму он входит. Сам ход повторения (интервал, ease, дата
+  // следующего показа) при этом не трогаем — он остаётся прежним.
   const restoreToStudy = useCallback(
     (word) => {
       if (!hasRoomFor(word)) return false;
@@ -631,7 +640,12 @@ export function useWordLists(pairKey, user, options = {}) {
           takenWords: cur.takenWords.includes(word)
             ? cur.takenWords
             : [...cur.takenWords, word],
-          srsByWord: srs[word] ? srs : { ...srs, [word]: startSrs(today) },
+          srsByWord: {
+            ...srs,
+            [word]: srs[word]
+              ? { ...srs[word], takenDate: today }
+              : startSrs(today),
+          },
         };
       });
       return true;

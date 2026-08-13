@@ -236,6 +236,21 @@
   font-size: 13px;
 }
 
+/* Отметка «дневная норма выбрана» — рядом со счётчиком. Тон спокойный и
+   приглушённый: это ориентир, а не запрет (в отличие от лимита активных слов,
+   у которого свой заметный вид). Ни кнопок, ни вопросов — карточки идут
+   дальше. */
+.cards__quota-note {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--ember-text-muted);
+}
+
+.cards__quota-check {
+  color: var(--ember-take);
+  font-weight: 700;
+}
+
 /* ---------- Карточка ---------- */
 .cards__card {
   position: relative;

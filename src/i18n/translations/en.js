@@ -499,10 +499,8 @@ export default {
   balance: {
     today: "Today:",
     aria: "Daily new-word quota per language",
-    quotaDoneTitle: "Daily quota reached",
-    quotaDoneHint:
-      "You've taken today's new words for this language. Switch to a language with quota left, or review what you've taken — reviews are never limited.",
-    takeMore: "Take beyond the quota",
+    // Quota met — a calm marker, not a stop: you can keep taking words.
+    normMet: "Today's quota is met · {taken} of {quota}",
   },
 
   // Reviewing known words — optional self-check of the "Know" list.
@@ -653,6 +651,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      softDailyNorm: {
+        title: "The daily quota guides, it doesn't block",
+        desc: "A session never asks for more new words than the quota you picked, and the quota now counts every source: the deck, reading, an example on a card, your own words, and words brought back from the known list. Once it's met, cards keep coming — just a calm marker next to the counter.",
+      },
       roomForWords: {
         title: "Up to 150 words at once",
         desc: "The limit went up from 50. When there's no room, the app says so plainly instead of offering new words.",

@@ -508,8 +508,6 @@ export default function App() {
     pairKey,
   ]);
 
-  const quotaExhausted = Boolean(activeBalance && activeBalance.done);
-
   // ---------- Онлайн-статус (доступность форматов в занятии) ----------
   const [online, setOnline] = useState(
     typeof navigator === "undefined" || navigator.onLine,
@@ -626,6 +624,23 @@ export default function App() {
   // взято сегодня не меньше цели (в т.ч. если взял заранее вне движка); чтение/
   // аудио — есть событие «ответил на вопросы».
   const takenTodayForPair = vocab.takenTodayByPair?.[pairKey] || 0;
+
+  // Дневная норма новых слов активной пары — МЯГКИЙ ориентир: поток карточек
+  // она не останавливает и ничего не спрашивает, экран лишь показывает спокойную
+  // отметку «норма на сегодня выбрана». Жёсткий лимит активных слов (150) — это
+  // другое и по-прежнему запрещает (см. vocab.atActiveLimit).
+  // Квота: разбивка 4.3 (mixed) или расписание (by_day), иначе — собственный
+  // daily_new_limit пары. Взято — из takenTodayByPair, то есть по ВСЕМ дверям
+  // (колода, чтение, пример на карточке, «Своё слово», возврат из известных).
+  const dailyNorm = useMemo(() => {
+    const quota = Math.max(0, activeBalance?.quota ?? sessionDailyNewLimit);
+    return {
+      taken: takenTodayForPair,
+      quota,
+      reached: quota > 0 && takenTodayForPair >= quota,
+    };
+  }, [activeBalance, sessionDailyNewLimit, takenTodayForPair]);
+
   function autoDoneFor(type) {
     if (type === "review") return dueWords.length === 0;
     if (type === "newWords")
@@ -1214,7 +1229,7 @@ export default function App() {
             activeLanguage={activeLanguage}
             onSwitchLanguage={handleSwitchLanguage}
             dailyBalance={dailyBalance}
-            quotaExhausted={quotaExhausted}
+            dailyNorm={dailyNorm}
             weekSchedule={scheduleActive ? userLangs.weeklySchedule : null}
             restDay={restDay}
             dueCount={dueWords.length}

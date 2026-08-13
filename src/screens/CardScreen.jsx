@@ -155,7 +155,10 @@ export default function CardScreen({
   activeLanguage,
   onSwitchLanguage,
   dailyBalance,
-  quotaExhausted,
+  // Мягкая дневная норма новых слов: { taken, quota, reached }. Только отметка
+  // рядом со счётчиком — поток карточек она НЕ останавливает и ничего не
+  // спрашивает. Жёсткий лимит активных слов — отдельно (vocab.atActiveLimit).
+  dailyNorm = null,
   weekSchedule,
   restDay,
   dueCount,
@@ -216,13 +219,6 @@ export default function CardScreen({
     const ok = take(word);
     if (!ok) setLimitNotice(true);
   }
-
-  // «Взять сверх нормы» (фаза 4.3): мягкий обход дневной нормы на эту сессию.
-  // Сбрасывается при смене активной пары — у каждой пары своя норма.
-  const [overQuota, setOverQuota] = useState(false);
-  useEffect(() => {
-    setOverQuota(false);
-  }, [learnLang, nativeLang]);
 
   // Просмотр слова из примера (идея Димы): тап по слову → ИИ даёт перевод и
   // полную карточку → можно сразу добавить слово в изучение. Логика и шторка
@@ -477,6 +473,22 @@ export default function CardScreen({
     <WeekSchedule schedule={weekSchedule} appearance="ember" />
   ) : null;
 
+  // Дневная норма новых слов выбрана — спокойная ОТМЕТКА рядом со счётчиком,
+  // а не остановка: карточки идут дальше, брать можно без подтверждений и без
+  // кнопки-обхода. Норма — ориентир, а не запрет (запрет — только лимит
+  // активных слов, у него и текст другой).
+  const quotaNote = dailyNorm?.reached ? (
+    <p className="cards__quota-note" role="status">
+      <span className="cards__quota-check" aria-hidden="true">
+        ✓
+      </span>{" "}
+      {t("balance.normMet", {
+        taken: dailyNorm.taken,
+        quota: dailyNorm.quota,
+      })}
+    </p>
+  ) : null;
+
   // Неучебный день по расписанию: не блокируем — показываем отдых, повторения
   // (они идут всегда — кнопка в сводке и здесь) и «Позаниматься всё равно»
   // с выбором языка (выбор ставит дневной override в App).
@@ -530,46 +542,6 @@ export default function CardScreen({
     );
   }
 
-  // Дневная норма языка выбрана (фаза 4.3): мягкая остановка вместо потока
-  // новых карточек. Повторения НЕ ограничиваются (кнопка повтора в сводке и
-  // здесь), переключение — чипами баланса выше, «Взять сверх нормы» — обход.
-  if (quotaExhausted && !overQuota) {
-    return (
-      <section className="cards">
-        {topbar}
-        {sessionBanner}
-        {dailySummary}
-        {balanceStrip}
-        {weekStrip}
-        <div className="cards__center">
-          <div className="cards__status-emoji" aria-hidden="true">
-            🎯
-          </div>
-          <h1 className="cards__status-title">{t("balance.quotaDoneTitle")}</h1>
-          <p className="cards__status-hint">{t("balance.quotaDoneHint")}</p>
-          <div className="cards__status-actions">
-            {dueCount > 0 && (
-              <button
-                type="button"
-                className="cards__retry"
-                onClick={onOpenReview}
-              >
-                {t("cards.reviewNow")}
-              </button>
-            )}
-            <button
-              type="button"
-              className={dueCount > 0 ? "cards__ghost" : "cards__retry"}
-              onClick={() => setOverQuota(true)}
-            >
-              {t("balance.takeMore")}
-            </button>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   // Нет текущей карточки: либо порция ещё не сгенерирована, либо разобрана.
   if (empty || done) {
     return (
@@ -579,6 +551,7 @@ export default function CardScreen({
         {dailySummary}
         {balanceStrip}
         {weekStrip}
+        {quotaNote}
         <div className="cards__center">
           {empty ? (
             <>
@@ -643,6 +616,7 @@ export default function CardScreen({
       <p className="cards__remaining">
         {t("cards.remaining", { n: remaining })}
       </p>
+      {quotaNote}
 
       {/* Чистая карточка: никаких наложений на текст. Подсказка жеста — это
           сама карточка (перелив рамки при свайпе + покачивание при входе).

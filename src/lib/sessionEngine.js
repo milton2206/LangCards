@@ -12,6 +12,10 @@
 //     (приоритет через ДОБАВКИ, а не через урезание базы остальных).
 //   • День ВТОРОСТЕПЕННОГО языка = база чуть ПЛОТНЕЕ (навёрстывать), а НЕ меньше.
 //   • Форматы, которых нет (нет сети → нет текста/диалога), пропускаются молча.
+//   • ДНЕВНАЯ НОРМА новых слов — ПОТОЛОК, а не отправная точка: акцент дня и
+//     плотность второстепенного дня меняют, ЧЕМ наполнено занятие, но НИКОГДА
+//     не просят новых слов больше, чем человек выбрал в настройках. Потолок
+//     общий на день: и на базовый блок, и на добавки «хотите ещё?».
 //
 // Уровней нагрузки НЕТ: база адекватна сама по себе, хочешь больше — жмёшь
 // «ещё» (добавки) или «хочу другое». Ползунок «легче/нормально/тяжелее» и
@@ -93,13 +97,16 @@ export function buildSession({
   const accent = order[0];
 
   // Объём формата: база × плотнее второстепенному × эмфаза акцента.
-  const volFor = (fmt, boostAccent) => {
+  // newCap — сколько новых слов ещё можно попросить (остаток дневной нормы).
+  const volFor = (fmt, boostAccent, newCap = limit) => {
     const boost = boostAccent && fmt === accent ? ACCENT_BOOST : 1;
     if (fmt === "newWords") {
-      const wanted = Math.max(1, Math.round(limit * BASE.newFactor * catchUp * boost));
-      // Больше, чем поместится, не просим: цель «Новые слова · 15» при трёх
-      // свободных местах — то же невыполнимое задание, только тише.
-      return { count: Math.max(1, Math.min(wanted, freeSlots)) };
+      const wanted = Math.round(limit * BASE.newFactor * catchUp * boost);
+      // Норма — ПОТОЛОК: надбавки за акцент и за второстепенный день меняют,
+      // ЧЕМ наполнен день, но выше выбранного числа не поднимают. Больше, чем
+      // поместится, тоже не просим: цель «Новые слова · 15» при трёх свободных
+      // местах — невыполнимое задание, только тише.
+      return { count: Math.max(1, Math.min(wanted, newCap, freeSlots)) };
     }
     if (fmt === "reading") {
       return { sentences: clamp(Math.round(BASE.sentences * catchUp * boost), 3, 8) };
@@ -128,12 +135,24 @@ export function buildSession({
   // ДОБАВКИ сверху: продолжить после базы. Приоритетному дню — больше (2),
   // второстепенному — одна (у него и так база плотнее). Объём добавок обычный
   // (без эмфазы акцента). Начинаем не с акцента — для разнообразия.
+  //
+  // Потолок новых слов ОБЩИЙ на день: сколько уже просит база, столько добавке
+  // не достаётся. Обычно база выбирает норму целиком — тогда «ещё новых слов»
+  // не предлагаем вовсе (предложим другой формат), и день остаётся в норме.
+  const baseNew = blocks.find((b) => b.type === "newWords")?.count || 0;
+  const extraNewCap = Math.max(0, Math.min(limit, freeSlots) - baseNew);
   const extraCount = isSecondaryDay ? 1 : 2;
-  const extraPool = order.filter((f) => available[f]);
+  const extraPool = order.filter(
+    (f) => available[f] && (f !== "newWords" || extraNewCap > 0),
+  );
+  // Добавок не больше, чем доступных форматов: иначе, когда формат остался один
+  // (нет сети, а новые слова уже выбраны нормой), «хотите ещё?» предложило бы
+  // одно и то же дважды.
   const extras = [];
-  for (let i = 0; extras.length < extraCount && extraPool.length > 0; i += 1) {
+  const wantExtras = Math.min(extraCount, extraPool.length);
+  for (let i = 0; extras.length < wantExtras; i += 1) {
     const fmt = extraPool[mod(i + 1, extraPool.length)];
-    extras.push({ type: fmt, extra: true, ...volFor(fmt, false) });
+    extras.push({ type: fmt, extra: true, ...volFor(fmt, false, extraNewCap) });
   }
 
   return {
