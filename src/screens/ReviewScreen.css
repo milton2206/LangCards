@@ -301,6 +301,66 @@
   border-top-color: var(--ember-accent);
 }
 
+/* ---------- Чек-пойнт «похоже, ты его знаешь» ----------
+   Спокойная полоса НАД карточкой, а не модальное окно: поток повторения она не
+   перекрывает, закрывать её не обязательно — следующая оценка уносит вопрос
+   сама. Тон оливковый («выучено»), но приглушённый: это вопрос, а не награда. */
+.review__offer {
+  display: flex;
+  flex-direction: column;
+  /* На экране «повторение завершено» контейнер центрирует детей по ширине —
+     полосе нужна вся ширина, иначе она сжимается по тексту. */
+  align-self: stretch;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--ember-radius);
+  border: 1px solid color-mix(in srgb, var(--ember-learned) 35%, transparent);
+  background-color: color-mix(in srgb, var(--ember-learned) 10%, transparent);
+  text-align: left;
+}
+
+.review__offer-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.review__offer-hint {
+  margin-top: 2px;
+  color: var(--ember-text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.review__offer-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.review__offer-yes,
+.review__offer-later {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: var(--ember-radius-sm);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.review__offer-yes {
+  border: none;
+  background-color: var(--ember-learned);
+  color: var(--ember-on-accent);
+}
+
+/* «Пока оставить» — равноправный ответ, поэтому обычная кнопка, а не отказ
+   мелким текстом: подталкивать к «да» здесь нельзя. */
+.review__offer-later {
+  border: 1px solid var(--ember-border);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+}
+
 /* ---------- Самооценка: 2×2 сетка в смысловых цветах Ember ----------
    Тёплая шкала без синего: Не помню — терракота (повторить сейчас), Трудно —
    янтарь (осторожно), Нормально — нейтральный серый (ожидаемо), Легко —

@@ -548,6 +548,18 @@ export default {
     years: { one: "in {n} year", many: "in {n} years" },
   },
 
+  // "Looks like you know it" checkpoint: an offer to move a mature word to the
+  // known list. Tone — a calm question, not a congratulation or a reward.
+  knownOffer: {
+    aria: "Offer to move the word to your known words",
+    title: "Looks like you know “{word}”",
+    // The span comes from the interval that was just applied (formatInterval),
+    // never from a hardcoded string — the threshold may change.
+    hint: "You recall it without slipping, and it won't come back until {interval}. Move it to your known words?",
+    yes: "Yes, I know it",
+    later: "Keep it for now",
+  },
+
   stats: {
     title: "Statistics",
     empty: "No data yet. Take your first words to learn — progress will appear here.",
@@ -651,6 +663,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      knownCheckpoint: {
+        title: "You can see when a word is learned",
+        desc: "When a word has been coming back to you without errors for a long time, the app quietly asks after a review whether to move it to your known words. It's your call: say yes and a slot frees up for new words, say not yet and the question won't return for a long while.",
+      },
       softDailyNorm: {
         title: "The daily quota guides, it doesn't block",
         desc: "A session never asks for more new words than the quota you picked, and the quota now counts every source: the deck, reading, an example on a card, your own words, and words brought back from the known list. Once it's met, cards keep coming — just a calm marker next to the counter.",

@@ -3,7 +3,7 @@ import { highlightWordInExample } from "../lib/highlightWord.js";
 import { lemmaOfForm } from "../lib/conjugationClient.js";
 import { formatInterval } from "../i18n/format.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
-import { nextSrs } from "../hooks/useWordLists.js";
+import { nextSrs, shouldOfferKnown } from "../hooks/useWordLists.js";
 import PlayButton from "../components/PlayButton.jsx";
 import Icon from "../components/icons/Icon.jsx";
 import "./ReviewScreen.css";
@@ -20,6 +20,11 @@ const GRADES = [
 // На сколько карточек назад отправить слово при «Не помню» — чтобы был
 // небольшой промежуток на вспоминание, а не мгновенный повтор.
 const REQUEUE_GAP = 3;
+
+// Сколько раз за одно занятие можно предложить перенос в известные. После
+// долгого перерыва созревших слов набирается много, и без потолка человека
+// завалило бы вопросами — а вопрос должен оставаться редким и спокойным.
+const KNOWN_OFFERS_PER_SESSION = 3;
 
 /**
  * Экран повторения ВЗЯТЫХ слов (интервальное повторение) — отдельный режим
@@ -54,10 +59,23 @@ export default function ReviewScreen({
   // созревшие слова (очередь опустела) — по этому событию блок «повторение»
   // отмечается выполненным. Простой заход и выход его не вызывает.
   onFinished = null,
+  // Чек-пойнт «похоже, ты его знаешь»: перенос слова в известные по согласию
+  // человека и отметка «про это слово уже спрашивали». Без них экран работает
+  // как раньше — предложение просто не показывается.
+  onPromoteToKnown = null,
+  onOfferShown = null,
 }) {
   const { t, lang } = useI18n();
   const [revealed, setRevealed] = useState(false);
   const [queue, setQueue] = useState(() => dueWords);
+
+  // Чек-пойнт «похоже, ты его знаешь»: { word, interval } — предложение живёт
+  // РЯДОМ с потоком, а не вместо него. Пока оно на экране, следующее слово уже
+  // показано, поэтому в тексте называем само слово — иначе непонятно, о каком
+  // идёт речь. Отказ записывается в момент ПОКАЗА, поэтому «просто пойти
+  // дальше» равносильно «пока оставить» и переживает закрытие приложения.
+  const [knownOffer, setKnownOffer] = useState(null);
+  const offersLeftRef = useRef(KNOWN_OFFERS_PER_SESSION);
 
   // Синхронизация очереди с актуальным набором «пора повторить»: убираем слова,
   // которые уже ушли на интервал (после Трудно/Нормально/Легко), и добавляем
@@ -85,18 +103,25 @@ export default function ReviewScreen({
   }, [currentWord]);
 
   // Все созревшие пройдены (очередь опустела) — сообщаем движку ОДИН раз.
+  // Пока на экране висит предложение «перенести в известные», сигнал придержан:
+  // движок по нему уводит к плану занятия, и вопрос по ПОСЛЕДНЕМУ слову очереди
+  // исчез бы вместе с экраном, так и не показавшись. Ответ (или «пока оставить»)
+  // отпускает сигнал, и возврат к плану происходит как обычно.
   const finishedFiredRef = useRef(false);
   useEffect(() => {
-    if (!currentWord && !finishedFiredRef.current) {
+    if (!currentWord && !knownOffer && !finishedFiredRef.current) {
       finishedFiredRef.current = true;
       onFinished?.();
     }
-  }, [currentWord, onFinished]);
+  }, [currentWord, knownOffer, onFinished]);
 
   // «Не помню» — вернуть слово в текущую сессию через несколько карточек, не
   // применяя интервал. Остальные оценки — обычный SRS (слово покидает сессию).
   function handleGrade(word, grade) {
     setRevealed(false);
+    // Предложение по предыдущему слову больше не к месту — человек пошёл
+    // дальше. Это и есть «пока оставить», спрашивать второй раз не будем.
+    setKnownOffer(null);
     if (grade === "again") {
       setQueue((prev) => {
         if (prev.length <= 1) return prev; // некуда переносить — покажем снова
@@ -107,7 +132,61 @@ export default function ReviewScreen({
       return;
     }
     onReview(word, grade);
+
+    // Слово созрело — спокойно спрашиваем, не перенести ли его в известные.
+    // Только после УСПЕШНОГО вспоминания («Нормально»/«Легко»): «Трудно» — это
+    // ещё не «знаю». Интервал считаем той же nextSrs, что применилась к слову.
+    if (grade !== "good" && grade !== "easy") return;
+    if (!onPromoteToKnown || offersLeftRef.current <= 0) return;
+    const srs = srsByWord[word];
+    const interval = nextSrs(srs, grade, todayKey).interval;
+    if (!shouldOfferKnown(srs, interval)) return;
+    offersLeftRef.current -= 1;
+    setKnownOffer({ word, interval });
+    onOfferShown?.(word, interval);
   }
+
+  // Перенос по согласию: слово уходит в известные КАК ЕСТЬ — состояние
+  // повторения не переписывается, поэтому вернуть его в изучение можно без
+  // потери накопленного прогресса.
+  function acceptKnownOffer() {
+    if (!knownOffer) return;
+    onPromoteToKnown(knownOffer.word);
+    setKnownOffer(null);
+  }
+
+  // Предложение занимает место рядом с потоком и закрывается чем угодно —
+  // ответом, следующей оценкой или уходом с экрана. Ничего не блокирует.
+  const offerBanner = knownOffer ? (
+    <div className="review__offer" role="group" aria-label={t("knownOffer.aria")}>
+      <div className="review__offer-text">
+        <p className="review__offer-title">
+          {t("knownOffer.title", { word: knownOffer.word })}
+        </p>
+        <p className="review__offer-hint">
+          {t("knownOffer.hint", {
+            interval: formatInterval(t, lang, knownOffer.interval),
+          })}
+        </p>
+      </div>
+      <div className="review__offer-actions">
+        <button
+          type="button"
+          className="review__offer-yes"
+          onClick={acceptKnownOffer}
+        >
+          {t("knownOffer.yes")}
+        </button>
+        <button
+          type="button"
+          className="review__offer-later"
+          onClick={() => setKnownOffer(null)}
+        >
+          {t("knownOffer.later")}
+        </button>
+      </div>
+    </div>
+  ) : null;
 
   if (!currentWord) {
     return (
@@ -120,6 +199,9 @@ export default function ReviewScreen({
         >
           ←
         </button>
+        {/* Созрело последнее слово в очереди — предложение не должно пропасть
+            вместе с очередью, поэтому живёт и на экране «всё повторено». */}
+        {offerBanner}
         <div className="review__status-badge" aria-hidden="true">
           <Icon name="check" size={32} />
         </div>
@@ -167,6 +249,8 @@ export default function ReviewScreen({
           {t("review.remaining", { n: total })}
         </span>
       </header>
+
+      {offerBanner}
 
       <article className="review__card">
         {!revealed ? (

@@ -1293,6 +1293,9 @@ export default function App() {
           />
         )}
 
+        {/* Чек-пойнт «похоже, ты его знаешь» (onPromoteToKnown): перенос делает
+            тот же markKnown, что и кнопка «Знаю» в списках — состояние повторения
+            он не трогает, поэтому возврат в изучение сохранит прогресс. */}
         {screen === "review" && (
           <ReviewScreen
             dueWords={dueWords}
@@ -1304,6 +1307,8 @@ export default function App() {
             onReview={vocab.reviewWord}
             onBack={handleSessionBack}
             onFinished={() => completeExercise("review")}
+            onPromoteToKnown={vocab.markKnown}
+            onOfferShown={vocab.noteKnownOffer}
           />
         )}
 

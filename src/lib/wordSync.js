@@ -89,7 +89,11 @@ function mergePair(a = {}, b = {}) {
     knownWords: known,
     skippedWords: [...skipMap.values()],
     wordInfo: mergeInfo(a.wordInfo, b.wordInfo),
-    srsByWord: mergeSrs(a.srsByWord, b.srsByWord, taken),
+    // Состояние повторения храним и у ИЗВЕСТНЫХ слов: слово, перенесённое в
+    // известные (в т.ч. по предложению «похоже, ты его знаешь»), уходит со
+    // своей историей, и возврат в изучение не должен начинать её с нуля.
+    // Повторений это не добавляет — созревшие ищутся только среди взятых.
+    srsByWord: mergeSrs(a.srsByWord, b.srsByWord, [...taken, ...known]),
   };
 }
 
