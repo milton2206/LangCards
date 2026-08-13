@@ -169,14 +169,17 @@ export default function ComprehensionQuestions({
               aria-pressed={chosen === value}
               onClick={() => answer(value)}
             >
-              {/* Иконка — только как РЕЗУЛЬТАТ (после ответа): галочка у верного,
-                  крестик у ошибочного выбора. До ответа иконок нет — обе кнопки
-                  нейтральны и одинаковы, правильный вариант не подсказан. */}
-              {ember && mark === " is-correct" && (
-                <Icon name="check" size={16} className="comp__answer-icon" />
-              )}
-              {ember && mark === " is-wrong" && (
-                <Icon name="close" size={16} className="comp__answer-icon" />
+              {/* Иконка — вердикт ТВОЕГО ответа, поэтому только на выбранной
+                  кнопке: галочка, если ответил верно, крестик — если ошибся.
+                  Верный вариант при ошибке подсвечивается спокойно, без иконки:
+                  галочка на нём читалась бы как «ты угадал». До ответа иконок
+                  нет вовсе — обе кнопки нейтральны, правильная не подсказана. */}
+              {ember && chosen === value && (
+                <Icon
+                  name={result.correct ? "check" : "close"}
+                  size={16}
+                  className="comp__answer-icon"
+                />
               )}
               {value ? t("comprehension.true") : t("comprehension.false")}
             </button>
@@ -184,20 +187,23 @@ export default function ComprehensionQuestions({
         })}
       </div>
 
-      {/* Проверка: вердикт, а при ОШИБКЕ — объяснение со ссылкой на содержание. */}
+      {/* После ответа: при ОШИБКЕ — объяснение, и кнопка «дальше».
+          Плашки с вердиктом здесь НЕТ намеренно: результат уже сказан самой
+          кнопкой (оливковая с галочкой — верно, красная с крестиком — ошибка).
+          Плашка говорила то же самое второй раз, а в вопросах «верно/неверно»
+          ещё и путала: человек выбирал «Неправильно», а под кнопкой появлялось
+          «Правильно» — в смысле «ты ответил верно». Объяснение остаётся: оно
+          несёт новое, а не повторяет результат. */}
       {result && (
-        <div
-          className={"comp__result" + (result.correct ? " is-correct" : " is-wrong")}
-          role="status"
-        >
-          <p className="comp__verdict">
+        <div className="comp__after">
+          {/* Цвет и иконка кнопки — сигнал ТОЛЬКО для глаз. Тем, кто слушает
+              экран с озвучкой, результат сообщаем этой строкой: её не видно,
+              но она читается вслух. */}
+          <p className="visually-hidden" role="status">
             {result.correct
-              ? `✅ ${t("comprehension.right")}`
-              : `❌ ${t("comprehension.wrong")}`}
+              ? t("comprehension.right")
+              : t("comprehension.wrong")}
           </p>
-          {/* Объяснение — просто текст под вердиктом: своей плашки у него нет
-              (плашка внутри плашки), лейбла «Почему» тоже — вердикт над ним и
-              есть заголовок. */}
           {!result.correct && current.explanation && (
             <p className="comp__explain" lang={nativeLang}>
               {current.explanation}

@@ -70,43 +70,19 @@
   opacity: 1;
 }
 
-/* ---------- Проверка и объяснение ошибки ---------- */
-.comp__result {
+/* ---------- После ответа: объяснение ошибки и «дальше» ----------
+   Плашки с вердиктом здесь нет: результат сказан самой кнопкой (цвет + иконка),
+   и повторять его — второй раз то же самое. Поэтому и обёртка НЕЙТРАЛЬНАЯ: без
+   рамки, фона и смыслового цвета — иначе она осталась бы тем же вердиктом,
+   только без слов. */
+.comp__after {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 14px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background-color: var(--surface);
 }
 
-.comp__result.is-correct {
-  border-color: color-mix(in srgb, var(--ember-learned) 35%, transparent);
-  background-color: color-mix(in srgb, var(--ember-learned) 7%, transparent);
-}
-
-.comp__result.is-wrong {
-  border-color: color-mix(in srgb, var(--ember-danger) 35%, transparent);
-  background-color: color-mix(in srgb, var(--ember-danger) 7%, transparent);
-}
-
-/* Вердикт — единственный заголовок блока, в смысловом цвете. */
-.comp__verdict {
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.comp__result.is-correct .comp__verdict {
-  color: var(--ember-learned);
-}
-
-.comp__result.is-wrong .comp__verdict {
-  color: var(--ember-danger);
-}
-
-/* Объяснение: просто текст под вердиктом — без своей рамки, фона и коробки
-   отступов (плашка внутри плашки перегружала разбор ответа). */
+/* Объяснение: просто текст — без своей рамки, фона и коробки отступов
+   (плашка внутри плашки перегружала разбор ответа). */
 .comp__explain {
   font-size: 14px;
   line-height: 1.55;
@@ -244,22 +220,6 @@
   border-color: var(--ember-danger);
   background-color: color-mix(in srgb, var(--ember-danger) 16%, transparent);
   color: var(--ember-danger);
-}
-
-.comp--ember .comp__result {
-  border-radius: var(--ember-radius);
-  border-color: var(--ember-border);
-  background-color: var(--ember-surface);
-}
-
-.comp--ember .comp__result.is-correct {
-  border-color: color-mix(in srgb, var(--ember-learned) 35%, transparent);
-  background-color: color-mix(in srgb, var(--ember-learned) 8%, transparent);
-}
-
-.comp--ember .comp__result.is-wrong {
-  border-color: color-mix(in srgb, var(--ember-danger) 35%, transparent);
-  background-color: color-mix(in srgb, var(--ember-danger) 8%, transparent);
 }
 
 .comp--ember .comp__explain {

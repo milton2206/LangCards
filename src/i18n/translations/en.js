@@ -328,8 +328,11 @@ export default {
     check: "Check",
     modeType: "Type",
     modeChoice: "Pick",
+    // The verdict is no longer shown as a plaque (the highlighted option says
+    // it) — these strings are kept for screen readers only.
     right: "Correct",
     wrong: "Not quite",
+    translationLabel: "Translation:",
     youWrote: "You typed: {word}",
     explain: "Explain",
     next: "Next",
@@ -367,8 +370,11 @@ export default {
     prompt: "True or false?",
     true: "True",
     false: "False",
-    right: "Correct",
-    wrong: "Not quite",
+    // The verdict is no longer shown as a plaque: it repeated what the button
+    // colour already said, and next to a "False" answer it was confusing.
+    // These strings are kept for screen readers only.
+    right: "Your answer is correct",
+    wrong: "Your answer is wrong",
     next: "Next",
     finish: "Finish",
     progress: "Question {n} of {total}",

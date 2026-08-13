@@ -205,6 +205,13 @@ export default function ListeningScreen({
         ? modeAnswer
         : "type";
 
+  // Показывать ли правильный ответ отдельной строкой в разборе. Нужен он там,
+  // где его иначе не видно: во фразе с пропуском (там это предложение целиком)
+  // и после ответа ВВОДОМ (в поле осталось написанное человеком). В «словах на
+  // слух» с выбором варианта слово уже подсвечено в самом варианте — строка
+  // была бы третьим показом того же слова подряд.
+  const showAnswerLine = current?.kind === "gap" || Boolean(result?.viaType);
+
   const takenCount = (takenWords || []).length;
   const noWords = takenCount === 0;
   const fewWords = takenCount > 0 && takenCount < ENOUGH_WORDS_FOR_READING;
@@ -697,7 +704,20 @@ export default function ListeningScreen({
                         disabled={Boolean(result)}
                         onClick={() => submitAnswer(option, false)}
                       >
-                        {option}
+                        {/* Иконка — вердикт ТВОЕГО ответа, поэтому только на
+                            выбранном варианте: галочка, если ответил верно,
+                            крестик — если ошибся. Верный вариант при ошибке
+                            подсвечен спокойно, без иконки. До ответа иконок нет
+                            — варианты одинаковы, правильный не подсказан.
+                            Отдельной плашки с вердиктом поэтому не нужно. */}
+                        {result && option === result.chosen && (
+                          <Icon
+                            name={result.correct ? "check" : "close"}
+                            size={18}
+                            className="listening__option-icon"
+                          />
+                        )}
+                        <span className="listening__option-text">{option}</span>
                       </button>
                     );
                   })}
@@ -742,26 +762,49 @@ export default function ListeningScreen({
                   }
                   role="status"
                 >
-                  <p className="listening__verdict">
+                  {/* Вердикта строкой здесь НЕТ: результат уже показан самим
+                      вариантом (галочка/крестик и цвет) и рамкой этого блока.
+                      Для озвучки экрана — строка, которой не видно. Своего
+                      role тут не нужно: блок целиком уже live-область (см.
+                      role="status" выше), и вложенная объявила бы результат
+                      дважды. */}
+                  <p className="visually-hidden">
                     {result.correct
-                      ? `✅ ${t("listening.right")}`
-                      : `❌ ${t("listening.wrong")}`}
+                      ? t("listening.right")
+                      : t("listening.wrong")}
                   </p>
 
-                  {current.kind === "gap" ? (
-                    <p className="listening__phrase" lang={learnLang}>
-                      {renderFilled(current.display, current.answer)}
-                    </p>
-                  ) : (
-                    <p className="listening__phrase" lang={learnLang}>
-                      <b className="listening__answer">{current.word}</b>
-                    </p>
-                  )}
-                  {current.translation && (
-                    <p className="listening__translation" lang={nativeLang}>
-                      {current.translation}
-                    </p>
-                  )}
+                  {/* Правильный ответ показываем там, где его иначе не видно:
+                      во фразе с пропуском (это предложение целиком, а не повтор
+                      варианта) и когда отвечали ВВОДОМ. В «словах на слух» с
+                      выбором варианта строка была третьим показом того же
+                      слова — её здесь нет. */}
+                  {showAnswerLine &&
+                    (current.kind === "gap" ? (
+                      <p className="listening__phrase" lang={learnLang}>
+                        {renderFilled(current.display, current.answer)}
+                      </p>
+                    ) : (
+                      <p className="listening__phrase" lang={learnLang}>
+                        <b className="listening__answer">{current.word}</b>
+                      </p>
+                    ))}
+                  {current.translation &&
+                    (showAnswerLine ? (
+                      // Под самой фразой перевод понятен без подписи.
+                      <p className="listening__translation" lang={nativeLang}>
+                        {current.translation}
+                      </p>
+                    ) : (
+                      // Без фразы над ней перевод повис бы отдельной строкой и
+                      // читался как повтор слова — поэтому с подписью.
+                      <p className="listening__translation">
+                        <span className="listening__translation-label">
+                          {t("listening.translationLabel")}
+                        </span>{" "}
+                        <span lang={nativeLang}>{current.translation}</span>
+                      </p>
+                    ))}
 
                   {result.viaType && !result.correct && (
                     <p className="listening__youwrote">

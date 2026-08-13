@@ -338,6 +338,9 @@
 .listening__option {
   width: 100%;
   min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 12px 14px;
   border: 1px solid var(--ember-border);
   border-radius: var(--ember-radius-sm);
@@ -348,6 +351,17 @@
   line-height: 1.45;
   text-align: left;
   overflow-wrap: break-word;
+}
+
+/* Иконка результата (галочка/крестик) — слева от варианта, цвет наследует от
+   кнопки, поэтому отдельных правил на верный/ошибочный не нужно. */
+.listening__option-icon {
+  flex: 0 0 auto;
+}
+
+.listening__option-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .listening__option:disabled {
@@ -430,11 +444,6 @@
   background-color: color-mix(in srgb, var(--ember-danger) 8%, transparent);
 }
 
-.listening__verdict {
-  font-size: 15px;
-  font-weight: 700;
-}
-
 .listening__phrase {
   font-family: var(--font-word);
   font-size: 17px;
@@ -449,6 +458,13 @@
   color: var(--ember-text-muted);
   font-size: 14px;
   line-height: 1.5;
+}
+
+/* Подпись «Перевод» — только там, где над переводом нет самой фразы: без неё
+   строка повисает и читается как повтор слова, а не как его перевод. */
+.listening__translation-label {
+  font-weight: 700;
+  opacity: 0.75;
 }
 
 .listening__result-actions {
