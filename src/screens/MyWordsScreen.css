@@ -161,6 +161,75 @@
   color: var(--ember-on-accent);
 }
 
+/* ---------- Разбор созревших слов ----------
+   Полоса под вкладками: вход в разбор, а внутри разбора — «отметить/снять все».
+   Тон оливковый («выучено»), приглушённый: это предложение разгрузиться, а не
+   требование. Когда переносить нечего — та же полоса объясняет почему. */
+.mywords__promote {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--ember-radius);
+  border: 1px solid color-mix(in srgb, var(--ember-learned) 32%, transparent);
+  background-color: color-mix(in srgb, var(--ember-learned) 9%, transparent);
+}
+
+.mywords__promote-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mywords__promote-row .mywords__promote-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.mywords__promote-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mywords__promote-hint {
+  margin-top: 2px;
+  color: var(--ember-text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Нечего переносить — только спокойное объяснение, без кнопки и без укора. */
+.mywords__promote-none {
+  color: var(--ember-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.mywords__promote-entry {
+  width: 100%;
+  min-height: 44px;
+  border: none;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-learned);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mywords__promote-toggle {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, var(--ember-learned) 50%, transparent);
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--ember-learned) 14%, transparent);
+  color: var(--ember-learned);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+}
+
 /* Кнопка входа в режим выбора */
 .mywords__select {
   flex: 0 0 auto;

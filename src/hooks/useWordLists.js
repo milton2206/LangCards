@@ -245,17 +245,28 @@ export const KNOWN_OFFER_INTERVAL = 14;
 export const KNOWN_OFFER_REGROW = 4;
 
 /**
- * Пора ли предложить перенос слова в известные. srs — состояние ДО оценки
- * (в нём лежит память об отказе), nextInterval — интервал, который применится
- * после текущей оценки. Чистая функция: та же проверка годится и для UI, и для
- * тестов. Оценки «Не помню»/«Трудно» сюда не приходят — слово ещё не созрело.
+ * ЗРЕЛОСТЬ слова: интервал дорос до порога. Единственное определение «созрело»
+ * на всё приложение — им пользуются и чек-пойнт в потоке повторения, и разбор
+ * созревших пачкой в списке. interval по умолчанию берётся из самой записи
+ * (текущее состояние слова); чек-пойнт передаёт интервал, который применится
+ * после оценки.
+ */
+export function isMatureForKnown(srs, interval = srs?.interval) {
+  return (Number(interval) || 0) >= KNOWN_OFFER_INTERVAL;
+}
+
+/**
+ * Пора ли САМОМУ предложить перенос слова в известные. srs — состояние ДО
+ * оценки (в нём лежит память об отказе), nextInterval — интервал, который
+ * применится после текущей оценки. То же условие зрелости плюс память об
+ * отказе: сам спрашивает приложение редко. Разбор пачкой открывает человек, и
+ * там достаточно зрелости — см. isMatureForKnown.
  */
 export function shouldOfferKnown(srs, nextInterval) {
-  const interval = Number(nextInterval) || 0;
-  if (interval < KNOWN_OFFER_INTERVAL) return false;
+  if (!isMatureForKnown(srs, nextInterval)) return false;
   const asked = Number(srs?.knownAskedInterval) || 0;
   if (asked <= 0) return true; // ещё не спрашивали
-  return interval >= asked * KNOWN_OFFER_REGROW;
+  return (Number(nextInterval) || 0) >= asked * KNOWN_OFFER_REGROW;
 }
 
 /**

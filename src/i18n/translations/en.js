@@ -590,6 +590,24 @@ export default {
     known: "Known",
   },
 
+  // Bulk review of mature words (the "My words" list). Same meaning as the
+  // checkpoint during reviews, but decided over the whole list at once.
+  promote: {
+    entry: "Review mature words",
+    readyTitle: "Mature words: {n}",
+    readyHint:
+      "You recall these at long intervals now. You can move them to your known words and free up room for new ones.",
+    none: "Nothing to move yet: these words haven't reached long intervals. That's how it should be — moving them early means quietly forgetting them.",
+    pickTitle: "Mature words: {n}",
+    selectAll: "Select all",
+    clearAll: "Clear all",
+    action: "Move ({n})",
+    confirmTitle: "Move {n} {word} to your known words?",
+    confirmText:
+      "They'll move to “Known” with their review history intact and free up room. If one slips away, bring it back to studying — the progress is kept.",
+    confirmOk: "Move",
+  },
+
   selectbar: {
     cancel: "Cancel",
     delete: "Delete ({n})",
@@ -663,6 +681,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      bulkPromote: {
+        title: "Move words to known as a list",
+        desc: "Words you remember confidently no longer have to be moved one at a time: “My words” now has a mature-word review — checkboxes, “select all”, and a bulk move. It frees up room for new words in a single pass.",
+      },
       knownCheckpoint: {
         title: "You can see when a word is learned",
         desc: "When a word has been coming back to you without errors for a long time, the app quietly asks after a review whether to move it to your known words. It's your call: say yes and a slot frees up for new words, say not yet and the question won't return for a long while.",

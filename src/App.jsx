@@ -915,6 +915,18 @@ export default function App() {
     return ok;
   }
 
+  // Разбор созревших слов пачкой (из списка «Мои слова»): отмеченные уходят в
+  // известные тем же markKnown, что и поштучный перенос, — состояние повторения
+  // не переписывается, поэтому возврат в изучение сохранит прогресс. По
+  // оставленным записываем такой же отказ, как в чек-пойнте: человек уже
+  // ответил про них здесь, и повторять вопрос в потоке повторения незачем.
+  function handlePromoteMature(promoteWords, keepWords) {
+    for (const word of promoteWords || []) vocab.markKnown(word);
+    for (const word of keepWords || []) {
+      vocab.noteKnownOffer(word, vocab.srsByWord[word]?.interval || 0);
+    }
+  }
+
   // Онбординг завершён: тема/уровень в settings, языковая пара — в
   // user_languages (первая пара станет приоритетной автоматически).
   // placementLevel задан, если уровень пришёл из теста (фаза 6.3) — тогда он
@@ -1323,6 +1335,7 @@ export default function App() {
             nativeLang={nativeLang}
             onMarkKnown={vocab.markKnown}
             onDelete={vocab.deleteWords}
+            onPromoteMature={handlePromoteMature}
             onBack={() => setScreen("session")}
             onOpenKnown={() => setScreen("known")}
           />

@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { useWordSelection } from "../hooks/useWordSelection.js";
+import { isMatureForKnown } from "../hooks/useWordLists.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import SelectBar from "../components/SelectBar.jsx";
+import PromoteBar from "../components/PromoteBar.jsx";
 import WordListTabs from "../components/WordListTabs.jsx";
 import PlayButton from "../components/PlayButton.jsx";
 import ConjugationPanel from "../components/ConjugationPanel.jsx";
@@ -14,6 +16,12 @@ import "./MyWordsScreen.css";
  *
  * Режим выбора («Выбрать») позволяет отметить слова чекбоксами и удалить
  * их совсем (из списков и хранилища) с подтверждением.
+ *
+ * РАЗБОР СОЗРЕВШИХ — второй, отдельный режим: показывает только слова, чей
+ * интервал дорос до порога зрелости (isMatureForKnown — то же условие, что у
+ * чек-пойнта в потоке повторения), и переносит отмеченные в известные пачкой.
+ * Это главный способ разгрузить активные: чек-пойнт спрашивает про несколько
+ * слов за занятие, а здесь очередь разбирается целиком и по своей воле.
  *
  * У глаголов строка раскрывается таблицей спряжения — ТОТ ЖЕ компонент и тот же
  * клиентский путь, что на карточке (ConjugationPanel → conjugationClient). Кэш
@@ -34,12 +42,22 @@ export default function MyWordsScreen({
   onDelete,
   onBack,
   onOpenKnown,
+  // Разбор созревших пачкой: (перенести[], оставить[]) — перенос делает тот же
+  // markKnown, а по оставленным записывается отказ (как в чек-пойнте), чтобы
+  // приложение не спросило про них тем же вопросом на следующем повторении.
+  onPromoteMature = null,
 }) {
   const { t } = useI18n();
   const items = takenWords.map((word) => ({
     word,
     ...wordInfo[word],
   }));
+
+  // Созревшие: интервал дорос до порога. Условие ОДНО на приложение
+  // (isMatureForKnown), второго определения «выучено» здесь не заводим. Память
+  // об отказе в чек-пойнте тут не учитывается намеренно: человек сам открыл
+  // разбор — значит хочет пересмотреть очередь целиком.
+  const matureWords = takenWords.filter((w) => isMatureForKnown(srsByWord[w]));
 
   // Метка срока повторения из СУЩЕСТВУЮЩИХ SRS-данных (nextReviewDate) — только
   // отображение, планирование не трогаем. «today» — пора/просрочено (терракота),
@@ -64,11 +82,85 @@ export default function MyWordsScreen({
   }, []);
 
   const sel = useWordSelection();
+  // Второй набор состояний — у разбора созревших свой список и своя панель.
+  // Режимы взаимоисключающие: вход в каждый показывается, только когда другой
+  // выключен, поэтому смешаться они не могут.
+  const promote = useWordSelection();
 
   function handleConfirmDelete() {
     onDelete(Array.from(sel.selected));
     sel.cancel();
   }
+
+  // Вход в разбор: сразу отмечаем всё созревшее — человек пришёл сюда именно
+  // за этим, а снять лишнее проще, чем отметить всё вручную.
+  function enterPromote() {
+    promote.enter();
+    promote.setAll(matureWords);
+  }
+
+  function handleConfirmPromote() {
+    const chosen = Array.from(promote.selected);
+    const chosenSet = new Set(chosen);
+    // Оставленные — это ответ «пока оставить», такой же, как в чек-пойнте.
+    const kept = matureWords.filter((w) => !chosenSet.has(w));
+    onPromoteMature?.(chosen, kept);
+    promote.cancel();
+  }
+
+  // Оба режима отмечают слова галочками, но списки и панели у них разные.
+  // Активный набор выбираем один раз — дальше строка списка про режимы не знает.
+  const picking = sel.selectMode || promote.selectMode;
+  const activeSel = promote.selectMode ? promote : sel;
+  const matureSet = new Set(matureWords);
+  const visibleItems = promote.selectMode
+    ? items.filter((i) => matureSet.has(i.word))
+    : items;
+  const allMatureChecked =
+    matureWords.length > 0 && promote.selected.size >= matureWords.length;
+
+  // Полоса разбора созревших: вход, а в самом разборе — «отметить/снять все».
+  // Когда созревших нет, спокойно объясняем почему: перенести раньше времени —
+  // значит тихо забыть слово, и это нормальное состояние, а не отставание.
+  const promoteStrip =
+    items.length > 0 && !sel.selectMode ? (
+      <div className="mywords__promote">
+        {promote.selectMode ? (
+          <div className="mywords__promote-row">
+            <p className="mywords__promote-title">
+              {t("promote.pickTitle", { n: matureWords.length })}
+            </p>
+            <button
+              type="button"
+              className="mywords__promote-toggle"
+              onClick={() =>
+                allMatureChecked ? promote.clear() : promote.setAll(matureWords)
+              }
+            >
+              {t(allMatureChecked ? "promote.clearAll" : "promote.selectAll")}
+            </button>
+          </div>
+        ) : matureWords.length > 0 ? (
+          <>
+            <div className="mywords__promote-text">
+              <p className="mywords__promote-title">
+                {t("promote.readyTitle", { n: matureWords.length })}
+              </p>
+              <p className="mywords__promote-hint">{t("promote.readyHint")}</p>
+            </div>
+            <button
+              type="button"
+              className="mywords__promote-entry"
+              onClick={enterPromote}
+            >
+              {t("promote.entry")}
+            </button>
+          </>
+        ) : (
+          <p className="mywords__promote-none">{t("promote.none")}</p>
+        )}
+      </div>
+    ) : null;
 
   return (
     <section className="mywords">
@@ -83,7 +175,7 @@ export default function MyWordsScreen({
             ←
           </button>
           <h1 className="mywords__title">{t("words.mineTitle")}</h1>
-          {items.length > 0 && !sel.selectMode && (
+          {items.length > 0 && !picking && (
             <button
               type="button"
               className="mywords__select"
@@ -102,6 +194,8 @@ export default function MyWordsScreen({
         />
       </div>
 
+      {onPromoteMature && promoteStrip}
+
       {items.length === 0 ? (
         <div className="mywords__empty">
           <div className="mywords__empty-icon" aria-hidden="true">
@@ -112,22 +206,22 @@ export default function MyWordsScreen({
         </div>
       ) : (
         <ul className="mywords__list">
-          {items.map((item) => {
-            const checked = sel.selected.has(item.word);
+          {visibleItems.map((item) => {
+            const checked = activeSel.selected.has(item.word);
             return (
               <li
                 key={item.word}
                 className={
                   "mywords__item" +
-                  (sel.selectMode ? " mywords__item--selectable" : "") +
+                  (picking ? " mywords__item--selectable" : "") +
                   (checked ? " is-selected" : "")
                 }
                 onClick={
-                  sel.selectMode ? () => sel.toggle(item.word) : undefined
+                  picking ? () => activeSel.toggle(item.word) : undefined
                 }
               >
                 <div className="mywords__item-row">
-                  {sel.selectMode && (
+                  {picking && (
                     <span
                       className={
                         "mywords__checkbox" + (checked ? " is-checked" : "")
@@ -152,6 +246,9 @@ export default function MyWordsScreen({
                       </span>
                     )}
                   </div>
+                  {/* Срок следующего повтора виден и в разборе созревших: по
+                      нему человек и решает, правда ли слово улеглось. Скрыт он
+                      только в режиме удаления — там решение о другом. */}
                   {!sel.selectMode &&
                     (() => {
                       const due = dueInfo(item.word);
@@ -163,7 +260,7 @@ export default function MyWordsScreen({
                         </span>
                       ) : null;
                     })()}
-                  {!sel.selectMode && (
+                  {!picking && (
                     <PlayButton
                       text={item.word}
                       learnLang={learnLang}
@@ -171,7 +268,7 @@ export default function MyWordsScreen({
                       appearance="ember"
                     />
                   )}
-                  {!sel.selectMode && (
+                  {!picking && (
                     <button
                       type="button"
                       className="mywords__learned"
@@ -182,7 +279,9 @@ export default function MyWordsScreen({
                   )}
                 </div>
 
-                {item.example && (
+                {/* В разборе созревших примеры не показываем: список должен
+                    просматриваться целиком, а не пролистываться экранами. */}
+                {!promote.selectMode && item.example && (
                   <div className="mywords__example">
                     <div className="mywords__example-row">
                       <p className="mywords__example-text" lang={learnLang}>
@@ -212,7 +311,7 @@ export default function MyWordsScreen({
                     карточки (pos === "verb"); у слов без pos — старых записей и
                     не-глаголов — панели нет. В режиме выбора не показываем:
                     там строка целиком работает как чекбокс. */}
-                {!sel.selectMode && item.pos === "verb" && (
+                {!picking && item.pos === "verb" && (
                   <ConjugationPanel
                     word={item.word}
                     // Подсвечиваем в таблице ту форму, под которой слово
@@ -237,6 +336,17 @@ export default function MyWordsScreen({
           onRequestDelete={sel.openConfirm}
           onConfirmDelete={handleConfirmDelete}
           onCloseConfirm={sel.closeConfirm}
+        />
+      )}
+
+      {promote.selectMode && (
+        <PromoteBar
+          count={promote.selected.size}
+          confirmOpen={promote.confirmOpen}
+          onCancel={promote.cancel}
+          onRequestPromote={promote.openConfirm}
+          onConfirmPromote={handleConfirmPromote}
+          onCloseConfirm={promote.closeConfirm}
         />
       )}
     </section>

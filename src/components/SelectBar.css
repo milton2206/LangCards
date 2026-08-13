@@ -37,6 +37,23 @@
   opacity: 0.5;
 }
 
+/* Разбор созревших (PromoteBar): то же место и та же форма, но действие
+   созидательное — оливковый тон «выучено» вместо красного «удалить». */
+.selectbar__promote {
+  flex: 1;
+  min-height: 52px;
+  border: 1px solid color-mix(in srgb, var(--ember-learned) 50%, transparent);
+  border-radius: var(--radius-sm);
+  background-color: color-mix(in srgb, var(--ember-learned) 16%, transparent);
+  color: var(--ember-learned);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.selectbar__promote:disabled {
+  opacity: 0.5;
+}
+
 /* ---------- Окно подтверждения удаления ---------- */
 .selectbar__overlay {
   position: fixed;
@@ -96,6 +113,18 @@
   border-radius: var(--radius-sm);
   background-color: var(--ember-danger-solid);
   color: var(--ember-on-danger);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Подтверждение переноса — оливковое: действие обратимое и не разрушительное. */
+.selectbar__dialog-promote {
+  flex: 1;
+  min-height: 48px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--ember-learned);
+  color: var(--ember-on-accent);
   font-size: 16px;
   font-weight: 700;
 }

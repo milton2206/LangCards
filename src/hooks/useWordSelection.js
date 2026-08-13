@@ -19,6 +19,11 @@ export function useWordSelection() {
     setConfirmOpen(false);
   }, []);
 
+  // Отметить сразу весь переданный набор / снять все отметки, не выходя из
+  // режима: нужно разбору созревших пачкой («Отметить все» / «Снять все»).
+  const setAll = useCallback((words) => setSelected(new Set(words)), []);
+  const clear = useCallback(() => setSelected(new Set()), []);
+
   const toggle = useCallback((word) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -38,6 +43,8 @@ export function useWordSelection() {
     enter,
     cancel,
     toggle,
+    setAll,
+    clear,
     openConfirm,
     closeConfirm,
   };
