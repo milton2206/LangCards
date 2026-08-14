@@ -41,3 +41,6 @@ secrets/
 
 # Дампы бэкапов — содержат email'ы пользователей (PII), в репозиторий не кладём
 backups/
+
+# Пробные mp3 из scripts/voice-preview.mjs — их слушают и удаляют
+voice-preview/

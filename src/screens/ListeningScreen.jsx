@@ -31,7 +31,10 @@ import {
   LISTENING_FORMATS,
   LISTENING_MODES,
 } from "../lib/listeningLevels.js";
-import { assignDialogueVoices } from "../lib/dialogueVoices.js";
+import {
+  assignDialogueVoices,
+  PRIMARY_DIALOGUE_VOICE,
+} from "../lib/dialogueVoices.js";
 import { ENOUGH_WORDS_FOR_READING } from "../hooks/useWordLists.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./ListeningScreen.css";
@@ -298,13 +301,16 @@ export default function ListeningScreen({
       setDialogueSet(next);
       // Греем ПЕРВЫЕ реплики диалога: с них начинается прослушивание, а
       // остальные подтянутся по ходу. Весь диалог заранее не греем — это общая
-      // с карточками суточная квота. Голос у реплики свой (тот же, каким её
-      // потом сыграет плеер), иначе прогрев готовил бы не то аудио.
+      // с карточками суточная квота.
+      //
+      // И только реплики ОСНОВНОГО голоса: второй голос (вторая сторона
+      // разговора) заранее не готовим вовсе — прогрев остаётся тем же тонким,
+      // каким мы его недавно сделали, а реплики второго говорящего плеер
+      // получит, когда человек нажмёт play.
       prewarmPhrases(
-        assignDialogueVoices(next.dialogue).map((l) => ({
-          text: l.text,
-          voice: l.voice,
-        })),
+        assignDialogueVoices(next.dialogue)
+          .filter((l) => l.voice === PRIMARY_DIALOGUE_VOICE)
+          .map((l) => l.text),
         learnLang,
         listeningLevel.rate,
       );

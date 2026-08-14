@@ -287,23 +287,22 @@ export function prewarmTts(cards, learnLang, limit = PREWARM_CARDS) {
  * PREWARM_PHRASES штук, а не весь подход: до последних фраз доходят не всегда,
  * а квота у озвучки общая с карточками.
  *
- * items — строки ЛИБО { text, voice }: у реплик диалога голос свой (второй
- * говорящий греется под своим голосом, иначе прогрев готовил бы не то аудио).
+ * Греется ВСЕГДА основной голос: второй звучит только в репликах диалога, их
+ * заранее не готовим — это лишний расход ровно там, где мы его недавно резали.
+ * Вызывающий сам отбирает, что греть (см. ListeningScreen).
  */
 export function prewarmPhrases(
-  items,
+  texts,
   learnLang,
   rate = DEFAULT_RATE,
   limit = PREWARM_PHRASES,
 ) {
-  if (!Array.isArray(items) || items.length === 0 || !learnLang) return;
-  const window = limit > 0 ? items.slice(0, limit) : items;
+  if (!Array.isArray(texts) || texts.length === 0 || !learnLang) return;
+  const window = limit > 0 ? texts.slice(0, limit) : texts;
   (async () => {
-    for (const item of window) {
+    for (const text of window) {
       if (isTtsQuotaExhausted()) return;
-      const text = typeof item === "string" ? item : item?.text;
-      const voice = typeof item === "string" ? DEFAULT_VOICE : item?.voice;
-      if (text) await fetchTtsUrl({ text, learnLang, rate, voice });
+      if (text) await fetchTtsUrl({ text, learnLang, rate });
     }
   })().catch(() => {
     // тихо: прогрев не обязателен

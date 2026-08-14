@@ -704,6 +704,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      dialogueVoices: {
+        title: "A conversation in two voices",
+        desc: "In listening dialogues the speakers now sound different — you can hear where one turn ends and the next begins without looking at the transcript. We also went through the voices themselves: English and Russian now sound warmer and more natural.",
+      },
       livelierAudio: {
         title: "Dialogues in two voices",
         desc: "In listening, the two speakers finally sound different: until now one voice read both sides and the conversation came out as a robot's monologue. And a word you skip comes back far less insistently — each skip pushes it further away, first by a day, then two, and so on up to a month. It never disappears for good: a skip can always be accidental.",
