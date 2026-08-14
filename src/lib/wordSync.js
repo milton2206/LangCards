@@ -2,7 +2,8 @@
 // Используется при синхронизации: объединяет данные с разных устройств так,
 // чтобы НИЧЕГО не потерять (union членства + самый прогрессивный SRS + примеры).
 //
-// Форма хранилища: { "de-ru": { takenWords, knownWords, skippedWords,
+// Форма хранилища: { "de-ru": { takenWords, knownWords,
+// skippedWords: [{word,returnDate,skips}],
 // wordInfo: {word:{translit,translation,example,exampleTranslation}},
 // srsByWord: {word:{interval,nextReviewDate,ease,repetitions,lastReviewed}} }, ... }
 
@@ -74,14 +75,26 @@ function mergePair(a = {}, b = {}) {
 
   // skipped: дедуп по слову, оставляем более позднюю дату возврата; выкидываем
   // слова, которые уже взяты или известны.
+  //
+  // Счётчик пропусков (skips, от него растёт отсрочка) берём МАКСИМАЛЬНЫЙ из
+  // двух записей, а не тот, что пришёл с более поздней датой: устройство, где
+  // слово пропускали чаще, знает о нежелании больше, и синхронизация не должна
+  // откатывать счётчик назад. Записи без поля (сделанные до его появления)
+  // считаются одним пропуском — ровно как их читает сам «Пропустить».
   const skipMap = new Map();
   for (const s of [...(a.skippedWords || []), ...(b.skippedWords || [])]) {
     if (!s || !s.word) continue;
     if (knownSet.has(s.word) || takenSet.has(s.word)) continue;
     const existing = skipMap.get(s.word);
-    if (!existing || (s.returnDate || "") > (existing.returnDate || "")) {
-      skipMap.set(s.word, s);
-    }
+    const skips = Math.max(
+      Number(s.skips) || 1,
+      existing ? Number(existing.skips) || 1 : 0,
+    );
+    const latest =
+      !existing || (s.returnDate || "") > (existing.returnDate || "")
+        ? s
+        : existing;
+    skipMap.set(s.word, { ...latest, skips });
   }
 
   return {

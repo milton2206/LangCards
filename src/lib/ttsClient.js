@@ -14,12 +14,24 @@ export const MAX_TTS_TEXT_LEN = 300;
 // чтения ничего про скорость не знают и продолжают ходить за тем же аудио.
 const DEFAULT_RATE = 1;
 
-const urlCache = new Map(); // "lang|rate|text" → url
+// Основной голос языка (совпадает с DEFAULT_TTS_VOICE на сервере). Второй
+// голос («b») просит только диалог аудирования — всё остальное про голоса не
+// знает и продолжает ходить за прежним аудио.
+const DEFAULT_VOICE = "a";
+
+const urlCache = new Map(); // "lang|voice|rate|text" → url
 // Запросы В ПУТИ по тому же ключу. Кэш URL наполняется только ПОСЛЕ ответа,
 // поэтому без этого два одновременных запроса одного текста (быстрый свайп по
 // карточкам, повторный тап, прогрев вдогонку) уходили на сервер оба — а промах
 // общего кэша списывает квоту каждый раз. Теперь второй ждёт первый.
-const inflight = new Map(); // "lang|rate|text" → Promise<{ url, reason? }>
+const inflight = new Map(); // "lang|voice|rate|text" → Promise<{ url, reason? }>
+
+// Ключ памяти клиента: те же составляющие, что и у пути в общем кэше на сервере
+// (язык, голос, скорость, текст). Голос обязан входить в ключ — иначе одна и та
+// же фраза, уже озвученная первым голосом, вернулась бы вторым говорящим.
+function cacheKey(learnLang, voice, rate, text) {
+  return `${learnLang}|${voice}|${rate}|${text}`;
+}
 
 // ---------- Суточная квота озвучки: одно состояние на всё приложение ----------
 // Лимит считает СЕРВЕР (RATE_LIMITS.tts), и он общий на пользователя, а не на
@@ -135,10 +147,15 @@ export function playUrl(url) {
  * следующая попытка должна сходить на сервер заново, а не подсунуть тот же
  * битый URL из памяти.
  */
-export function forgetTtsUrl({ text, learnLang, rate = DEFAULT_RATE }) {
+export function forgetTtsUrl({
+  text,
+  learnLang,
+  rate = DEFAULT_RATE,
+  voice = DEFAULT_VOICE,
+}) {
   const clean = String(text ?? "").trim();
   if (!clean || !learnLang) return;
-  urlCache.delete(`${learnLang}|${rate}|${clean}`);
+  urlCache.delete(cacheKey(learnLang, voice, rate, clean));
 }
 
 /**
@@ -159,14 +176,15 @@ export async function fetchTtsUrlResult({
   text,
   learnLang,
   rate = DEFAULT_RATE,
+  voice = DEFAULT_VOICE,
 }) {
   const clean = String(text ?? "").trim();
   if (!clean || !learnLang || clean.length > MAX_TTS_TEXT_LEN) {
     return { url: null, reason: "unavailable" };
   }
 
-  // Скорость — часть ключа: на сервере это отдельная запись в кэше (фаза 6.2).
-  const key = `${learnLang}|${rate}|${clean}`;
+  // Скорость и голос — часть ключа: на сервере это отдельные записи в кэше.
+  const key = cacheKey(learnLang, voice, rate, clean);
   if (urlCache.has(key)) return { url: urlCache.get(key) };
 
   // Заведомо офлайн — не ходим на сервер и сразу называем причину.
@@ -178,7 +196,7 @@ export async function fetchTtsUrlResult({
   const pending = inflight.get(key);
   if (pending) return pending;
 
-  const request = requestTts(key, clean, learnLang, rate);
+  const request = requestTts(key, clean, learnLang, rate, voice);
   inflight.set(key, request);
   try {
     return await request;
@@ -189,12 +207,12 @@ export async function fetchTtsUrlResult({
 
 // Сам поход на сервер (вынесен, чтобы обёртка выше умела склеивать одинаковые
 // запросы в один). Возвращает { url } либо { url: null, reason, params? }.
-async function requestTts(key, clean, learnLang, rate) {
+async function requestTts(key, clean, learnLang, rate, voice) {
   try {
     const res = await apiFetch("/api/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: clean, learnLang, rate }),
+      body: JSON.stringify({ text: clean, learnLang, rate, voice }),
     });
     if (!res.ok) {
       const info = await parseApiError(res);
@@ -268,19 +286,24 @@ export function prewarmTts(cards, learnLang, limit = PREWARM_CARDS) {
  * человек слушает текущую фразу, следующая уже готовится. Греем окном в
  * PREWARM_PHRASES штук, а не весь подход: до последних фраз доходят не всегда,
  * а квота у озвучки общая с карточками.
+ *
+ * items — строки ЛИБО { text, voice }: у реплик диалога голос свой (второй
+ * говорящий греется под своим голосом, иначе прогрев готовил бы не то аудио).
  */
 export function prewarmPhrases(
-  texts,
+  items,
   learnLang,
   rate = DEFAULT_RATE,
   limit = PREWARM_PHRASES,
 ) {
-  if (!Array.isArray(texts) || texts.length === 0 || !learnLang) return;
-  const window = limit > 0 ? texts.slice(0, limit) : texts;
+  if (!Array.isArray(items) || items.length === 0 || !learnLang) return;
+  const window = limit > 0 ? items.slice(0, limit) : items;
   (async () => {
-    for (const text of window) {
+    for (const item of window) {
       if (isTtsQuotaExhausted()) return;
-      if (text) await fetchTtsUrl({ text, learnLang, rate });
+      const text = typeof item === "string" ? item : item?.text;
+      const voice = typeof item === "string" ? DEFAULT_VOICE : item?.voice;
+      if (text) await fetchTtsUrl({ text, learnLang, rate, voice });
     }
   })().catch(() => {
     // тихо: прогрев не обязателен

@@ -704,6 +704,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      livelierAudio: {
+        title: "Dialogues in two voices",
+        desc: "In listening, the two speakers finally sound different: until now one voice read both sides and the conversation came out as a robot's monologue. And a word you skip comes back far less insistently — each skip pushes it further away, first by a day, then two, and so on up to a month. It never disappears for good: a skip can always be accidental.",
+      },
       cleanerCards: {
         title: "Cards without stray marks or invented phrases",
         desc: "Words and translations used to pick up random stress marks. They're gone now: stress stays only in the pronunciation hint, while Greek keeps its tonos — there it's part of the spelling. And invented expressions like a word-for-word “not my cup of tea” no longer make it into cards: only what native speakers actually say.",

@@ -13,12 +13,15 @@ async function readBody(req) {
 }
 
 /**
- * Серверная функция озвучки (фаза 5.1): { text, learnLang, rate? } → { url }.
+ * Серверная функция озвучки (фаза 5.1): { text, learnLang, rate?, voice? } → { url }.
  * Кэш в Supabase Storage общий для всех пользователей; ключи Google и
  * service role Supabase живут ТОЛЬКО в переменных окружения сервера.
  *
  * rate (фаза 6.2) — скорость речи для аудирования; допустимых значений ровно
  * три (см. TTS_RATES), любое другое приводится к ближайшему.
+ *
+ * voice — какой голос языка: «a» (основной, по умолчанию) или «b» (второй
+ * говорящий в диалоге аудирования). Неизвестное значение → основной.
  */
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -31,11 +34,12 @@ export default async function handler(req, res) {
     // (реальный синтез в Google). Поэтому проверку лимита передаём внутрь через
     // onSynthesize — попадание в общий кэш квоту не ест.
     const { userId } = await authenticateRequest(req);
-    const { text, learnLang, rate } = await readBody(req);
+    const { text, learnLang, rate, voice } = await readBody(req);
     const result = await getOrCreateSpeech({
       text,
       learnLang,
       rate,
+      voice,
       onSynthesize: () => consumeQuota(userId, "tts"),
     });
     res.status(200).json(result);

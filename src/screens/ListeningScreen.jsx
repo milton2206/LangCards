@@ -31,6 +31,7 @@ import {
   LISTENING_FORMATS,
   LISTENING_MODES,
 } from "../lib/listeningLevels.js";
+import { assignDialogueVoices } from "../lib/dialogueVoices.js";
 import { ENOUGH_WORDS_FOR_READING } from "../hooks/useWordLists.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./ListeningScreen.css";
@@ -144,18 +145,25 @@ export default function ListeningScreen({
   const activeDialogue =
     dialogueSet && dialogueSet.source === WORD_SOURCE ? dialogueSet : null;
 
+  // Реплики с распределением голосов: разные собеседники — разные голоса
+  // (см. assignDialogueVoices), иначе диалог звучит как монолог одного робота.
+  const dialogueLines = useMemo(
+    () => assignDialogueVoices(activeDialogue?.dialogue),
+    [activeDialogue],
+  );
+
   // Реплики диалога → треки плеера. Плеер склеит их в одну шкалу времени и даст
-  // паузу/перемотку/переслушать. Скорость (rate) берётся из выбранного уровня.
+  // паузу/перемотку/переслушать. Скорость (rate) берётся из выбранного уровня,
+  // голос (voice) — из распределения по говорящим.
   const dialogueTracks = useMemo(
     () =>
-      activeDialogue
-        ? activeDialogue.dialogue.map((line) => ({
-            text: line.text,
-            learnLang,
-            rate: listeningLevel.rate,
-          }))
-        : [],
-    [activeDialogue, learnLang, listeningLevel.rate],
+      dialogueLines.map((line) => ({
+        text: line.text,
+        learnLang,
+        rate: listeningLevel.rate,
+        voice: line.voice,
+      })),
+    [dialogueLines, learnLang, listeningLevel.rate],
   );
 
   // Расшифровка диалога — показывается ТОЛЬКО в итоге (после ответов), чтобы её
@@ -290,9 +298,13 @@ export default function ListeningScreen({
       setDialogueSet(next);
       // Греем ПЕРВЫЕ реплики диалога: с них начинается прослушивание, а
       // остальные подтянутся по ходу. Весь диалог заранее не греем — это общая
-      // с карточками суточная квота.
+      // с карточками суточная квота. Голос у реплики свой (тот же, каким её
+      // потом сыграет плеер), иначе прогрев готовил бы не то аудио.
       prewarmPhrases(
-        next.dialogue.map((l) => l.text),
+        assignDialogueVoices(next.dialogue).map((l) => ({
+          text: l.text,
+          voice: l.voice,
+        })),
         learnLang,
         listeningLevel.rate,
       );

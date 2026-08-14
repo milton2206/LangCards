@@ -21,7 +21,9 @@ import "./AudioPlayer.css";
 // «текущее/всего» считаются по сумме длительностей, а под капотом играет нужный
 // отрезок нужного файла.
 //
-// tracks   — [{ text, learnLang, rate? }], один или несколько; порядок = порядок игры.
+// tracks   — [{ text, learnLang, rate?, voice? }], один или несколько; порядок =
+//            порядок игры. voice — какой голос языка («a» основной, «b» второй):
+//            так реплики диалога звучат разными голосами (см. lib/tts.js).
 // autoPlay — начать воспроизведение сразу при появлении/смене tracks (аудирование:
 //            следующее задание и смена скорости озвучиваются сразу).
 // compact  — до первого запуска показывать компактную кнопку play (для списка
@@ -60,12 +62,12 @@ export default function AudioPlayer({
   const { t } = useI18n();
   const ember = appearance === "ember";
 
-  // Подпись набора: список текстов+скоростей. По ней сбрасываемся при смене
-  // содержимого (новое предложение, другой текст, другая скорость).
+  // Подпись набора: список текстов+голосов+скоростей. По ней сбрасываемся при
+  // смене содержимого (новое предложение, другой текст, другая скорость).
   const sig = useMemo(
     () =>
       (tracks || [])
-        .map((tr) => `${tr.learnLang}|${tr.rate ?? 1}|${tr.text}`)
+        .map((tr) => `${tr.learnLang}|${tr.voice ?? "a"}|${tr.rate ?? 1}|${tr.text}`)
         .join(""),
     [tracks],
   );
@@ -174,6 +176,7 @@ export default function AudioPlayer({
           text: tr.text,
           learnLang: tr.learnLang,
           rate: tr.rate,
+          voice: tr.voice,
         });
         if (!url) {
           setErrorReason(reason || "failed");
@@ -252,7 +255,12 @@ export default function AudioPlayer({
     }
     retriedRef.current = true;
     for (const tr of tracks || []) {
-      forgetTtsUrl({ text: tr.text, learnLang: tr.learnLang, rate: tr.rate });
+      forgetTtsUrl({
+        text: tr.text,
+        learnLang: tr.learnLang,
+        rate: tr.rate,
+        voice: tr.voice,
+      });
     }
     seekOnLoadRef.current = posInTrack || 0;
     playOnLoadRef.current = true; // заиграет, как только приедут метаданные
@@ -340,7 +348,12 @@ export default function AudioPlayer({
     // Свежие ссылки: если в кэш попал URL, который потом не проиграть,
     // повтор не должен подсунуть его же.
     for (const tr of tracks || []) {
-      forgetTtsUrl({ text: tr.text, learnLang: tr.learnLang, rate: tr.rate });
+      forgetTtsUrl({
+        text: tr.text,
+        learnLang: tr.learnLang,
+        rate: tr.rate,
+        voice: tr.voice,
+      });
     }
     retriedRef.current = false; // снова даём право на авто-повтор при сбое загрузки
     const resolved = await prepare();
