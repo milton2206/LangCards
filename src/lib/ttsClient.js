@@ -14,10 +14,10 @@ export const MAX_TTS_TEXT_LEN = 300;
 // чтения ничего про скорость не знают и продолжают ходить за тем же аудио.
 const DEFAULT_RATE = 1;
 
-// Основной голос языка (совпадает с DEFAULT_TTS_VOICE на сервере). Второй
-// голос («b») просит только диалог аудирования — всё остальное про голоса не
-// знает и продолжает ходить за прежним аудио.
-const DEFAULT_VOICE = "a";
+// Основной голос языка (совпадает с DEFAULT_TTS_VOICE на сервере). Голос по
+// полу говорящего просит только диалог аудирования — карточки и чтение про
+// голоса не знают и продолжают ходить за прежним аудио.
+const DEFAULT_VOICE = "primary";
 
 const urlCache = new Map(); // "lang|voice|rate|text" → url
 // Запросы В ПУТИ по тому же ключу. Кэш URL наполняется только ПОСЛЕ ответа,
@@ -287,22 +287,26 @@ export function prewarmTts(cards, learnLang, limit = PREWARM_CARDS) {
  * PREWARM_PHRASES штук, а не весь подход: до последних фраз доходят не всегда,
  * а квота у озвучки общая с карточками.
  *
- * Греется ВСЕГДА основной голос: второй звучит только в репликах диалога, их
- * заранее не готовим — это лишний расход ровно там, где мы его недавно резали.
- * Вызывающий сам отбирает, что греть (см. ListeningScreen).
+ * items — строки (основной голос) ЛИБО { text, voice }. Голос указывается там,
+ * где фразу потом попросят НЕ основным голосом (реплики диалога): прогрев
+ * должен готовить ровно то аудио, которое затем сыграет плеер, иначе синтез
+ * уходит впустую. Сколько и чьих реплик греть, решает вызывающий — здесь
+ * ничего лишнего не добавляется (см. ListeningScreen).
  */
 export function prewarmPhrases(
-  texts,
+  items,
   learnLang,
   rate = DEFAULT_RATE,
   limit = PREWARM_PHRASES,
 ) {
-  if (!Array.isArray(texts) || texts.length === 0 || !learnLang) return;
-  const window = limit > 0 ? texts.slice(0, limit) : texts;
+  if (!Array.isArray(items) || items.length === 0 || !learnLang) return;
+  const window = limit > 0 ? items.slice(0, limit) : items;
   (async () => {
-    for (const text of window) {
+    for (const item of window) {
       if (isTtsQuotaExhausted()) return;
-      if (text) await fetchTtsUrl({ text, learnLang, rate });
+      const text = typeof item === "string" ? item : item?.text;
+      const voice = typeof item === "string" ? DEFAULT_VOICE : item?.voice;
+      if (text) await fetchTtsUrl({ text, learnLang, rate, voice });
     }
   })().catch(() => {
     // тихо: прогрев не обязателен

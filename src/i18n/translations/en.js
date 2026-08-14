@@ -704,6 +704,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      voiceGender: {
+        title: "The voice fits the speaker",
+        desc: "Listening dialogues are a conversation between two people, and each one now sounds like themselves: a woman gets a female voice, a man a male one. Voices used to be handed out in turn, so a male voice could say “I arrived” in the feminine — in Russian and Greek that was audible immediately.",
+      },
       dialogueVoices: {
         title: "A conversation in two voices",
         desc: "In listening dialogues the speakers now sound different — you can hear where one turn ends and the next begins without looking at the transcript. We also went through the voices themselves: English and Russian now sound warmer and more natural.",

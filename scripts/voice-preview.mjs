@@ -204,6 +204,23 @@ for (const { voice, failed } of rows) {
 }
 console.log(
   `\nВ VOICES (lib/tts.js) сейчас: ${table[lang]
-    .map((v, i) => `${i === 0 ? "основной" : `голос ${i + 1}`} — ${v.name}${v.pitch ? ` (pitch ${v.pitch})` : ""}`)
-    .join(", ")}.`,
+    .map(
+      (v, i) =>
+        `${i === 0 ? "основной" : `голос ${i + 1}`} — ${v.name}, ${GENDERS[String(v.gender).toUpperCase()] || v.gender || "пол не указан"}${v.pitch ? ` (pitch ${v.pitch})` : ""}`,
+    )
+    .join("; ")}.`,
 );
+
+// Голос выбирается ПО ПОЛУ говорящего, поэтому расхождение нашей пометки с тем,
+// что о голосе говорит Google, — это прямо ошибка озвучки: женская реплика
+// прозвучала бы мужским голосом. Проверяем и говорим вслух.
+const byName = new Map(listed.map((v) => [v.name, v.ssmlGender]));
+for (const v of table[lang]) {
+  const real = byName.get(v.name);
+  if (!real || !v.gender) continue;
+  if (real.toLowerCase() !== String(v.gender).toLowerCase()) {
+    console.log(
+      `⚠ ${v.name}: в VOICES помечен как ${v.gender}, а у Google он ${real.toLowerCase()}.`,
+    );
+  }
+}

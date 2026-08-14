@@ -31,10 +31,7 @@ import {
   LISTENING_FORMATS,
   LISTENING_MODES,
 } from "../lib/listeningLevels.js";
-import {
-  assignDialogueVoices,
-  PRIMARY_DIALOGUE_VOICE,
-} from "../lib/dialogueVoices.js";
+import { assignDialogueVoices } from "../lib/dialogueVoices.js";
 import { ENOUGH_WORDS_FOR_READING } from "../hooks/useWordLists.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./ListeningScreen.css";
@@ -303,14 +300,17 @@ export default function ListeningScreen({
       // остальные подтянутся по ходу. Весь диалог заранее не греем — это общая
       // с карточками суточная квота.
       //
-      // И только реплики ОСНОВНОГО голоса: второй голос (вторая сторона
-      // разговора) заранее не готовим вовсе — прогрев остаётся тем же тонким,
-      // каким мы его недавно сделали, а реплики второго говорящего плеер
-      // получит, когда человек нажмёт play.
+      // Греем РОВНО ОДИН голос — того, кто заговорит первым (его реплики и
+      // играют первыми). Объём прогрева прежний, окно то же; греть остальных
+      // собеседников заранее не станем. Голос указываем явно: прогрев чужим
+      // голосом озвучил бы то, что плеер потом не попросит, — это была бы
+      // потраченная впустую квота.
+      const spoken = assignDialogueVoices(next.dialogue);
+      const firstVoice = spoken[0]?.voice;
       prewarmPhrases(
-        assignDialogueVoices(next.dialogue)
-          .filter((l) => l.voice === PRIMARY_DIALOGUE_VOICE)
-          .map((l) => l.text),
+        spoken
+          .filter((l) => l.voice === firstVoice)
+          .map((l) => ({ text: l.text, voice: l.voice })),
         learnLang,
         listeningLevel.rate,
       );
