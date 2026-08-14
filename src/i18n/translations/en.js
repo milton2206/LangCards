@@ -448,6 +448,10 @@ export default {
     playWord: "Play word",
     playExample: "Play example",
     unavailable: "Audio unavailable",
+    // Daily audio quota is used up: buttons go quiet, the session carries on.
+    quotaOut: "Audio is unavailable today",
+    quotaOutHint:
+      "Audio is unavailable today — it comes back tomorrow. Cards and your session work as usual.",
   },
 
   // Long-audio player (listening, whole text, single sentence).
@@ -693,6 +697,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      lighterAudio: {
+        title: "Audio got lighter and stopped going quiet",
+        desc: "The app used to prepare audio for a whole batch up front — every word and every example — even though people rarely work through a batch in one sitting. Now only the nearest cards are prepared, and examples play on tap. And when the day's audio allowance runs out, the app says so plainly: the button used to just stop working.",
+      },
       smarterGeneration: {
         title: "Generation no longer comes up short in silence",
         desc: "Cards with words you already knew used to be dropped quietly — so instead of ten you got two or three with no explanation. Now the app asks for replacements, and if there are still fewer new words, it says how many. It also explains plainly when there simply were no new words for the topic.",

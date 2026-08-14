@@ -4,6 +4,12 @@ import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
 import { GENERATE_COUNT_OPTIONS } from "../lib/generateCount.js";
 import { useWordLookup } from "../hooks/useWordLookup.js";
 import { apiErrorText } from "../lib/apiClient.js";
+import {
+  prewarmTts,
+  isTtsQuotaExhausted,
+  subscribeTtsQuota,
+  PREWARM_CARDS,
+} from "../lib/ttsClient.js";
 import WordLookupSheet from "../components/WordLookupSheet.jsx";
 import WordCard from "../components/WordCard.jsx";
 import { useI18n } from "../i18n/I18nContext.jsx";
@@ -201,6 +207,12 @@ export default function CardScreen({
   const noRoom = vocab.atActiveLimit;
   const roomForBatch = freeSlots >= generateCount;
 
+  // Суточная квота озвучки кончилась (общее состояние приложения, ставит его
+  // первый же ответ 429). Кнопки play гаснут сами, а экран говорит об этом
+  // словами — раньше озвучка просто молча переставала работать.
+  const [ttsQuotaOut, setTtsQuotaOut] = useState(isTtsQuotaExhausted);
+  useEffect(() => subscribeTtsQuota(setTtsQuotaOut), []);
+
   // Объяснение, почему «Взять» не сработало. Показывается плашкой ПОД карточкой
   // (не тостом): текст длинный, и в нём есть выход, а не только запрет.
   const [limitNotice, setLimitNotice] = useState(false);
@@ -244,6 +256,17 @@ export default function CardScreen({
   // хуки должны отрабатывать в одном порядке на каждый рендер.
   const { card, done } = pickCurrentCard(cards, vocab);
   const empty = cards.length === 0;
+
+  // Ленивый прогрев озвучки: греем окно вокруг ТЕКУЩЕЙ карточки, а не всю
+  // порцию. Порцию редко разбирают за один заход, и прогрев дальних карточек
+  // уходил в никуда, тратя общую суточную квоту. Повторный прогрев уже
+  // подогретого бесплатен — URL лежит в памяти клиента.
+  useEffect(() => {
+    if (!card?.word || !learnLang) return;
+    const from = cards.findIndex((c) => c.word === card.word);
+    if (from < 0) return;
+    prewarmTts(cards.slice(from, from + PREWARM_CARDS), learnLang);
+  }, [card?.word, cards, learnLang]);
 
   // Свайп — ОСНОВНОЙ способ разобрать новое слово: вправо = Взять (в изучение),
   // влево = Знаю (навсегда). Три кнопки внизу дублируют жест теми же цветами.
@@ -676,6 +699,15 @@ export default function CardScreen({
       {limitNotice && (
         <p className="cards__limit-notice" role="status">
           {t("common.activeLimit", { max: MAX_ACTIVE_WORDS })}
+        </p>
+      )}
+
+      {/* Озвучка на сегодня кончилась — спокойная подпись под карточкой, ровно
+          там, где стоят погасшие кнопки play. Не окно и не преграда: карточки,
+          свайпы и всё занятие работают как обычно. */}
+      {ttsQuotaOut && (
+        <p className="cards__tts-quota" role="status">
+          {t("tts.quotaOutHint")}
         </p>
       )}
 

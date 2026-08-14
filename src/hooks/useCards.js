@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { prewarmTts } from "../lib/ttsClient.js";
 import { apiFetch, parseApiError } from "../lib/apiClient.js";
 
 // Порция карточек хранится по языковым парам: { "de-ru": [...], "el-ru": [...] }.
@@ -111,9 +110,12 @@ export function useCards(pairKey) {
         const asked = Number(params.count) || batch.length;
         setShortfall(batch.length < asked ? { got: batch.length, asked } : null);
         setStore((prev) => ({ ...prev, [pairKey]: batch }));
-        // Озвучка создаётся в момент создания карточек (фаза 5.1): фоновый
-        // прогрев кэша, чтобы кнопка play не ждала генерацию при тапе.
-        prewarmTts(batch, params.learnLang);
+        // Прогрева озвучки здесь БОЛЬШЕ НЕТ: греет экран карточек — окном
+        // вокруг текущей карточки, по мере листания (см. CardScreen). Греть всю
+        // пачку отсюда значило тратить общую суточную квоту на карточки, до
+        // которых человек в этот заход не дойдёт; а два прогрева сразу (здесь и
+        // на экране) успевали запросить один и тот же текст дважды, пока первый
+        // ответ ещё не вернулся, — и это списывало квоту дважды.
       } catch (e) {
         // eslint-disable-next-line no-console
         console.warn("[cards] запрос генерации сорвался:", e?.message || e);

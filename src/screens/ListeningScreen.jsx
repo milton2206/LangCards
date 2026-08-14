@@ -16,7 +16,11 @@ import {
 } from "../lib/comprehensionClient.js";
 import { requestGrammar, loadTexts } from "../lib/readingClient.js";
 import { apiErrorText } from "../lib/apiClient.js";
-import { stopCurrentAudio, prewarmPhrases } from "../lib/ttsClient.js";
+import {
+  stopCurrentAudio,
+  prewarmPhrases,
+  PREWARM_PHRASES,
+} from "../lib/ttsClient.js";
 import AudioPlayer from "../components/AudioPlayer.jsx";
 import ComprehensionQuestions from "../components/ComprehensionQuestions.jsx";
 import Icon from "../components/icons/Icon.jsx";
@@ -187,6 +191,22 @@ export default function ListeningScreen({
       ? current.word
       : current.text
     : "";
+
+  // Ленивый прогрев подхода: греем окно от ТЕКУЩЕГО задания, а не весь подход
+  // сразу. Логика «следующая фраза готова, пока слушаешь текущую» сохранена —
+  // просто окно едет вместе с человеком, и до дальних фраз квота не тратится,
+  // если до них не дошли. Уже подогретое повторно бесплатно (кэш URL в памяти).
+  useEffect(() => {
+    if (!items.length || index >= items.length) return;
+    prewarmPhrases(
+      items
+        .slice(index, index + PREWARM_PHRASES)
+        .map((it) => (it.kind === "soundalike" ? it.word : it.text)),
+      learnLang,
+      listeningLevel.rate,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, index, learnLang, listeningLevel.rate]);
   const correctText = current
     ? current.kind === "soundalike"
       ? current.word
@@ -268,7 +288,9 @@ export default function ListeningScreen({
       // остаются в кэше только для разнообразия и показа последнего при перезаходе.
       saveDialogue(pairKey, WORD_SOURCE, next);
       setDialogueSet(next);
-      // Заранее греем озвучку реплик в общем кэше — переслушивание мгновенное.
+      // Греем ПЕРВЫЕ реплики диалога: с них начинается прослушивание, а
+      // остальные подтянутся по ходу. Весь диалог заранее не греем — это общая
+      // с карточками суточная квота.
       prewarmPhrases(
         next.dialogue.map((l) => l.text),
         learnLang,
@@ -315,11 +337,9 @@ export default function ListeningScreen({
         return;
       }
       updateSet(next);
-      prewarmPhrases(
-        next.items.map((it) => (it.kind === "soundalike" ? it.word : it.text)),
-        learnLang,
-        listeningLevel.rate,
-      );
+      // Прогрев здесь не зовём: окно от текущего задания греет эффект выше —
+      // иначе один и тот же текст успевал уйти в два запроса разом (кэш URL
+      // наполняется только после ответа), и квота списывалась дважды.
     } catch (err) {
       setError(apiErrorText(err, t, "listening.failed"));
     } finally {

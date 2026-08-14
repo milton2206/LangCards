@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  fetchTtsUrl,
+  fetchTtsUrlResult,
   playUrl,
   forgetTtsUrl,
+  isTtsQuotaExhausted,
+  subscribeTtsQuota,
   MAX_TTS_TEXT_LEN,
 } from "../lib/ttsClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
@@ -34,6 +36,12 @@ export default function PlayButton({
     typeof navigator !== "undefined" && !navigator.onLine,
   );
 
+  // Суточная квота озвучки исчерпана — состояние общее на приложение (его
+  // ставит первый же ответ 429), поэтому кнопка гаснет, не ходя на сервер за
+  // очередным отказом. Само занятие продолжается: озвучка необязательна.
+  const [quotaOut, setQuotaOut] = useState(isTtsQuotaExhausted);
+  useEffect(() => subscribeTtsQuota(setQuotaOut), []);
+
   // Офлайн → кнопка неактивна; при возврате сети снова активна.
   useEffect(() => {
     const onOnline = () => setOffline(false);
@@ -48,7 +56,7 @@ export default function PlayButton({
 
   // Слишком длинный текст не озвучиваем вовсе (предохранитель квоты).
   const tooLong = String(text ?? "").trim().length > MAX_TTS_TEXT_LEN;
-  const disabled = offline || tooLong || state === "error";
+  const disabled = offline || tooLong || quotaOut || state === "error";
 
   // Текущий звук этой кнопки — чтобы заглушить его при уходе с экрана. Пауза
   // заодно освобождает шину (см. playUrl), так что «занято» не залипает.
@@ -115,15 +123,25 @@ export default function PlayButton({
     if (disabled || state === "loading") return;
 
     setState("loading");
-    const url = await fetchTtsUrl({ text, learnLang });
-    if (url && (await startPlayback(url))) return;
+    const first = await fetchTtsUrlResult({ text, learnLang });
+    if (first.url && (await startPlayback(first.url))) return;
+    // Лимит на сегодня — повтор его не обойдёт: гасим кнопку (флаг уже поднят
+    // внутри клиента, экран покажет подпись) и молча выходим.
+    if (first.reason === "rateLimit") {
+      setState("idle");
+      return;
+    }
 
     // Не проигралось — забываем URL и пробуем ОДИН раз заново: сервер отдаст
     // свежую ссылку (или до-генерирует файл). Раньше здесь была тишина.
     forgetTtsUrl({ text, learnLang });
     setState("loading");
-    const retryUrl = await fetchTtsUrl({ text, learnLang });
-    if (retryUrl && (await startPlayback(retryUrl))) return;
+    const retry = await fetchTtsUrlResult({ text, learnLang });
+    if (retry.url && (await startPlayback(retry.url))) return;
+    if (retry.reason === "rateLimit") {
+      setState("idle");
+      return;
+    }
 
     // Не помогло и со второго раза: коротко подсветим ошибку и вернёмся в строй.
     setState("error");
@@ -147,7 +165,9 @@ export default function PlayButton({
     <button
       type="button"
       className={`playbtn${ember ? " playbtn--ember" : ""} playbtn--${state}${disabled ? " is-disabled" : ""}`}
-      aria-label={disabled ? t("tts.unavailable") : label}
+      aria-label={
+        quotaOut ? t("tts.quotaOut") : disabled ? t("tts.unavailable") : label
+      }
       disabled={disabled}
       onClick={handlePlay}
     >
