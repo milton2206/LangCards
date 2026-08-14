@@ -68,7 +68,7 @@ export default {
   },
 
   cards: {
-    myWords: "My words",
+    myWords: "Learning",
     statsAria: "Statistics",
     settingsAria: "Settings",
     tutorialAria: "How to use",
@@ -137,9 +137,9 @@ export default {
     add: "Add to studying",
     another: "Another word",
     addedTitle: "Word added",
-    addedHint: "It's in “My words” and will show up for review.",
+    addedHint: "It's in your “Learning” list and will show up for review.",
     addMore: "Add another",
-    openMyWords: "Open “My words”",
+    openMyWords: "Open “Learning”",
     notRecognized: "Couldn't recognize the word. Check the spelling and try again.",
     failed: "Couldn't create the card. Please try again.",
   },
@@ -216,6 +216,8 @@ export default {
       "A short text for your topic and level, weaving in words you're already learning. Tap a word for its translation, or Grammar to see how it works.",
     newShare: "New words:",
     playAll: "Play the whole text",
+    // Скорость озвучки текста: тот же набор, что в аудировании.
+    speedLabel: "Speed:",
     legend: "green — words you already know · tap any word for a translation",
     grammar: "Grammar",
     noScore: "No score, no timer. A wrong answer just explains itself.",
@@ -590,7 +592,7 @@ export default {
   },
 
   words: {
-    mineTitle: "My words",
+    mineTitle: "Learning",
     knownTitle: "Known words",
     select: "Select",
     learned: "Learned",
@@ -602,11 +604,11 @@ export default {
     dueInDays: "in {n}d",
   },
   tabs: {
-    mine: "My words",
+    mine: "Learning",
     known: "Known",
   },
 
-  // Bulk review of mature words (the "My words" list). Same meaning as the
+  // Bulk review of mature words (the "Learning" list). Same meaning as the
   // checkpoint during reviews, but decided over the whole list at once.
   promote: {
     entry: "Review mature words",
@@ -650,6 +652,11 @@ export default {
     changePassword: "Change password",
     appearance: "Appearance",
     theme: { dark: "Dark", light: "Light" },
+    // Font size — the app's own setting, not the system one.
+    fontSize: "Text size",
+    fontSizes: { normal: "Normal", large: "Large", xlarge: "Extra large" },
+    fontSample:
+      "This is how text will look in the app: words on cards, examples and captions.",
     deleteAccount: "Delete account",
     // Multi-language mode (explicit choice, phase 4.2).
     multiLang: "Multi-language mode",
@@ -697,6 +704,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      readableAndSlower: {
+        title: "Bigger, clearer, slower",
+        desc: "The “My words” list is now “Learning” — a fair pair with “Known”. Settings gained a text size control: three steps that apply across the whole app at once. And in reading you can slow the audio down, just like in listening.",
+      },
       lighterAudio: {
         title: "Audio got lighter and stopped going quiet",
         desc: "The app used to prepare audio for a whole batch up front — every word and every example — even though people rarely work through a batch in one sitting. Now only the nearest cards are prepared, and examples play on tap. And when the day's audio allowance runs out, the app says so plainly: the button used to just stop working.",
@@ -711,7 +722,7 @@ export default {
       },
       bulkPromote: {
         title: "Move words to known as a list",
-        desc: "Words you remember confidently no longer have to be moved one at a time: “My words” now has a mature-word review — checkboxes, “select all”, and a bulk move. It frees up room for new words in a single pass.",
+        desc: "Words you remember confidently no longer have to be moved one at a time: the “Learning” list now has a mature-word review — checkboxes, “select all”, and a bulk move. It frees up room for new words in a single pass.",
       },
       knownCheckpoint: {
         title: "You can see when a word is learned",

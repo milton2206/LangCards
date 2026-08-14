@@ -9,19 +9,19 @@
 }
 
 .migrate__emoji {
-  font-size: 56px;
+  font-size: 3.5rem;
   line-height: 1;
 }
 
 .migrate__title {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
   max-width: 20ch;
 }
 
 .migrate__text {
   color: var(--text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
   max-width: 34ch;
 }
@@ -41,7 +41,7 @@
   border-radius: var(--radius-sm);
   background-color: var(--accent);
   color: var(--ember-on-accent);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -51,13 +51,13 @@
   border-radius: var(--radius-sm);
   background-color: var(--surface);
   color: var(--text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
 }
 
 .migrate__hint {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   max-width: 36ch;
   line-height: 1.45;
 }

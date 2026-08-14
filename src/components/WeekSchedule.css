@@ -6,7 +6,7 @@
 }
 
 .week__today {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -29,14 +29,14 @@
 }
 
 .week__dot-day {
-  font-size: 10px;
+  font-size: 0.625rem;
   letter-spacing: 0.3px;
   color: var(--text-muted);
   text-transform: uppercase;
 }
 
 .week__dot-lang {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--text);
 }
@@ -192,7 +192,7 @@
 }
 
 .week__picker-title {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--text-muted);
 }
@@ -210,7 +210,7 @@
   border-radius: 999px;
   background-color: var(--bg-elevated);
   color: var(--text);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -221,7 +221,7 @@
 }
 
 .week__hint {
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.4;
   color: var(--text-muted);
 }

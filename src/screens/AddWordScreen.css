@@ -34,13 +34,13 @@
   border-radius: var(--ember-radius-sm);
   background-color: var(--ember-surface);
   color: var(--ember-text);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
 .addword__title {
   font-family: var(--font-word); /* Alegreya — заголовок */
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.3px;
   color: var(--ember-text);
@@ -48,7 +48,7 @@
 
 .addword__hint {
   color: var(--ember-text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
 }
 
@@ -68,7 +68,7 @@
   color: var(--ember-text);
   font-family: var(--font-ui);
   /* font-size >= 16px, чтобы iOS не зумил поле при фокусе (см. index.css) */
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .addword__input::placeholder {
@@ -88,7 +88,7 @@
   background-color: var(--ember-accent);
   color: var(--ember-on-accent);
   font-family: var(--font-ui);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -104,7 +104,7 @@
   background-color: var(--ember-surface);
   color: var(--ember-text);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
 }
 
@@ -115,7 +115,7 @@
   border: 1px solid color-mix(in srgb, var(--ember-warning) 40%, transparent);
   background-color: color-mix(in srgb, var(--ember-warning) 12%, transparent);
   color: var(--ember-warning);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
 }
 
@@ -173,7 +173,7 @@
 /* Слово — Alegreya (три алфавита читаются ровно), как на карточке. */
 .addword__word {
   font-family: var(--font-word);
-  font-size: clamp(22px, 7vw, 32px);
+  font-size: clamp(1.375rem, 7vw, 2rem);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.5px;
@@ -186,12 +186,12 @@
 
 .addword__translit {
   color: var(--ember-accent);
-  font-size: 15px;
+  font-size: 0.9375rem;
   letter-spacing: 0.5px;
 }
 
 .addword__translation {
-  font-size: 19px;
+  font-size: 1.1875rem;
   font-weight: 500;
 }
 
@@ -206,7 +206,7 @@
 .addword__example-label {
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--ember-text-muted);
 }
@@ -214,7 +214,7 @@
 /* Пример на изучаемом языке — тоже Alegreya (контент, не интерфейс). */
 .addword__example-text {
   font-family: var(--font-word);
-  font-size: 17px;
+  font-size: 1.0625rem;
   line-height: 1.5;
   font-weight: 500;
   color: var(--ember-text);
@@ -223,7 +223,7 @@
 }
 
 .addword__example-translation {
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
   color: var(--ember-text-muted);
   overflow-wrap: anywhere;
@@ -262,14 +262,14 @@
 
 .addword__result-title {
   font-family: var(--font-word); /* Alegreya — заголовок итога */
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--ember-text);
 }
 
 .addword__result-hint {
   color: var(--ember-text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   max-width: 30ch;
 }
 

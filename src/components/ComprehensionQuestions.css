@@ -13,24 +13,24 @@
 
 .comp__progress {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .comp__prompt {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
 }
 
 .comp__statement {
-  font-size: 18px;
+  font-size: 1.125rem;
   line-height: 1.6;
   overflow-wrap: break-word;
 }
 
 .comp__statement-tr {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
@@ -48,7 +48,7 @@
   border-radius: var(--radius-sm);
   background-color: var(--surface);
   color: var(--text);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -84,7 +84,7 @@
 /* Объяснение: просто текст — без своей рамки, фона и коробки отступов
    (плашка внутри плашки перегружала разбор ответа). */
 .comp__explain {
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.55;
   overflow-wrap: break-word;
 }
@@ -95,7 +95,7 @@
   border-radius: var(--radius-sm);
   background-color: var(--accent);
   color: var(--ember-on-accent);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -110,18 +110,18 @@
 }
 
 .comp__done-emoji {
-  font-size: 44px;
+  font-size: 2.75rem;
   line-height: 1;
 }
 
 .comp__done-title {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 700;
 }
 
 .comp__done-score {
   color: var(--text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .comp__retake {
@@ -131,7 +131,7 @@
   border-radius: 999px;
   background-color: var(--surface);
   color: var(--text);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -148,7 +148,7 @@
 }
 
 .comp--ember .comp__title {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;

@@ -34,7 +34,7 @@
   border-radius: 12px;
   background-color: var(--ember-surface);
   color: var(--ember-text);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
@@ -42,7 +42,7 @@
   flex: 1;
   min-width: 0;
   font-family: var(--font-word); /* Alegreya — заголовок */
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--ember-text);
 }
@@ -54,7 +54,7 @@
   background-color: var(--ember-surface);
   border: 1px solid var(--ember-border);
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -64,13 +64,13 @@
   align-items: center;
   gap: 8px;
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 /* ---------- Служебные состояния ---------- */
 .listening__notice {
   color: var(--ember-text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
 }
 
@@ -80,7 +80,7 @@
   border: 1px solid color-mix(in srgb, var(--ember-warning) 40%, transparent);
   background-color: color-mix(in srgb, var(--ember-warning) 12%, transparent);
   color: var(--ember-warning);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
 }
 
@@ -95,13 +95,13 @@
 }
 
 .listening__emoji {
-  font-size: 52px;
+  font-size: 3.25rem;
   line-height: 1;
 }
 
 .listening__done-title {
   font-family: var(--font-word);
-  font-size: 19px;
+  font-size: 1.1875rem;
   font-weight: 700;
   color: var(--ember-text);
 }
@@ -137,7 +137,7 @@
   border: 1px solid color-mix(in srgb, var(--ember-accent) 25%, transparent);
   background-color: color-mix(in srgb, var(--ember-accent) 8%, transparent);
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
   text-align: left;
 }
@@ -173,7 +173,7 @@
   background: transparent;
   color: var(--ember-text-muted);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -198,7 +198,7 @@
 
 .listening__dialogue-title {
   font-family: var(--font-word); /* Alegreya — название диалога */
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 700;
   line-height: 1.3;
   color: var(--ember-text);
@@ -207,7 +207,7 @@
 
 .listening__dialogue-subtitle {
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.4;
 }
 
@@ -225,7 +225,7 @@
 }
 
 .listening__transcript-title {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -240,7 +240,7 @@
 
 .listening__line-text {
   font-family: var(--font-word);
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.55;
   color: var(--ember-text);
   overflow-wrap: break-word;
@@ -253,7 +253,7 @@
 
 .listening__line-tr {
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
@@ -265,14 +265,14 @@
 /* Вопрос формата / подсказка «Listen to the dialogue…» */
 .listening__prompt {
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
 }
 
 /* Предложение с пропуском (формат gap) */
 .listening__sentence {
   font-family: var(--font-word);
-  font-size: 18px;
+  font-size: 1.125rem;
   line-height: 1.7;
   color: var(--ember-text);
   overflow-wrap: break-word;
@@ -296,7 +296,7 @@
 /* Что именно вписал пользователь, если ошибся */
 .listening__youwrote {
   color: var(--ember-danger);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
 }
 
@@ -319,7 +319,7 @@
   background: transparent;
   color: var(--ember-text-muted);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -347,7 +347,7 @@
   background-color: var(--ember-surface);
   color: var(--ember-text);
   font-family: var(--font-word);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.45;
   text-align: left;
   overflow-wrap: break-word;
@@ -397,7 +397,7 @@
   background-color: var(--ember-surface);
   color: var(--ember-text);
   font-family: var(--font-word);
-  font-size: 16px; /* 16px — iOS не зумит поле при фокусе */
+  font-size: 1rem; /* 16px — iOS не зумит поле при фокусе */
   line-height: 1.45;
   resize: vertical;
 }
@@ -415,7 +415,7 @@
   background-color: var(--ember-accent);
   color: var(--ember-on-accent);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -446,7 +446,7 @@
 
 .listening__phrase {
   font-family: var(--font-word);
-  font-size: 17px;
+  font-size: 1.0625rem;
   line-height: 1.6;
   color: var(--ember-text);
   /* break-word, а не anywhere: во флекс-колонке anywhere рвёт слова даже
@@ -456,7 +456,7 @@
 
 .listening__translation {
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
@@ -481,7 +481,7 @@
   background-color: var(--ember-card);
   color: var(--ember-text-muted);
   font-family: var(--font-ui);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -503,7 +503,7 @@
   background-color: var(--ember-accent);
   color: var(--ember-on-accent);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -520,7 +520,7 @@
   gap: 6px;
   margin: 0;
   padding-left: 18px;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: var(--ember-text);
 }
@@ -543,7 +543,7 @@
 
 .listening__level-label {
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .listening__format-chips,
@@ -566,7 +566,7 @@
   background: transparent;
   color: var(--ember-text-muted);
   font-family: var(--font-ui);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -578,7 +578,7 @@
 
 .listening__level-hint {
   color: var(--ember-text-muted);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -594,7 +594,7 @@
   background-color: var(--ember-accent);
   color: var(--ember-on-accent);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 

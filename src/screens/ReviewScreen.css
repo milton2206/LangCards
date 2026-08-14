@@ -35,13 +35,13 @@
   border-radius: var(--ember-radius-sm);
   background-color: var(--ember-surface);
   color: var(--ember-text);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
 .review__remaining {
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
@@ -92,7 +92,7 @@
 
 /* Слово на лице (фолбэк без примера) — крупнее, чем на обороте. */
 .review__front .review__word {
-  font-size: clamp(32px, 11vw, 48px);
+  font-size: clamp(2rem, 11vw, 3rem);
 }
 
 /* «Показать перевод» на лице — по центру (на обороте кнопки нет). */
@@ -146,7 +146,7 @@
    Изучаемый язык — Alegreya Sans (контент, три алфавита читаются ровно). */
 .review__sentence {
   font-family: var(--font-word);
-  font-size: clamp(20px, 6vw, 25px);
+  font-size: clamp(1.25rem, 6vw, 1.5625rem);
   font-weight: 600;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -172,7 +172,7 @@
   border-radius: var(--ember-radius-sm);
   background-color: var(--ember-surface);
   color: var(--ember-text);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -193,7 +193,7 @@
 /* Слово — крупно, гуманистическая Alegreya Sans. */
 .review__word {
   font-family: var(--font-word);
-  font-size: clamp(24px, 8vw, 32px);
+  font-size: clamp(1.5rem, 8vw, 2rem);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.5px;
@@ -213,19 +213,19 @@
   border: 1px solid color-mix(in srgb, var(--ember-accent) 35%, transparent);
   background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
   color: var(--ember-accent);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.3px;
 }
 
 .review__translit {
   color: var(--ember-accent);
-  font-size: 15px;
+  font-size: 0.9375rem;
   letter-spacing: 0.5px;
 }
 
 .review__translation {
-  font-size: 19px;
+  font-size: 1.1875rem;
   font-weight: 500;
 }
 
@@ -247,13 +247,13 @@
 .review__sentence-translation-label {
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
   color: var(--ember-text-muted);
 }
 
 .review__sentence-translation {
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
   color: var(--ember-text-muted);
   overflow-wrap: anywhere;
@@ -320,14 +320,14 @@
 }
 
 .review__offer-title {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
 .review__offer-hint {
   margin-top: 2px;
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.4;
 }
 
@@ -343,7 +343,7 @@
   padding: 10px 14px;
   border-radius: var(--ember-radius-sm);
   font-family: var(--font-ui);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -386,12 +386,12 @@
 }
 
 .review__grade-label {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
 .review__grade-interval {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   opacity: 0.75;
 }
@@ -444,7 +444,7 @@
   border-radius: var(--ember-radius-sm);
   background-color: var(--ember-surface);
   color: var(--ember-text);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
@@ -463,13 +463,13 @@
 
 .review__status-title {
   font-family: var(--font-word);
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
 }
 
 .review__status-hint {
   color: var(--ember-text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   max-width: 30ch;
 }
 
@@ -481,6 +481,6 @@
   border-radius: var(--ember-radius-sm);
   background-color: var(--ember-accent);
   color: var(--ember-on-accent);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }

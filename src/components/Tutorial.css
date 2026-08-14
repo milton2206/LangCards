@@ -65,7 +65,7 @@
   background-color: transparent;
   color: var(--ember-text-muted);
   font-family: var(--font-ui);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
@@ -80,14 +80,14 @@
 .tut__label {
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--ember-accent);
 }
 
 .tut__title {
   font-family: var(--font-word); /* Alegreya — заголовок */
-  font-size: clamp(24px, 7vw, 30px);
+  font-size: clamp(1.5rem, 7vw, 1.875rem);
   line-height: 1.2;
   font-weight: 700;
   letter-spacing: -0.3px;
@@ -97,7 +97,7 @@
 
 .tut__text {
   color: var(--ember-text-muted);
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.55;
   max-width: 42ch;
 }
@@ -123,7 +123,7 @@
   border: 1px solid var(--ember-border);
   background-color: var(--ember-surface);
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
@@ -144,7 +144,7 @@
   align-items: center;
   gap: 7px;
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
 }
 
@@ -168,7 +168,7 @@
   padding: 6px 14px;
   border-radius: 999px;
   border: 1px solid transparent;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -188,7 +188,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -211,7 +211,7 @@
   border: 1px solid transparent;
   border-radius: var(--ember-radius-sm);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -245,13 +245,13 @@
 
 .tut__session-title {
   font-weight: 700;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .tut__session-mins {
   flex: 0 0 auto;
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .tut__session-tiles {
@@ -276,7 +276,7 @@
 
 .tut__tile span {
   color: var(--ember-text-muted);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.3;
 }
@@ -304,13 +304,13 @@
 
 .tut__core-title {
   font-weight: 700;
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--ember-text);
 }
 
 .tut__core-text {
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
@@ -328,7 +328,7 @@
   justify-content: center;
   border-radius: var(--ember-radius-sm);
   border: 1.5px solid transparent;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -386,7 +386,7 @@
   border-radius: var(--ember-radius-sm);
   border: 1px solid var(--ember-border);
   background-color: var(--ember-surface);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.45;
   color: var(--ember-text);
 }
@@ -417,7 +417,7 @@
   background-color: var(--ember-accent);
   color: var(--ember-on-accent);
   font-family: var(--font-ui);
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 700;
   box-shadow: 0 8px 24px color-mix(in srgb, var(--ember-accent) 30%, transparent);
 }
@@ -434,7 +434,7 @@
   background-color: var(--ember-surface);
   color: var(--ember-text);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -453,6 +453,6 @@
   background: none;
   color: var(--ember-text-muted);
   font-family: var(--font-ui);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
 }

@@ -86,6 +86,7 @@ import {
 } from "./lib/presence.js";
 import { resolveWhatsNew } from "./lib/whatsNew.js";
 import { applyEmberTheme, loadTheme, saveTheme } from "./theme/emberTheme.js";
+import { applyFontScale, DEFAULT_FONT_SCALE } from "./lib/fontScale.js";
 
 // Id тем-пресетов и запасная тема: когда выбранная своя тема удалена или
 // принадлежит другой паре, откатываемся к пресету, чтобы генерация не осталась
@@ -765,6 +766,18 @@ export default function App() {
     applyEmberTheme(next);
   }
 
+  // Размер шрифта интерфейса — своя настройка приложения (см. lib/fontScale.js):
+  // живёт в общих settings, поэтому переживает перезаход вместе с темой и
+  // уровнем. Применяется одной CSS-переменной на корне — экраны про неё не знают.
+  const fontScale = settings.fontScale || DEFAULT_FONT_SCALE;
+  useEffect(() => {
+    applyFontScale(fontScale);
+  }, [fontScale]);
+
+  function handleChangeFontScale(next) {
+    setSettings((prev) => ({ ...prev, fontScale: next }));
+  }
+
   useEffect(() => {
     localStorage.setItem("settings", JSON.stringify(settings));
   }, [settings]);
@@ -1434,6 +1447,8 @@ export default function App() {
             onOpenTutorial={() => setTutorial("detailed")}
             theme={theme}
             onChangeTheme={handleChangeTheme}
+            fontScale={fontScale}
+            onChangeFontScale={handleChangeFontScale}
             placementLevel={activeLanguage?.placementLevel || null}
             onStartPlacement={() =>
               handleStartPlacement({

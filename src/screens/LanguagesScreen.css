@@ -35,13 +35,13 @@
   border-radius: 12px;
   background-color: var(--ember-surface);
   color: var(--ember-text);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
 .langs__title {
   font-family: var(--font-word); /* Alegreya — заголовок */
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--ember-text);
 }
@@ -54,7 +54,7 @@
 
 /* Метка раздела — мелкой прописной, приглушённо (как на прочих экранах Ember). */
 .langs__group-title {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -63,7 +63,7 @@
 
 .langs__hint {
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
 }
 
@@ -98,13 +98,13 @@
 }
 
 .langs__toggle-title {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--ember-text);
 }
 
 .langs__toggle-sub {
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.4;
   color: var(--ember-text-muted);
 }
@@ -165,7 +165,7 @@
   align-items: center;
   gap: 8px;
   font-family: var(--font-word); /* Alegreya — название пары (3 алфавита) */
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 700;
   color: var(--ember-text);
   overflow-wrap: anywhere;
@@ -185,7 +185,7 @@
   border: 1px solid color-mix(in srgb, var(--ember-accent) 45%, transparent);
   background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
   color: var(--ember-accent);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -206,7 +206,7 @@
   background-color: var(--ember-card);
   color: var(--ember-text);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -234,7 +234,7 @@
 
 .langs__limit-label {
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .langs__limit-chips {
@@ -251,7 +251,7 @@
   background-color: var(--ember-card);
   color: var(--ember-text);
   font-family: var(--font-ui);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   transition:
     border-color 0.15s,
@@ -285,13 +285,13 @@
 
 .langs__confirm-title {
   font-family: var(--font-word);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: var(--ember-text);
 }
 
 .langs__confirm-text {
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
   color: var(--ember-text-muted);
 }
@@ -303,7 +303,7 @@
 
 .langs__note {
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
@@ -321,7 +321,7 @@
   background-color: var(--ember-accent);
   color: var(--ember-on-accent);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -347,7 +347,7 @@
   background-color: var(--ember-surface);
   color: var(--ember-text);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -379,7 +379,7 @@
 }
 
 .langs__picker-title {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--ember-text-muted);
 }

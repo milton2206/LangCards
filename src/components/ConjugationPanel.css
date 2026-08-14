@@ -22,7 +22,7 @@
   background-color: var(--ember-surface);
   color: var(--ember-text);
   font-family: var(--font-ui);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -47,7 +47,7 @@
 
 .conj__note {
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
 }
 
@@ -57,7 +57,7 @@
   border: 1px solid color-mix(in srgb, var(--ember-warning) 40%, transparent);
   background-color: color-mix(in srgb, var(--ember-warning) 12%, transparent);
   color: var(--ember-warning);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
 }
 
@@ -73,7 +73,7 @@
 .conj__table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .conj__table th,
@@ -92,7 +92,7 @@
 /* Заголовки времён (настоящее/будущее/прошедшее) — приглушённо, прописной. */
 .conj__table thead th {
   font-family: var(--font-ui);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -126,7 +126,7 @@
 /* Начальная форма — когда тапнули не по ней (πηγαίνει → πηγαίνω). */
 .conj__lemma {
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 

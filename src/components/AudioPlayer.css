@@ -28,7 +28,7 @@
   border-radius: 50%;
   background-color: var(--accent);
   color: var(--ember-on-accent);
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1;
   cursor: pointer;
 }
@@ -40,7 +40,7 @@
   background-color: var(--bg-elevated);
   color: var(--text);
   border: 1px solid var(--border);
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 
 .aplayer__btn:disabled {
@@ -50,7 +50,7 @@
 
 .aplayer__time {
   flex: 0 0 auto;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   min-width: 74px;
@@ -75,7 +75,7 @@
 
 .aplayer__error-text {
   flex: 1 1 180px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.45;
   color: var(--text-muted);
 }
@@ -88,7 +88,7 @@
   border-radius: 999px;
   background-color: var(--surface);
   color: var(--text);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -192,7 +192,7 @@
   border: 1px solid var(--border);
   border-radius: 999px;
   background-color: var(--bg-elevated);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1;
   cursor: pointer;
 }

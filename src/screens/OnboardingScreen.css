@@ -35,7 +35,7 @@
   border-radius: var(--ember-radius-sm);
   background-color: var(--ember-surface);
   color: var(--ember-text);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
@@ -60,7 +60,7 @@
 .onb__counter {
   flex: 0 0 auto;
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
 }
 
@@ -73,7 +73,7 @@
 
 .onb__title {
   font-family: var(--font-word); /* Alegreya — заголовок шага */
-  font-size: clamp(24px, 6vw, 28px);
+  font-size: clamp(1.5rem, 6vw, 1.75rem);
   font-weight: 700;
   letter-spacing: -0.4px;
   color: var(--ember-text);
@@ -83,7 +83,7 @@
 .onb__hint {
   margin-top: 6px;
   color: var(--ember-text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
 }
 
@@ -141,14 +141,14 @@
 }
 
 .onb__choice-label {
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 700;
   overflow-wrap: break-word;
 }
 
 .onb__choice-hint {
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.4;
   overflow-wrap: break-word;
 }
@@ -166,7 +166,7 @@
   background-color: var(--ember-surface);
   color: var(--ember-text);
   font-family: var(--font-ui);
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 600;
   text-align: left;
   transition:
@@ -230,7 +230,7 @@
   background-color: var(--ember-accent);
   color: var(--ember-on-accent);
   font-family: var(--font-ui);
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 700;
   box-shadow: 0 10px 30px color-mix(in srgb, var(--ember-accent) 35%, transparent);
 }

@@ -30,7 +30,7 @@
 
 .start__logo-name {
   font-family: var(--font-word);
-  font-size: 26px;
+  font-size: 1.625rem;
   font-weight: 700;
   letter-spacing: -0.3px;
   line-height: 1;
@@ -53,7 +53,7 @@
 /* Приветствие крупно, гуманистической Alegreya — тёплая встреча, не казённо. */
 .start__title {
   font-family: var(--font-word);
-  font-size: clamp(28px, 8vw, 34px);
+  font-size: clamp(1.75rem, 8vw, 2.125rem);
   line-height: 1.25;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -64,7 +64,7 @@
 
 .start__subtitle {
   color: var(--ember-text-muted);
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.6;
   max-width: 40ch;
 }
@@ -78,7 +78,7 @@
 .start__status {
   align-self: flex-start;
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 /* Основное действие — тёплой терракотой (приглашение, а не приказ). */
@@ -91,7 +91,7 @@
   background-color: var(--ember-accent);
   color: var(--ember-on-accent);
   font-family: var(--font-ui);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }
 

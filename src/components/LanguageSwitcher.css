@@ -14,7 +14,7 @@
   border-radius: 999px;
   background-color: var(--surface);
   color: var(--text);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -56,7 +56,7 @@
   border-radius: 8px;
   background: none;
   color: var(--text);
-  font-size: 14px;
+  font-size: 0.875rem;
   text-align: left;
 }
 
@@ -70,7 +70,7 @@
 
 .langswitch__item-native {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   /* длинные названия не раздувают список на 375px */
   overflow: hidden;
   text-overflow: ellipsis;

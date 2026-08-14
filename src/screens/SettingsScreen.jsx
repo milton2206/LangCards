@@ -11,6 +11,7 @@ import FeedbackModal from "../components/FeedbackModal.jsx";
 import DeleteAccountDialog from "../components/DeleteAccountDialog.jsx";
 import ChangePasswordModal from "../components/ChangePasswordModal.jsx";
 import Icon from "../components/icons/Icon.jsx";
+import { FONT_SCALES } from "../lib/fontScale.js";
 import Flag from "../components/icons/Flag.jsx";
 import LevelBars from "../components/icons/LevelBars.jsx";
 import "./SettingsScreen.css";
@@ -42,6 +43,10 @@ export default function SettingsScreen({
   onChangePassword,
   theme,
   onChangeTheme,
+  // Размер шрифта интерфейса: id выбранного шага и обработчик. Без них блок
+  // настройки просто не показывается — экран остаётся прежним.
+  fontScale,
+  onChangeFontScale,
 }) {
   const { t } = useI18n();
 
@@ -119,6 +124,38 @@ export default function SettingsScreen({
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Размер шрифта — своя настройка приложения, а не системный размер
+          телефона: менять его на всём устройстве ради одного приложения не
+          нужно. Шаги, а не ползунок: произвольное значение позволило бы
+          выставить размер, при котором вёрстка едет. Пример под кнопками
+          показывает результат сразу, не выходя из настроек. */}
+      {onChangeFontScale && (
+        <div className="settings__group">
+          <h2 className="settings__group-title">{t("settings.fontSize")}</h2>
+          <div className="settings__fontsize" role="group">
+            {FONT_SCALES.map((opt) => {
+              const active = fontScale === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  className={
+                    "settings__fontsize-chip" + (active ? " is-active" : "")
+                  }
+                  // Своя высота глифа у каждой кнопки — выбор видно до нажатия.
+                  style={{ fontSize: `${opt.scale}rem` }}
+                  aria-pressed={active}
+                  onClick={() => onChangeFontScale(opt.id)}
+                >
+                  {t(`settings.fontSizes.${opt.id}`)}
+                </button>
+              );
+            })}
+          </div>
+          <p className="settings__fontsize-sample">{t("settings.fontSample")}</p>
         </div>
       )}
 

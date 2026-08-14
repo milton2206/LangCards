@@ -20,13 +20,13 @@
   border-radius: var(--radius-sm);
   background-color: var(--surface);
   color: var(--text);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
 .knownreview__remaining {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
@@ -44,7 +44,7 @@
 }
 
 .knownreview__word {
-  font-size: clamp(24px, 8vw, 34px);
+  font-size: clamp(1.5rem, 8vw, 2.125rem);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.5px;
@@ -62,7 +62,7 @@
   border-radius: var(--radius-sm);
   background-color: var(--bg-elevated);
   color: var(--text);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -80,25 +80,25 @@
 
 .knownreview__translit {
   color: var(--accent);
-  font-size: 15px;
+  font-size: 0.9375rem;
   letter-spacing: 0.5px;
 }
 
 .knownreview__translation {
-  font-size: 19px;
+  font-size: 1.1875rem;
   font-weight: 500;
 }
 
 .knownreview__example {
   margin-top: 6px;
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.5;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
 .knownreview__example-translation {
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: var(--text-muted);
   overflow-wrap: anywhere;
@@ -111,7 +111,7 @@
   border: 1px solid color-mix(in srgb, var(--ember-warning) 40%, transparent);
   background-color: color-mix(in srgb, var(--ember-warning) 12%, transparent);
   color: var(--ember-warning);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.4;
 }
 
@@ -129,7 +129,7 @@
   padding: 8px 10px;
   border: 1.5px solid transparent;
   border-radius: var(--radius-sm);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -165,23 +165,23 @@
   border-radius: var(--radius-sm);
   background-color: var(--surface);
   color: var(--text);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
 .knownreview__status-emoji {
-  font-size: 56px;
+  font-size: 3.5rem;
   line-height: 1;
 }
 
 .knownreview__status-title {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
 }
 
 .knownreview__status-hint {
   color: var(--text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   max-width: 32ch;
 }
 
@@ -193,6 +193,6 @@
   border-radius: var(--radius-sm);
   background-color: var(--surface);
   color: var(--text);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
 }

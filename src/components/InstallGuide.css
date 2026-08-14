@@ -62,7 +62,7 @@
 
 .install__title {
   font-family: var(--font-word); /* Alegreya — заголовок */
-  font-size: 19px;
+  font-size: 1.1875rem;
   font-weight: 700;
   color: var(--ember-text);
 }
@@ -76,13 +76,13 @@
   border-radius: var(--ember-radius-sm);
   background-color: var(--ember-surface);
   color: var(--ember-text);
-  font-size: 22px;
+  font-size: 1.375rem;
   line-height: 1;
 }
 
 .install__lead {
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
@@ -99,7 +99,7 @@
 
 .install__section-title {
   font-family: var(--font-word); /* Alegreya — подзаголовок раздела */
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: var(--ember-text);
 }
@@ -110,7 +110,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: var(--ember-text);
 }
@@ -127,7 +127,7 @@
 
 /* Примечание (iOS: только Safari) — тёплая янтарная плашка. */
 .install__note {
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--ember-text);
   padding: 10px 12px;
@@ -144,6 +144,6 @@
   background-color: var(--ember-accent);
   color: var(--ember-on-accent);
   font-family: var(--font-ui);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }

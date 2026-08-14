@@ -18,7 +18,7 @@
   border-radius: var(--radius-sm);
   background-color: var(--surface);
   color: var(--text);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -29,7 +29,7 @@
   border-radius: var(--radius-sm);
   background-color: color-mix(in srgb, var(--ember-danger) 16%, transparent);
   color: var(--ember-danger);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -46,7 +46,7 @@
   border-radius: var(--radius-sm);
   background-color: color-mix(in srgb, var(--ember-learned) 16%, transparent);
   color: var(--ember-learned);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -79,13 +79,13 @@
 }
 
 .selectbar__dialog-title {
-  font-size: 19px;
+  font-size: 1.1875rem;
   font-weight: 700;
 }
 
 .selectbar__dialog-text {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
@@ -102,7 +102,7 @@
   border-radius: var(--radius-sm);
   background-color: var(--surface);
   color: var(--text);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -113,7 +113,7 @@
   border-radius: var(--radius-sm);
   background-color: var(--ember-danger-solid);
   color: var(--ember-on-danger);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -125,6 +125,6 @@
   border-radius: var(--radius-sm);
   background-color: var(--ember-learned);
   color: var(--ember-on-accent);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }

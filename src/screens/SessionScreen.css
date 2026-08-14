@@ -47,12 +47,12 @@
 
 .session__daypart {
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .session__title {
   font-family: var(--font-word); /* Alegreya — заголовок */
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.15;
   color: var(--ember-text);
@@ -69,7 +69,7 @@
   border: 1px solid color-mix(in srgb, var(--ember-accent) 30%, transparent);
   background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
   color: var(--ember-accent);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
@@ -88,7 +88,7 @@
   border: 1px solid color-mix(in srgb, var(--ember-learned) 30%, transparent);
   background-color: color-mix(in srgb, var(--ember-learned) 10%, transparent);
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
@@ -100,7 +100,7 @@
 
 .session__note {
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
@@ -263,7 +263,7 @@
 .session__block-task {
   flex: 1;
   min-width: 0;
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   line-height: 1.35;
   overflow-wrap: break-word;
@@ -280,7 +280,7 @@
   border-radius: 999px;
   background-color: color-mix(in srgb, var(--ember-accent) 18%, transparent);
   color: var(--ember-accent);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -289,7 +289,7 @@
 .session__block-go {
   flex: 0 0 auto;
   color: var(--ember-text-muted);
-  font-size: 22px;
+  font-size: 1.375rem;
   line-height: 1;
 }
 
@@ -306,13 +306,13 @@
   background-color: var(--ember-accent);
   color: var(--ember-on-accent);
   font-family: var(--font-ui);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
   box-shadow: 0 10px 30px color-mix(in srgb, var(--ember-accent) 45%, transparent);
 }
 
 .session__cta-arrow {
-  font-size: 18px;
+  font-size: 1.125rem;
   line-height: 1;
 }
 
@@ -331,7 +331,7 @@
 .session__done-emoji,
 .session__empty-emoji,
 .session__rest-emoji {
-  font-size: 44px;
+  font-size: 2.75rem;
   line-height: 1;
 }
 
@@ -339,14 +339,14 @@
 .session__empty-text,
 .session__rest-hint {
   color: var(--ember-text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
   max-width: 32ch;
 }
 
 .session__rest-title {
   font-family: var(--font-word);
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--ember-text);
 }
@@ -362,7 +362,7 @@
 }
 
 .session__extras-title {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--ember-text);
 }
@@ -383,7 +383,7 @@
   border-radius: 999px;
   background-color: var(--ember-card);
   color: var(--ember-text);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -393,7 +393,7 @@
 }
 
 .session__extras-hint {
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.4;
   color: var(--ember-text-muted);
 }
@@ -408,7 +408,7 @@
   background-color: var(--ember-surface);
   color: var(--ember-text);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   margin-bottom: calc(4px + env(safe-area-inset-bottom));
 }

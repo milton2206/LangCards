@@ -22,7 +22,7 @@
   background-color: transparent;
   color: var(--ember-text-muted);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -54,7 +54,7 @@
   flex: 1;
   min-width: 0;
   font-family: var(--font-word); /* Alegreya — дата сессии */
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--ember-text);
 }
@@ -71,7 +71,7 @@
   border-radius: 999px;
   background-color: color-mix(in srgb, var(--ember-accent) 16%, transparent);
   color: var(--ember-accent);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -110,7 +110,7 @@
   align-items: baseline;
   gap: 7px;
   font-family: var(--font-word); /* Alegreya — заголовок записи */
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: var(--ember-text);
 }
@@ -123,7 +123,7 @@
 }
 
 .whatsnew__desc {
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: var(--ember-text-muted);
 }

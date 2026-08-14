@@ -14,6 +14,12 @@ import {
   recentDialogueTitles,
 } from "../lib/comprehensionClient.js";
 import { stopCurrentAudio } from "../lib/ttsClient.js";
+import {
+  LISTENING_LEVELS,
+  getListeningLevel,
+  loadReadingRate,
+  saveReadingRate,
+} from "../lib/listeningLevels.js";
 import { apiErrorText } from "../lib/apiClient.js";
 import { ENOUGH_WORDS_FOR_READING } from "../hooks/useWordLists.js";
 import { useWordLookup } from "../hooks/useWordLookup.js";
@@ -222,13 +228,29 @@ export default function ReadingScreen({
     }
   }
 
+  // Скорость чтения вслух: тот же набор, что в аудировании (LISTENING_LEVELS —
+  // один список скоростей на приложение), но выбор свой и хранится отдельно:
+  // замедлить текст и усложнить аудирование — разные решения. Скорость входит в
+  // ключ кэша озвучки, поэтому смена скорости — это другой файл, а не растяжение.
+  const [rateId, setRateId] = useState(loadReadingRate);
+  const rate = getListeningLevel(rateId).rate;
+
+  function handleRate(id) {
+    // Меняем скорость — глушим то, что играет: дальше зазвучит другой файл.
+    stopCurrentAudio();
+    setRateId(id);
+    saveReadingRate(id);
+  }
+
   // Треки для плеера «весь текст»: предложения по порядку. Весь текст — это
   // несколько mp3 (по предложению), плеер склеивает их в одну шкалу времени и
   // умеет паузу/перемотку. Источник звука прежний (общий TTS-кэш).
   const textTracks = useMemo(
     () =>
-      current ? current.sentences.map((s) => ({ text: s.text, learnLang })) : [],
-    [current, learnLang],
+      current
+        ? current.sentences.map((s) => ({ text: s.text, learnLang, rate }))
+        : [],
+    [current, learnLang, rate],
   );
 
   // Ключ кэша вопросов текущего текста и то, есть ли уже сохранённые вопросы
@@ -343,6 +365,29 @@ export default function ReadingScreen({
               appearance="ember"
               ariaLabel={t("reading.playAll")}
             />
+          </div>
+
+          {/* Скорость чтения вслух — тот же набор скоростей, что в аудировании
+              (один список на приложение, он же на сервере). Замедленный вариант
+              — отдельная запись в кэше озвучки, поэтому заранее его не готовим:
+              аудио запрашивается только по нажатию play. */}
+          <div className="reading__rate" role="group">
+            <span className="reading__rate-label">{t("reading.speedLabel")}</span>
+            <div className="reading__rate-chips">
+              {LISTENING_LEVELS.map((l) => (
+                <button
+                  key={l.id}
+                  type="button"
+                  className={
+                    "reading__rate-chip" + (rateId === l.id ? " is-active" : "")
+                  }
+                  aria-pressed={rateId === l.id}
+                  onClick={() => handleRate(l.id)}
+                >
+                  {t(`listening.level.${l.id}`)}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Текст по предложениям: слова тапабельны (перевод), у каждого

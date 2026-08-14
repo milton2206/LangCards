@@ -31,7 +31,7 @@
   border-radius: 12px;
   background-color: var(--ember-surface);
   color: var(--ember-text);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
@@ -45,7 +45,7 @@
 
 .stats__title {
   font-family: var(--font-word); /* Alegreya — заголовок */
-  font-size: 26px;
+  font-size: 1.625rem;
   font-weight: 700;
   letter-spacing: -0.3px;
   color: var(--ember-text);
@@ -57,7 +57,7 @@
   align-items: center;
   gap: 7px;
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .stats__subtitle-flag {
@@ -100,7 +100,7 @@
 
 .stats__donut-percent {
   font-family: var(--font-word);
-  font-size: 38px;
+  font-size: 2.375rem;
   font-weight: 800;
   letter-spacing: -0.5px;
   color: var(--ember-text);
@@ -108,7 +108,7 @@
 
 .stats__donut-label {
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 /* ---------- Плитки со значениями ---------- */
@@ -132,7 +132,7 @@
 
 .stats__tile-value {
   font-family: var(--font-word);
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 800;
   color: var(--ember-text);
 }
@@ -148,7 +148,7 @@
 
 .stats__tile-label {
   color: var(--ember-text-muted);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 /* ---------- Прогресс лимита активных слов ---------- */
@@ -166,7 +166,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 /* Слева — подпись (заметно), справа — счётчик (приглушённо). */
@@ -198,7 +198,7 @@
 
 .stats__limit-hint {
   color: var(--ember-text-muted);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 
@@ -214,12 +214,12 @@
 }
 
 .stats__empty-emoji {
-  font-size: 48px;
+  font-size: 3rem;
   line-height: 1;
 }
 
 .stats__empty-text {
   color: var(--ember-text-muted);
-  font-size: 16px;
+  font-size: 1rem;
   max-width: 30ch;
 }

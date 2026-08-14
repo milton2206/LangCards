@@ -33,7 +33,7 @@
   border-radius: 12px;
   background-color: var(--ember-surface);
   color: var(--ember-text);
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
@@ -41,7 +41,7 @@
   flex: 1;
   min-width: 0;
   font-family: var(--font-word); /* Alegreya — заголовок */
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--ember-text);
 }
@@ -54,14 +54,14 @@
   background-color: var(--ember-surface);
   border: 1px solid var(--ember-border);
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
 /* ---------- Служебные состояния ---------- */
 .reading__notice {
   color: var(--ember-text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
 }
 
@@ -71,7 +71,7 @@
   border: 1px solid color-mix(in srgb, var(--ember-warning) 40%, transparent);
   background-color: color-mix(in srgb, var(--ember-warning) 12%, transparent);
   color: var(--ember-warning);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
 }
 
@@ -87,7 +87,7 @@
 }
 
 .reading__empty-emoji {
-  font-size: 52px;
+  font-size: 3.25rem;
   line-height: 1;
 }
 
@@ -145,13 +145,53 @@
   flex: 0 0 auto;
 }
 
+/* ---------- Скорость чтения вслух ----------
+   Тот же набор скоростей, что в аудировании, и тот же вид чипов. Стоит под
+   шапкой текста, рядом с кнопкой озвучки — там, где о скорости и вспоминают. */
+.reading__rate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.reading__rate-label {
+  color: var(--ember-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.reading__rate-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reading__rate-chip {
+  min-height: 34px;
+  padding: 4px 12px;
+  border: 1px solid var(--ember-border);
+  border-radius: 999px;
+  background-color: var(--ember-surface);
+  color: var(--ember-text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.reading__rate-chip.is-active {
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
+}
+
 .reading__text-head .aplayer--ember {
   flex-basis: 100%;
 }
 
 .reading__text-title {
   font-family: var(--font-word); /* Alegreya — заголовок текста */
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.3;
   color: var(--ember-text);
@@ -159,14 +199,14 @@
 }
 
 .reading__text-subtitle {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--ember-text-muted);
 }
 
 /* Сплошной текст */
 .reading__body {
   font-family: var(--font-word); /* изучаемый язык — Alegreya, живой ритм */
-  font-size: 18px;
+  font-size: 1.125rem;
   line-height: 1.75;
   color: var(--ember-text);
   overflow-wrap: anywhere;
@@ -227,7 +267,7 @@
   border-radius: 6px;
   background-color: var(--ember-surface);
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -249,7 +289,7 @@
   align-items: baseline;
   gap: 8px;
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
@@ -282,7 +322,7 @@
   background-color: var(--ember-surface);
   color: var(--ember-text);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -318,7 +358,7 @@
 
 /* Перевод разбираемого предложения — над пунктами разбора. */
 .reading__grammar-translation {
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: var(--ember-text-muted);
 }
@@ -329,7 +369,7 @@
   gap: 6px;
   margin: 0;
   padding-left: 18px;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: var(--ember-text);
 }
@@ -341,7 +381,7 @@
   border: 1px solid color-mix(in srgb, var(--ember-accent) 25%, transparent);
   background-color: color-mix(in srgb, var(--ember-accent) 8%, transparent);
   color: var(--ember-text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
 }
 
@@ -357,7 +397,7 @@
 }
 
 .reading__few-text {
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.45;
   color: var(--ember-text);
 }
@@ -376,7 +416,7 @@
   border-radius: var(--ember-radius-sm);
   background-color: color-mix(in srgb, var(--ember-learned) 14%, transparent);
   color: var(--ember-learned);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -389,7 +429,7 @@
   border-radius: 999px;
   background-color: var(--ember-surface);
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1;
 }
 
@@ -409,7 +449,7 @@
   background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
   color: var(--ember-accent);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
@@ -419,14 +459,14 @@
 
 .reading__check-hint {
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
 /* Нижняя подсказка «No score, no timer…» */
 .reading__foot {
   color: var(--ember-text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.45;
   padding-bottom: calc(4px + env(safe-area-inset-bottom));
 }
