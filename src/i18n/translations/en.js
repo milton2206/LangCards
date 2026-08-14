@@ -704,6 +704,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      cleanerCards: {
+        title: "Cards without stray marks or invented phrases",
+        desc: "Words and translations used to pick up random stress marks. They're gone now: stress stays only in the pronunciation hint, while Greek keeps its tonos — there it's part of the spelling. And invented expressions like a word-for-word “not my cup of tea” no longer make it into cards: only what native speakers actually say.",
+      },
       readableAndSlower: {
         title: "Bigger, clearer, slower",
         desc: "The “My words” list is now “Learning” — a fair pair with “Known”. Settings gained a text size control: three steps that apply across the whole app at once. And in reading you can slow the audio down, just like in listening.",
