@@ -435,6 +435,9 @@ export default {
       newWordsRandom: "Surprise words · {n}",
       listening: "Dialogue · listen and answer",
     },
+    // Progress of the new-words task: how many are already taken. Shown only
+    // while the block is unfinished.
+    taskProgress: "{taken} of {total}",
     checkAria: "Mark block “{block}” done",
     uncheckAria: "Unmark block “{block}”",
     newBlockTitle: "Session · new words",
@@ -710,6 +713,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      newWordsProgress: {
+        title: "You can see how many words you've taken",
+        desc: "The new-words task now shows a counter next to its size — “8 of 10”. As you work through the deck you can see how many are still left before the task is done. It counts words you actually take: “I know it” and “Skip” don't move it. Once the task is complete, the block gets a checkmark like the others.",
+      },
       steadierAudio: {
         title: "Listening audio holds up better",
         desc: "A dialogue is voiced line by line, and until now a single line failing was enough to stop the whole conversation from playing. Each line now gets a second attempt, so a passing network glitch usually goes unnoticed. And when the audio really doesn't arrive, the app is clearer about why: “the server didn't respond” and “you're offline” are different things.",

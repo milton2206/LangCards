@@ -273,6 +273,17 @@
   text-decoration: line-through;
 }
 
+/* Счётчик прогресса задания («8 из 10») — приглушённо рядом с задачей: это
+   подсказка о ходе дела, а не сама задача. У выполненного блока его нет. */
+.session__block-progress {
+  flex: 0 0 auto;
+  color: var(--ember-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 /* Бейдж «акцент» на ведущем блоке дня. */
 .session__accent-badge {
   flex: 0 0 auto;

@@ -57,6 +57,10 @@ export default function SessionScreen({
   activeLanguage,
   learnLang,
   scheduleActive,
+  // Сколько новых слов ВЗЯТО сегодня по этой паре — для счётчика «8 из 10» в
+  // блоке новых слов. Число приходит из общего механизма дневной нормы
+  // (takenTodayByPair по takenDate), своего счётчика экран не заводит.
+  newWordsTaken = 0,
 }) {
   const { t } = useI18n();
 
@@ -98,6 +102,27 @@ export default function SessionScreen({
     if (block.type === "reading") return t("session.task.reading");
     if (block.type === "listening") return t("session.task.listening");
     return "";
+  }
+
+  /**
+   * Счётчик «сколько уже взято» для блока новых слов: «8 из 10». По ходу разбора
+   * колоды иначе не видно, сколько ещё осталось до выполнения задания.
+   *
+   * Считаются ВЗЯТЫЕ сегодня слова, а не разобранные карточки: «Знаю» и
+   * «Пропустить» к выполнению задания не приближают. Число — то же самое, по
+   * которому блок сам отмечается выполненным (см. autoDoneFor в App.jsx), так
+   * что счётчик и галочка не могут разойтись.
+   *
+   * У ВЫПОЛНЕННОГО блока счётчика нет: он выглядит как остальные пройденные
+   * блоки — галочка и зачёркнутая задача, без вечного «10 из 10».
+   */
+  function blockProgress(block, isDone) {
+    if (block.type !== "newWords" || isDone) return null;
+    const total = Number(block.count) || 0;
+    if (total <= 0) return null;
+    // Взять могли и больше цели (норма шире задания) — выше цели не показываем.
+    const taken = Math.min(Math.max(0, Number(newWordsTaken) || 0), total);
+    return t("session.taskProgress", { taken, total });
   }
 
   // Верхняя панель — только настройки справа. Ручной выбор языка убран: язык
@@ -221,6 +246,12 @@ export default function SessionScreen({
                       <Icon name={BLOCK_ICON[block.type]} size={20} />
                     </span>
                     <span className="session__block-task">{blockTask(block)}</span>
+                    {/* Прогресс задания (пока оно не выполнено): «8 из 10». */}
+                    {blockProgress(block, isDone) && (
+                      <span className="session__block-progress">
+                        {blockProgress(block, isDone)}
+                      </span>
+                    )}
                     {block.accent && (
                       <span className="session__accent-badge">
                         {t("session.accentBadge")}

@@ -1307,6 +1307,9 @@ export default function App() {
             onSwitchLanguage={handleSwitchLanguage}
             learnLang={learnLang}
             scheduleActive={scheduleActive}
+            // Взято сегодня по этой паре — тем же числом блок отмечается
+            // выполненным (autoDoneFor), поэтому счётчик с галочкой не разойдутся.
+            newWordsTaken={takenTodayForPair}
           />
         )}
 
