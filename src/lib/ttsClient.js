@@ -164,14 +164,25 @@ export function forgetTtsUrl({
  * Зачем отдельно: раньше любая неудача сворачивалась в null, и плеер показывал
  * одно «Нет аудио» — что бы ни случилось. Человеку это ничего не объясняет и не
  * подсказывает, поможет ли повтор. Причины (их различает плеер):
- *   offline      — нет сети или сервер недоступен;
+ *   offline      — сети НЕТ (navigator.onLine === false), это видно устройству;
+ *   netFailed    — сеть есть, но запрос не дошёл: оборвалось соединение, сервер
+ *                  не ответил, CORS, DNS. Раньше сливалось с offline, и человек
+ *                  шёл проверять интернет вместо простого повтора;
  *   rateLimit    — суточный лимит озвучки исчерпан (RATE_LIMITS.tts). Считает и
  *                  решает СЕРВЕР — клиент только показывает его ответ;
  *   rateCooldown — слишком часто, надо подождать пару секунд;
  *   sessionExpired — сессия истекла;
  *   unavailable  — текст пустой или длиннее лимита (повтор не поможет);
- *   failed       — синтез не удался (ошибка сервера, пустой ответ).
+ *   failed       — сервер ответил ошибкой (Google, запись в кэш, таймаут) или
+ *                  вернул 200 без ссылки.
+ *
+ * Причины, которые ЛЕЧИТ ПОВТОР, перечислены в RETRYABLE_REASONS — по ним
+ * плеер делает вторую попытку, не спрашивая человека. Остальные повтором не
+ * лечатся: суточный лимит от повтора не кончится, истёкшая сессия требует
+ * входа, слишком длинный текст останется длинным, офлайн — офлайном.
  */
+export const RETRYABLE_REASONS = ["failed", "netFailed"];
+
 export async function fetchTtsUrlResult({
   text,
   learnLang,
@@ -208,6 +219,9 @@ export async function fetchTtsUrlResult({
 // Сам поход на сервер (вынесен, чтобы обёртка выше умела склеивать одинаковые
 // запросы в один). Возвращает { url } либо { url: null, reason, params? }.
 async function requestTts(key, clean, learnLang, rate, voice) {
+  // Начало фразы для строки в консоли: по нему видно, на какой именно реплике
+  // встало, а целиком тащить незачем — реплика бывает длинной.
+  const excerpt = clean.length > 40 ? `${clean.slice(0, 40)}…` : clean;
   try {
     const res = await apiFetch("/api/tts", {
       method: "POST",
@@ -218,6 +232,15 @@ async function requestTts(key, clean, learnLang, rate, voice) {
       const info = await parseApiError(res);
       const known = ["rateLimit", "rateCooldown", "sessionExpired"];
       const reason = known.includes(info.code) ? info.code : "failed";
+      // Статус и код — в консоль, как в генерации карточек: по экрану сбой
+      // Google, упавшая запись в кэш и таймаут выглядят одинаково, и без этой
+      // строки разбираться было не с чем. serverCode называет ЗВЕНО
+      // (ttsAuth / ttsSynth / ttsStorage — см. lib/tts.js).
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[tts] озвучка не удалась: HTTP ${res.status}, code=${info.serverCode ?? info.code ?? "—"}, ${learnLang}/${voice}/rate=${rate} «${excerpt}»`,
+        info.raw || "",
+      );
       // Отказ по суточному лимиту касается ВСЕХ кнопок сразу — запоминаем.
       noteQuotaReason(reason);
       return { url: null, reason, params: info.params };
@@ -229,10 +252,22 @@ async function requestTts(key, clean, learnLang, rate, voice) {
       return { url: data.url };
     }
     // Ответ без ссылки — синтез не состоялся.
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[tts] сервер ответил 200 без ссылки: ${learnLang}/${voice} «${excerpt}»`,
+    );
     return { url: null, reason: "failed" };
-  } catch {
-    // fetch не дошёл: сеть или сервер. Кэш не трогаем — повтор сходит заново.
-    return { url: null, reason: "offline" };
+  } catch (e) {
+    // fetch не дошёл. Кэш не трогаем — повтор сходит заново. Различаем реальный
+    // офлайн (устройство само знает, что сети нет) и всё остальное: обрыв,
+    // молчащий сервер, CORS, DNS. Второе лечится повтором, первое — нет.
+    const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[tts] запрос не дошёл (${offline ? "устройство офлайн" : "сеть/сервер"}): ${learnLang}/${voice} «${excerpt}» —`,
+      e?.message || e,
+    );
+    return { url: null, reason: offline ? "offline" : "netFailed" };
   }
 }
 

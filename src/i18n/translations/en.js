@@ -473,6 +473,9 @@ export default {
     retrying: "Loading…",
     errFailed: "Couldn't get the audio. The exercise itself is still here.",
     errOffline: "Can't reach the server. Check your connection and try again.",
+    // The device is online but the request didn't land — offer a retry, not a
+    // connection check.
+    errNetwork: "The server didn't respond. Try the audio again.",
     errLimit:
       "You've used today's audio limit. It resets tomorrow (at 00:00 UTC).",
     errCooldown: "Too often. Wait {seconds}s and try again.",
@@ -529,6 +532,9 @@ export default {
   errors: {
     title: "Couldn't generate",
     offline: "No connection to server. Check your internet and try again.",
+    // The device is online but the request didn't get through: the server went
+    // quiet, the connection dropped. Nothing to check — just try again.
+    network: "The server didn't respond. Please try again.",
     noCards: "Server returned no cards. Please try again.",
     server: "Server error ({status})",
     generateFailed: "Couldn't generate cards.",
@@ -704,6 +710,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      steadierAudio: {
+        title: "Listening audio holds up better",
+        desc: "A dialogue is voiced line by line, and until now a single line failing was enough to stop the whole conversation from playing. Each line now gets a second attempt, so a passing network glitch usually goes unnoticed. And when the audio really doesn't arrive, the app is clearer about why: “the server didn't respond” and “you're offline” are different things.",
+      },
       voiceGender: {
         title: "The voice fits the speaker",
         desc: "Listening dialogues are a conversation between two people, and each one now sounds like themselves: a woman gets a female voice, a man a male one. Voices used to be handed out in turn, so a male voice could say “I arrived” in the feminine — in Russian and Greek that was audible immediately.",

@@ -4,6 +4,7 @@ import {
   forgetTtsUrl,
   claimAudio,
   releaseAudio,
+  RETRYABLE_REASONS,
 } from "../lib/ttsClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import Icon from "./icons/Icon.jsx";
@@ -169,20 +170,45 @@ export default function AudioPlayer({
 
   // Готовим все треки: URL-ы из общего кэша + длительности для общей шкалы.
   // При неудаче запоминаем ПРИЧИНУ — по ней плеер объясняет, что случилось.
+  //
+  // КАЖДАЯ дорожка получает ВТОРУЮ попытку. Диалог из четырёх реплик — это
+  // четыре последовательных запроса по длинной цепочке (сессия → лимит →
+  // Storage → Google → запись в Storage), и раньше одного моргнувшего звена
+  // хватало, чтобы уронить весь диалог: prepare выходил на первой же неудаче.
+  // Повтор ровно один и только по причинам, которые он реально лечит
+  // (RETRYABLE_REASONS) — дёргать сервер из-за исчерпанного лимита незачем.
+  // Это тот же приём, что уже работает в кнопке озвучки слова (PlayButton).
   const prepare = useCallback(async () => {
     setPhase("preparing");
     setErrorReason(null);
     setErrorParams(null);
     try {
+      const list = tracks || [];
       const resolved = [];
-      for (const tr of tracks || []) {
-        const { url, reason, params } = await fetchTtsUrlResult({
-          text: tr.text,
-          learnLang: tr.learnLang,
-          rate: tr.rate,
-          voice: tr.voice,
-        });
+      for (const [i, tr] of list.entries()) {
+        const ask = () =>
+          fetchTtsUrlResult({
+            text: tr.text,
+            learnLang: tr.learnLang,
+            rate: tr.rate,
+            voice: tr.voice,
+          });
+
+        let { url, reason, params } = await ask();
+        if (!url && RETRYABLE_REASONS.includes(reason)) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[audio] дорожка ${i + 1}/${list.length} не получена (${reason}) — повтор`,
+          );
+          ({ url, reason, params } = await ask());
+        }
         if (!url) {
+          // Встали окончательно — говорим, на какой именно реплике: по экрану
+          // это неразличимо, а для разбора важно (первая или, скажем, третья).
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[audio] озвучка диалога не готова: дорожка ${i + 1} из ${list.length}, причина ${reason || "failed"}, ${tr.learnLang}/${tr.voice ?? "primary"}`,
+          );
           setErrorReason(reason || "failed");
           setErrorParams(params || null);
           setPhase("error");
@@ -444,6 +470,9 @@ export default function AudioPlayer({
         : "audio.failedShort";
   const reasonKey = {
     offline: "audio.errOffline",
+    // Сеть у устройства есть, а запрос не дошёл: сервер молчит, оборвалось
+    // соединение. Совет «проверьте интернет» тут не по адресу — предлагаем повтор.
+    netFailed: "audio.errNetwork",
     rateLimit: "audio.errLimit",
     rateCooldown: "audio.errCooldown",
     sessionExpired: "audio.errSession",

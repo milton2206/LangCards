@@ -104,8 +104,18 @@ export async function parseApiError(res) {
   if (code === "noNewWords") return { code: "noNewWords" };
   // raw оставляем в объекте ошибки (пригодится в консоли/логах), но показывать
   // его пользователю нельзя — сервер не знает языка интерфейса.
+  //
+  // serverCode — код сервера КАК ЕСТЬ (например ttsAuth / ttsSynth / ttsStorage:
+  // какое звено озвучки упало). Пользователю он не показывается и на выбор
+  // текста не влияет — нужен ровно для строки в консоли, иначе на клиенте от
+  // всех этих случаев остаётся одинаковый «server» и разбирать нечего.
   const raw = body?.error || null;
-  return { code: "server", params: { status: res.status }, raw };
+  return {
+    code: "server",
+    params: { status: res.status },
+    raw,
+    serverCode: code || null,
+  };
 }
 
 /**
@@ -119,6 +129,7 @@ export async function makeApiError(res) {
   err.code = info.code;
   err.params = info.params;
   err.raw = info.raw || null;
+  err.serverCode = info.serverCode || null; // для строки в консоли, не для UI
   return err;
 }
 
@@ -137,6 +148,12 @@ export function apiErrorText(err, t, fallbackKey) {
   switch (err?.code) {
     case "offline":
       return t("errors.offline");
+    // Запрос не дошёл, но сеть у устройства ЕСТЬ (см. netFailed в клиентах):
+    // оборвалось соединение, не ответил сервер, CORS, DNS. Раньше всё это
+    // называлось «нет интернета» — человек шёл проверять вайфай вместо того,
+    // чтобы просто повторить.
+    case "netFailed":
+      return t("errors.network");
     case "rateLimit":
       return t("errors.rateLimit");
     case "rateCooldown":

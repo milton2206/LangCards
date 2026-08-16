@@ -123,18 +123,40 @@ export async function requestDialogueSet({
         questions: questionCount,
       }),
     });
-  } catch {
-    const err = new Error("offline");
-    err.code = "offline";
+  } catch (e) {
+    // Запрос не дошёл. Реальный офлайн устройство знает про себя само; всё
+    // остальное (сервер молчит, оборвалось соединение) — netFailed: это лечится
+    // повтором, а совет «проверьте интернет» только сбивает с толку.
+    const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[dialogue] запрос не дошёл (${offline ? "устройство офлайн" : "сеть/сервер"}): ${learnLang}-${nativeLang} —`,
+      e?.message || e,
+    );
+    const err = new Error(offline ? "offline" : "netFailed");
+    err.code = offline ? "offline" : "netFailed";
     throw err;
   }
   if (!res.ok) {
-    throw await makeApiError(res);
+    const err = await makeApiError(res);
+    // Статус и код — в консоль, как в генерации карточек: по экрану таймаут
+    // функции (504), сорвавшаяся модель (502) и ненастроенный ключ (500)
+    // выглядят одинаково — одной строкой «Не удалось составить диалог».
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[dialogue] генерация не удалась: HTTP ${res.status}, code=${err.serverCode ?? err.code ?? "—"}, ${learnLang}-${nativeLang}/${level}`,
+      err.raw || "",
+    );
+    throw err;
   }
   const data = await res.json();
   const dialogue = Array.isArray(data?.dialogue) ? data.dialogue : [];
   const questions = Array.isArray(data?.questions) ? data.questions : [];
   if (dialogue.length === 0 || questions.length === 0) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[dialogue] сервер вернул пустой набор (HTTP 200): реплик ${dialogue.length}, вопросов ${questions.length}`,
+    );
     const err = new Error("server");
     err.code = "server";
     throw err;
