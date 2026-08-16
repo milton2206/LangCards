@@ -716,6 +716,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      instantLookup: {
+        title: "Instant translation for words you know",
+        desc: "Tap a word you're already learning or already know and the translation opens instantly — the app has that card, there's no one to ask again. The word is recognised in other forms too: “Rechnungen” finds your “die Rechnung”. And a word you looked up earlier in the same session opens without waiting the second time.",
+      },
       compactWordList: {
         title: "The word list is more compact",
         desc: "In “Learning” and “Known” each row is now collapsed: the word, its translation, the review due date and the action stay in view. Transcription, the example with its translation and the verb forms open with the arrow on the right — one word at a time. Twice as many words fit on a phone screen, and none of the details went away.",

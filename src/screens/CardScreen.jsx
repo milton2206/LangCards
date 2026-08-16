@@ -245,6 +245,8 @@ export default function CardScreen({
     onAdd: onAddWordFromExample,
     // Для проверки «такой оборот уже взят» при взятии выделенной фразы.
     takenWords: vocab.takenWords,
+    // Свои карточки: тап по знакомому слову открывается без запроса к модели.
+    wordInfo: vocab.wordInfo,
   });
 
   // Запоминаем данные показанных карточек для экранов «Мои слова»/«Известные».

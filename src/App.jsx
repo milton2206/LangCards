@@ -1378,6 +1378,8 @@ export default function App() {
             level={settings.level}
             takenWords={vocab.takenWords}
             knownWords={vocab.knownWords}
+            // Свои карточки: тап по знакомому слову в тексте не идёт к модели.
+            wordInfo={vocab.wordInfo}
             onAddWord={handleAddManualCard}
             onBack={handleSessionBack}
             plannedSentences={

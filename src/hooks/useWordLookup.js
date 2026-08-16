@@ -1,7 +1,11 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { requestManualCard } from "../lib/manualCard.js";
 import { requestPhrase } from "../lib/readingClient.js";
-import { sentenceWords, sliceByWords } from "../../lib/highlightWord.js";
+import {
+  sentenceWords,
+  sliceByWords,
+  sameWordEntry,
+} from "../../lib/highlightWord.js";
 import { apiErrorText } from "../lib/apiClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 
@@ -32,6 +36,12 @@ import { useI18n } from "../i18n/I18nContext.jsx";
  *
  * takenWords — активные слова пары: нужны, чтобы не заводить второй такой же
  * оборот (у обычного взятия дубликат просто молча не добавлялся бы).
+ *
+ * СНАЧАЛА СМОТРИМ, ЧТО УЖЕ ЕСТЬ. Тап по слову — не генерация текста: тут ждут
+ * миллисекунды, а не секунды. Поэтому к модели идём, только если карточки нет
+ * ни среди своих слов (wordInfo — взятые, известные, просто показанные), ни
+ * среди полученных за эту сессию. Своё слово в тексте стоит в форме, поэтому
+ * ищем и по форме тоже — общим sameWordEntry, без второй реализации.
  */
 
 // Пауза перед запросом перевода оборота: три тапа по стрелке подряд должны
@@ -46,15 +56,104 @@ function sameEntry(a, b) {
   );
 }
 
+const lower = (value) => String(value ?? "").trim().toLowerCase();
+
+// ---------- Карточки, полученные за эту сессию ----------
+// Тап по одному и тому же слову дважды — обычное дело при чтении: второй раз
+// должен открываться мгновенно. Держим карточки В ПАМЯТИ (Map на модуль, общая
+// для чтения и карточки), в localStorage не пишем: данные временные, а
+// хранилище и так нагружено словами, текстами и снимками занятия.
+//
+// Ключ — слово + языковая пара: «Rechnung» для de-ru и de-uk это разные
+// карточки. Обороты сюда НЕ попадают: их перевод зависит от предложения, и
+// кэшировать его по одной лишь фразе значило бы подсунуть чужой контекст.
+const SESSION_CACHE_LIMIT = 200;
+const sessionCards = new Map();
+
+function cacheKeyFor(learnLang, nativeLang, word) {
+  return `${learnLang}-${nativeLang}|${lower(word)}`;
+}
+
+function rememberCard(learnLang, nativeLang, word, card) {
+  if (!card) return;
+  const key = cacheKeyFor(learnLang, nativeLang, word);
+  // Простое ограничение сверху: выбрасываем самую старую запись. Карточки
+  // крошечные, но расти без предела памяти всё равно незачем.
+  if (sessionCards.size >= SESSION_CACHE_LIMIT) {
+    const oldest = sessionCards.keys().next().value;
+    sessionCards.delete(oldest);
+  }
+  sessionCards.set(key, card);
+}
+
+/**
+ * Карточка слова из УЖЕ ИМЕЮЩИХСЯ данных: сначала точное совпадение, потом — по
+ * форме. Форма нужна, потому что в тексте слово стоит в падеже или во времени
+ * («Rechnungen», «ging»), а в wordInfo лежит словарная запись.
+ *
+ * Сравнение по формам берём готовое — sameWordEntry из lib/highlightWord.js:
+ * тем же сравнением подсвечивается слово в примере и отсеиваются дубликаты при
+ * генерации. Третьей реализации «то же слово или нет» в проекте быть не должно.
+ *
+ * exactIndex — заранее собранный индекс точных совпадений (см. useMemo ниже):
+ * он снимает перебор в самом частом случае.
+ */
+function localCardFor(word, wordInfo, exactIndex) {
+  const clean = String(word ?? "").trim();
+  if (!clean || !wordInfo) return null;
+
+  const usable = (key) => {
+    const info = wordInfo[key];
+    // Без перевода карточка бесполезна — за такой словом всё равно к модели.
+    return info && String(info.translation ?? "").trim() ? { word: key, ...info } : null;
+  };
+
+  const exact = exactIndex?.get(lower(clean));
+  if (exact) {
+    const card = usable(exact);
+    if (card) return card;
+  }
+
+  for (const key of Object.keys(wordInfo)) {
+    if (!sameWordEntry(clean, key)) continue;
+    const card = usable(key);
+    if (card) return card;
+  }
+  return null;
+}
+
 export function useWordLookup({
   learnLang,
   nativeLang,
   level,
   onAdd,
   takenWords = [],
+  // Карточки слов, которые у человека уже есть (wordInfo пары): взятые,
+  // известные и просто показанные. По ним тап открывается БЕЗ запроса к модели.
+  wordInfo = null,
 }) {
   const { t } = useI18n();
   const [lookup, setLookup] = useState(null);
+
+  // Индекс точных совпадений по нижнему регистру: самый частый случай не должен
+  // перебирать весь словарь пользователя на каждый тап.
+  const exactIndex = useMemo(() => {
+    const index = new Map();
+    for (const key of Object.keys(wordInfo || {})) index.set(lower(key), key);
+    return index;
+  }, [wordInfo]);
+
+  /**
+   * Карточка, которую можно показать СРАЗУ: своя (wordInfo) или полученная за
+   * эту сессию. Возвращает null, если её нет и надо идти к модели.
+   */
+  const readyCardFor = useCallback(
+    (word) =>
+      localCardFor(word, wordInfo, exactIndex) ||
+      sessionCards.get(cacheKeyFor(learnLang, nativeLang, word)) ||
+      null,
+    [wordInfo, exactIndex, learnLang, nativeLang],
+  );
 
   // Таймер отложенного запроса и номер актуального запроса: ответ на устаревшее
   // выделение игнорируем (пользователь мог успеть раздвинуть дальше).
@@ -87,6 +186,9 @@ export function useWordLookup({
       try {
         const card = await requestManualCard({ learnLang, nativeLang, word });
         if (reqIdRef.current !== reqId) return;
+        // Полученную карточку держим до конца сессии: второй тап по тому же
+        // слову к модели уже не пойдёт.
+        rememberCard(learnLang, nativeLang, word, card);
         originCardRef.current = { word, card };
         setLookup((prev) =>
           prev ? { ...prev, word, span, status: "ready", card } : prev,
@@ -154,8 +256,15 @@ export function useWordLookup({
       const phrase = sliceByWords(span.sentence, span.from, span.to);
       const single = span.from === span.to;
 
-      // Вернулись к исходному слову — карточка уже на руках.
-      if (single && originCardRef.current?.word === phrase) {
+      // Одно слово, карточка на руках (то самое исходное слово, своё слово из
+      // wordInfo или уже полученное в этой сессии) — показываем без запроса и
+      // без паузы: ждать тут нечего.
+      const known =
+        single &&
+        (originCardRef.current?.word === phrase
+          ? originCardRef.current.card
+          : readyCardFor(phrase));
+      if (known) {
         setLookup((prev) =>
           prev
             ? {
@@ -163,7 +272,7 @@ export function useWordLookup({
                 word: phrase,
                 span,
                 status: "ready",
-                card: originCardRef.current.card,
+                card: known,
                 translation: null,
                 lemma: "",
                 confirm: null,
@@ -202,7 +311,7 @@ export function useWordLookup({
         else loadPhrase(phrase, span, reqId);
       }, EXTEND_DEBOUNCE_MS);
     },
-    [cancelPending, loadWord, loadPhrase],
+    [cancelPending, loadWord, loadPhrase, readyCardFor],
   );
 
   /**
@@ -232,10 +341,24 @@ export function useWordLookup({
         };
       }
 
+      // ГЛАВНАЯ развилка тапа: карточка уже есть (своё слово из wordInfo либо
+      // полученная в этой сессии) — открываем шторку сразу готовой, без
+      // состояния «Ищем перевод…» и без похода к модели. Ждать несколько секунд
+      // ради слова, которое человек сам же и учит, незачем.
+      const ready = readyCardFor(word);
+      if (ready) {
+        originCardRef.current = { word, card: ready };
+        setLookup({ word, status: "ready", card: ready, span, confirm: null });
+        return;
+      }
+
+      // Незнакомое слово — запрос всё равно нужен. Шторка при этом открывается
+      // сразу же (состояние ставится синхронно по тапу), а ожидание видно уже
+      // внутри неё.
       setLookup({ word, status: "loading", span, confirm: null });
       loadWord(word, span, reqId);
     },
-    [cancelPending, loadWord],
+    [cancelPending, loadWord, readyCardFor],
   );
 
   // Присоединить соседнее слово. dir: -1 — влево, +1 — вправо. За границы
