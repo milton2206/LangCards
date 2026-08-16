@@ -716,6 +716,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      warmLookup: {
+        title: "Translations are prepared ahead of time",
+        desc: "As soon as a reading text opens, the app quietly prepares translations for the words you don't know yet — while you're still reading the title and the first lines. Tapping a word then shows the translation right away, with no wait. With no connection nothing changes: the translation arrives on tap, as before.",
+      },
       instantLookup: {
         title: "Instant translation for words you know",
         desc: "Tap a word you're already learning or already know and the translation opens instantly — the app has that card, there's no one to ask again. The word is recognised in other forms too: “Rechnungen” finds your “die Rechnung”. And a word you looked up earlier in the same session opens without waiting the second time.",

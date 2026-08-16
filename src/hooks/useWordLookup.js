@@ -7,6 +7,7 @@ import {
   sameWordEntry,
 } from "../../lib/highlightWord.js";
 import { apiErrorText } from "../lib/apiClient.js";
+import { getLookupCard, rememberLookupCard } from "../lib/lookupCache.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 
 /**
@@ -57,34 +58,6 @@ function sameEntry(a, b) {
 }
 
 const lower = (value) => String(value ?? "").trim().toLowerCase();
-
-// ---------- Карточки, полученные за эту сессию ----------
-// Тап по одному и тому же слову дважды — обычное дело при чтении: второй раз
-// должен открываться мгновенно. Держим карточки В ПАМЯТИ (Map на модуль, общая
-// для чтения и карточки), в localStorage не пишем: данные временные, а
-// хранилище и так нагружено словами, текстами и снимками занятия.
-//
-// Ключ — слово + языковая пара: «Rechnung» для de-ru и de-uk это разные
-// карточки. Обороты сюда НЕ попадают: их перевод зависит от предложения, и
-// кэшировать его по одной лишь фразе значило бы подсунуть чужой контекст.
-const SESSION_CACHE_LIMIT = 200;
-const sessionCards = new Map();
-
-function cacheKeyFor(learnLang, nativeLang, word) {
-  return `${learnLang}-${nativeLang}|${lower(word)}`;
-}
-
-function rememberCard(learnLang, nativeLang, word, card) {
-  if (!card) return;
-  const key = cacheKeyFor(learnLang, nativeLang, word);
-  // Простое ограничение сверху: выбрасываем самую старую запись. Карточки
-  // крошечные, но расти без предела памяти всё равно незачем.
-  if (sessionCards.size >= SESSION_CACHE_LIMIT) {
-    const oldest = sessionCards.keys().next().value;
-    sessionCards.delete(oldest);
-  }
-  sessionCards.set(key, card);
-}
 
 /**
  * Карточка слова из УЖЕ ИМЕЮЩИХСЯ данных: сначала точное совпадение, потом — по
@@ -150,7 +123,7 @@ export function useWordLookup({
   const readyCardFor = useCallback(
     (word) =>
       localCardFor(word, wordInfo, exactIndex) ||
-      sessionCards.get(cacheKeyFor(learnLang, nativeLang, word)) ||
+      getLookupCard(learnLang, nativeLang, word) ||
       null,
     [wordInfo, exactIndex, learnLang, nativeLang],
   );
@@ -187,8 +160,8 @@ export function useWordLookup({
         const card = await requestManualCard({ learnLang, nativeLang, word });
         if (reqIdRef.current !== reqId) return;
         // Полученную карточку держим до конца сессии: второй тап по тому же
-        // слову к модели уже не пойдёт.
-        rememberCard(learnLang, nativeLang, word, card);
+        // слову к модели уже не пойдёт (общий кэш — см. lookupCache).
+        rememberLookupCard(learnLang, nativeLang, word, card);
         originCardRef.current = { word, card };
         setLookup((prev) =>
           prev ? { ...prev, word, span, status: "ready", card } : prev,

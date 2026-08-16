@@ -14,6 +14,7 @@ import {
   recentDialogueTitles,
 } from "../lib/comprehensionClient.js";
 import { stopCurrentAudio } from "../lib/ttsClient.js";
+import { warmTextLookups } from "../lib/lookupWarm.js";
 import {
   LISTENING_LEVELS,
   getListeningLevel,
@@ -151,6 +152,23 @@ export default function ReadingScreen({
 
   // На экране всегда самый свежий текст (один за раз).
   const current = texts[0] || null;
+
+  // ПРОГРЕВ ПЕРЕВОДОВ: как только текст показан, одним фоновым вызовом собираем
+  // карточки для слов, которых у человека нет. Тап по слову ждут мгновенно, а
+  // карточка от модели идёт несколько секунд — теперь это ожидание приходится
+  // на время, пока человек читает заголовок и первые строки.
+  //
+  // Всё остальное решает сам lookupWarm: офлайн, «слов мало», «этот текст уже
+  // грели в этой сессии» — экран лишь говорит, что текст на месте.
+  useEffect(() => {
+    if (!current) return;
+    warmTextLookups({
+      sentences: current.sentences,
+      wordInfo,
+      learnLang,
+      nativeLang,
+    });
+  }, [current, wordInfo, learnLang, nativeLang, offline]);
 
   // Три состояния по числу взятых слов пары. Режим доступен ВСЕГДА — при нуле
   // слов текст просто целиком новый (это обычный адаптированный текст под

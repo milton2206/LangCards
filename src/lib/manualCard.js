@@ -41,3 +41,32 @@ export async function requestManualCard({ learnLang, nativeLang, word }) {
   }
   return card;
 }
+
+/**
+ * Карточки СРАЗУ НА НЕСКОЛЬКО слов — прогрев переводов для показанного текста
+ * (см. lookupWarm.js). Тот же эндпоинт и тот же формат карточки, что у ручного
+ * ввода: один вызов на текст вместо отдельного вызова на каждый тап.
+ *
+ * Ошибки НЕ разбираем по кодам: прогрев фоновый и молча ничего не делает при
+ * любой неудаче — тап тогда сработает как раньше, через модель.
+ */
+export async function requestLookupCards({ learnLang, nativeLang, words }) {
+  const list = (words || []).map((w) => String(w).trim()).filter(Boolean);
+  if (list.length === 0) return [];
+
+  const res = await apiFetch("/api/cards", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      learnLang,
+      nativeLang,
+      words: list,
+      lookup: true,
+      count: list.length,
+    }),
+  });
+  if (!res.ok) throw await makeApiError(res);
+
+  const data = await res.json();
+  return Array.isArray(data && data.cards) ? data.cards : [];
+}
