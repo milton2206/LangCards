@@ -4,7 +4,7 @@ import { useWordSelection } from "../hooks/useWordSelection.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import SelectBar from "../components/SelectBar.jsx";
 import WordListTabs from "../components/WordListTabs.jsx";
-import ConjugationPanel from "../components/ConjugationPanel.jsx";
+import WordRow from "../components/WordRow.jsx";
 import Icon from "../components/icons/Icon.jsx";
 import "./MyWordsScreen.css";
 
@@ -17,10 +17,10 @@ import "./MyWordsScreen.css";
  * Режим выбора («Выбрать») позволяет отметить слова чекбоксами и удалить
  * их совсем (из списков и хранилища) с подтверждением.
  *
- * У глаголов строка раскрывается таблицей спряжения — ровно так же, как в «Моих
- * словах»: тот же признак (pos === "verb"), тот же ConjugationPanel, тот же
- * клиентский путь и общий кэш по начальной форме. Открытое на карточке или в
- * «Моих словах» спряжение здесь появляется мгновенно, без обращения к API.
+ * Строка — тот же общий WordRow, что и в «На изучении»: свёрнуто слово с
+ * переводом и «Вернуть», а транскрипция, пример и таблица спряжения (у глаголов)
+ * открываются стрелкой справа. Отличия только в наполнении: здесь нет метки
+ * срока повторения и озвучки — списку известных слов они не нужны.
  */
 export default function KnownWordsScreen({
   knownWords,
@@ -132,91 +132,23 @@ export default function KnownWordsScreen({
         </div>
       ) : (
         <ul className="mywords__list">
-          {items.map((item) => {
-            const checked = sel.selected.has(item.word);
-            return (
-              <li
-                key={item.word}
-                className={
-                  "mywords__item" +
-                  (sel.selectMode ? " mywords__item--selectable" : "") +
-                  (checked ? " is-selected" : "")
-                }
-                onClick={
-                  sel.selectMode ? () => sel.toggle(item.word) : undefined
-                }
-              >
-                <div className="mywords__item-row">
-                  {sel.selectMode && (
-                    <span
-                      className={
-                        "mywords__checkbox" + (checked ? " is-checked" : "")
-                      }
-                      aria-hidden="true"
-                    >
-                      {checked ? "✓" : ""}
-                    </span>
-                  )}
-                  <div className="mywords__item-text">
-                    <span className="mywords__word" lang={learnLang}>
-                      {item.word}
-                    </span>
-                    {item.translit && (
-                      <span className="mywords__translit">
-                        {item.translit}
-                      </span>
-                    )}
-                    {item.translation && (
-                      <span className="mywords__translation">
-                        {item.translation}
-                      </span>
-                    )}
-                  </div>
-                  {!sel.selectMode && (
-                    <button
-                      type="button"
-                      className="mywords__restore"
-                      onClick={() => handleRestore(item.word)}
-                      disabled={atLimit}
-                    >
-                      {t("words.restore")}
-                    </button>
-                  )}
-                </div>
-
-                {item.example && (
-                  <div className="mywords__example">
-                    <p className="mywords__example-text" lang={learnLang}>
-                      {item.example}
-                    </p>
-                    {item.exampleTranslation && (
-                      <p
-                        className="mywords__example-translation"
-                        lang={nativeLang}
-                      >
-                        {item.exampleTranslation}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Глаголы: таблица форм по запросу — как в «Моих словах».
-                    У слов без pos (старых записей) и не-глаголов панели нет.
-                    В режиме выбора не показываем: там строка работает как
-                    чекбокс. */}
-                {!sel.selectMode && item.pos === "verb" && (
-                  <ConjugationPanel
-                    word={item.word}
-                    // Подсвечиваем форму, под которой слово сохранено.
-                    form={item.word}
-                    learnLang={learnLang}
-                    nativeLang={nativeLang}
-                    variant="mywords"
-                  />
-                )}
-              </li>
-            );
-          })}
+          {items.map((item) => (
+            <WordRow
+              key={item.word}
+              item={item}
+              learnLang={learnLang}
+              nativeLang={nativeLang}
+              picking={sel.selectMode}
+              checked={sel.selected.has(item.word)}
+              onToggle={() => sel.toggle(item.word)}
+              action={{
+                label: t("words.restore"),
+                className: "mywords__restore",
+                onClick: () => handleRestore(item.word),
+                disabled: atLimit,
+              }}
+            />
+          ))}
         </ul>
       )}
 

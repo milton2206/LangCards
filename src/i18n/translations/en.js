@@ -606,6 +606,9 @@ export default {
     select: "Select",
     learned: "Learned",
     restore: "Restore",
+    // Row disclosure arrow: label for screen readers only.
+    expandAria: "Show details for “{word}”",
+    collapseAria: "Hide details for “{word}”",
     mineEmpty: "Empty for now. Take words with the “Take” button — they'll appear here.",
     knownEmpty: "Empty for now. Words marked “Know” will collect here.",
     emptyTitle: "Nothing here yet",
@@ -713,6 +716,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      compactWordList: {
+        title: "The word list is more compact",
+        desc: "In “Learning” and “Known” each row is now collapsed: the word, its translation, the review due date and the action stay in view. Transcription, the example with its translation and the verb forms open with the arrow on the right — one word at a time. Twice as many words fit on a phone screen, and none of the details went away.",
+      },
       newWordsProgress: {
         title: "You can see how many words you've taken",
         desc: "The new-words task now shows a counter next to its size — “8 of 10”. As you work through the deck you can see how many are still left before the task is done. It counts words you actually take: “I know it” and “Skip” don't move it. Once the task is complete, the block gets a checkmark like the others.",

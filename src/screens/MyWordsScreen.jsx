@@ -5,8 +5,7 @@ import { useI18n } from "../i18n/I18nContext.jsx";
 import SelectBar from "../components/SelectBar.jsx";
 import PromoteBar from "../components/PromoteBar.jsx";
 import WordListTabs from "../components/WordListTabs.jsx";
-import PlayButton from "../components/PlayButton.jsx";
-import ConjugationPanel from "../components/ConjugationPanel.jsx";
+import WordRow from "../components/WordRow.jsx";
 import "./MyWordsScreen.css";
 
 /**
@@ -23,12 +22,13 @@ import "./MyWordsScreen.css";
  * Это главный способ разгрузить активные: чек-пойнт спрашивает про несколько
  * слов за занятие, а здесь очередь разбирается целиком и по своей воле.
  *
- * У глаголов строка раскрывается таблицей спряжения — ТОТ ЖЕ компонент и тот же
+ * Сама строка — общий компонент WordRow (он же в «Известных»): свёрнуто слово,
+ * перевод, срок, озвучка и действие, а транскрипция, пример и таблица спряжения
+ * открываются стрелкой справа. Таблица спряжения там — ТОТ ЖЕ компонент и тот же
  * клиентский путь, что на карточке (ConjugationPanel → conjugationClient). Кэш
  * общий и работает по начальной форме, поэтому открытое на карточке спряжение
  * здесь показывается мгновенно и без обращения к API. Список при этом остаётся
- * списком: таблица разворачивается внутри строки, экран в карточку не
- * превращается, прочие действия строки не меняются.
+ * списком: всё разворачивается внутри строки, экран в карточку не превращается.
  */
 export default function MyWordsScreen({
   takenWords,
@@ -206,125 +206,31 @@ export default function MyWordsScreen({
         </div>
       ) : (
         <ul className="mywords__list">
-          {visibleItems.map((item) => {
-            const checked = activeSel.selected.has(item.word);
-            return (
-              <li
-                key={item.word}
-                className={
-                  "mywords__item" +
-                  (picking ? " mywords__item--selectable" : "") +
-                  (checked ? " is-selected" : "")
-                }
-                onClick={
-                  picking ? () => activeSel.toggle(item.word) : undefined
-                }
-              >
-                <div className="mywords__item-row">
-                  {picking && (
-                    <span
-                      className={
-                        "mywords__checkbox" + (checked ? " is-checked" : "")
-                      }
-                      aria-hidden="true"
-                    >
-                      {checked ? "✓" : ""}
-                    </span>
-                  )}
-                  <div className="mywords__item-text">
-                    <span className="mywords__word" lang={learnLang}>
-                      {item.word}
-                    </span>
-                    {item.translit && (
-                      <span className="mywords__translit">
-                        {item.translit}
-                      </span>
-                    )}
-                    {item.translation && (
-                      <span className="mywords__translation">
-                        {item.translation}
-                      </span>
-                    )}
-                  </div>
-                  {/* Срок следующего повтора виден и в разборе созревших: по
-                      нему человек и решает, правда ли слово улеглось. Скрыт он
-                      только в режиме удаления — там решение о другом. */}
-                  {!sel.selectMode &&
-                    (() => {
-                      const due = dueInfo(item.word);
-                      return due ? (
-                        <span
-                          className={`mywords__due mywords__due--${due.state}`}
-                        >
-                          {due.label}
-                        </span>
-                      ) : null;
-                    })()}
-                  {!picking && (
-                    <PlayButton
-                      text={item.word}
-                      learnLang={learnLang}
-                      kind="word"
-                      appearance="ember"
-                    />
-                  )}
-                  {!picking && (
-                    <button
-                      type="button"
-                      className="mywords__learned"
-                      onClick={() => onMarkKnown(item.word)}
-                    >
-                      {t("words.learned")}
-                    </button>
-                  )}
-                </div>
-
-                {/* В разборе созревших примеры не показываем: список должен
-                    просматриваться целиком, а не пролистываться экранами. */}
-                {!promote.selectMode && item.example && (
-                  <div className="mywords__example">
-                    <div className="mywords__example-row">
-                      <p className="mywords__example-text" lang={learnLang}>
-                        {item.example}
-                      </p>
-                      {!sel.selectMode && (
-                        <PlayButton
-                          text={item.example}
-                          learnLang={learnLang}
-                          kind="example"
-                          appearance="ember"
-                        />
-                      )}
-                    </div>
-                    {item.exampleTranslation && (
-                      <p
-                        className="mywords__example-translation"
-                        lang={nativeLang}
-                      >
-                        {item.exampleTranslation}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Глаголы: таблица форм по запросу. Признак тот же, что у
-                    карточки (pos === "verb"); у слов без pos — старых записей и
-                    не-глаголов — панели нет. В режиме выбора не показываем:
-                    там строка целиком работает как чекбокс. */}
-                {!picking && item.pos === "verb" && (
-                  <ConjugationPanel
-                    word={item.word}
-                    // Подсвечиваем в таблице ту форму, под которой слово
-                    // сохранено, — как на карточке подсвечивается тапнутая.
-                    form={item.word}
-                    learnLang={learnLang}
-                    nativeLang={nativeLang}
-                    variant="mywords"
-                  />
-                )}
-              </li>
-            );
-          })}
+          {visibleItems.map((item) => (
+            <WordRow
+              key={item.word}
+              item={item}
+              learnLang={learnLang}
+              nativeLang={nativeLang}
+              picking={picking}
+              checked={activeSel.selected.has(item.word)}
+              onToggle={() => activeSel.toggle(item.word)}
+              // Срок следующего повтора виден и в разборе созревших: по нему
+              // человек и решает, правда ли слово улеглось. Скрыт он только в
+              // режиме удаления — там решение о другом.
+              due={!sel.selectMode ? dueInfo(item.word) : null}
+              speakWord
+              speakExample
+              // В разборе созревших подробности не раскрываем: список должен
+              // просматриваться целиком, а не пролистываться экранами.
+              detailsEnabled={!promote.selectMode}
+              action={{
+                label: t("words.learned"),
+                className: "mywords__learned",
+                onClick: () => onMarkKnown(item.word),
+              }}
+            />
+          ))}
         </ul>
       )}
 

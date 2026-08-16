@@ -388,6 +388,45 @@
   font-size: 0.8125rem;
 }
 
+/* ---------- Раскрытие подробностей строки ---------- */
+/* Свёрнутая строка показывает слово, перевод, срок, озвучку и действие;
+   транскрипция, пример и таблица форм живут под стрелкой. Стрелка — тот же
+   шеврон с поворотом на 180°, что у «Ещё» на карточке: второго вида раскрытия
+   в приложении не заводим. */
+.mywords__expand {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: transparent;
+  color: var(--ember-text-muted);
+}
+
+.mywords__expand-chevron {
+  transition: transform 0.2s ease;
+}
+
+.mywords__expand.is-open {
+  color: var(--ember-accent);
+  border-color: color-mix(in srgb, var(--ember-accent) 40%, transparent);
+}
+
+.mywords__expand.is-open .mywords__expand-chevron {
+  transform: rotate(180deg);
+}
+
+.mywords__details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .mywords__translation {
   color: var(--ember-text-muted);
   font-size: 0.9375rem;
