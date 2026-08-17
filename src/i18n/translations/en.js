@@ -752,6 +752,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      cleanWords: {
+        title: "Words without stray marks or missing letters",
+        desc: "Stress marks sometimes slipped into the words themselves, and in older cards they simply stayed there. They are now removed as the word is shown — on the card, in review, in your lists and in the quiz. Your progress on those words is fully intact: only what appears on screen is cleaned up. Greek is left alone, where the mark is part of the spelling. And if the generator ever builds a card whose word and example don't match, that card is no longer shown.",
+      },
       quiz: {
         title: "Multiple-choice quiz",
         desc: "There's a quiz now: a word and four options. Some of your review words are shown this way instead of the self-rated card — a correct answer counts as “Good”, a wrong one as “Again”. The cards haven't gone anywhere: the quiz alternates with them. And if you just feel like drilling words, the quiz also opens on its own — nothing is saved there and your progress doesn't move.",

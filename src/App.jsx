@@ -389,8 +389,9 @@ export default function App() {
       buildQuizPool(
         [...vocab.takenWords, ...vocab.knownWords],
         vocab.wordInfo,
+        learnLang,
       ),
-    [vocab.takenWords, vocab.knownWords, vocab.wordInfo],
+    [vocab.takenWords, vocab.knownWords, vocab.wordInfo, learnLang],
   );
 
   // ---------- Недельная раскладка (фаза 4.5) + ручное редактирование ----------

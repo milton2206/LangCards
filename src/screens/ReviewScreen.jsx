@@ -4,6 +4,7 @@ import { lemmaOfForm } from "../lib/conjugationClient.js";
 import { formatInterval } from "../i18n/format.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { nextSrs, shouldOfferKnown } from "../hooks/useWordLists.js";
+import { cardForDisplay, learnText } from "../lib/displayText.js";
 import {
   buildQuizTask,
   QUIZ_MIN_WORDS,
@@ -243,7 +244,9 @@ export default function ReviewScreen({
     <div className="review__offer" role="group" aria-label={t("knownOffer.aria")}>
       <div className="review__offer-text">
         <p className="review__offer-title">
-          {t("knownOffer.title", { word: knownOffer.word })}
+          {t("knownOffer.title", {
+            word: learnText(knownOffer.word, learnLang),
+          })}
         </p>
         <p className="review__offer-hint">
           {t("knownOffer.hint", {
@@ -345,13 +348,19 @@ export default function ReviewScreen({
     );
   }
 
+  // На экран идёт ПОЧИЩЕННАЯ копия записи: у слов, взятых до появления
+  // зачистки, в самом слове и в примере остались знаки ударения. Ключом всюду
+  // остаётся currentWord — им и оценивается слово (onReview), и берётся запись
+  // из wordInfo. Подсветку тоже считаем по чистой паре: знак в слове мешал бы
+  // сопоставлению с примером.
   const info = wordInfo[currentWord] || {};
-  const hasExample = Boolean(info.example);
+  const view = cardForDisplay({ ...info, word: currentWord }, learnLang);
+  const hasExample = Boolean(view.example);
   const segments = hasExample
     ? // Третьим аргументом — доступ к уже накопленному индексу начальных форм:
       // только им связываются формы с другой основой (ging ↔ gehen). Сети за
       // ним нет, промах индекса штатен — сработает сравнение по основе.
-      highlightWordInExample(info.example, currentWord, lemmaOf)
+      highlightWordInExample(view.example, view.word, lemmaOf)
     : [];
 
   // Какой интервал реально применится при каждой оценке — считаем той же
@@ -398,7 +407,7 @@ export default function ReviewScreen({
                   )}
                 </p>
                 <PlayButton
-                  text={info.example}
+                  text={view.example}
                   learnLang={learnLang}
                   kind="example"
                   appearance="ember"
@@ -409,10 +418,10 @@ export default function ReviewScreen({
               // остаётся само слово: рабочий фолбэк, экран не ломается.
               <div className="review__front-word">
                 <h1 id="review-word" className="review__word" lang={learnLang}>
-                  {currentWord}
+                  {view.word}
                 </h1>
                 <PlayButton
-                  text={currentWord}
+                  text={view.word}
                   learnLang={learnLang}
                   kind="word"
                   appearance="ember"
@@ -447,16 +456,16 @@ export default function ReviewScreen({
                     )}
                   </p>
                   <PlayButton
-                    text={info.example}
+                    text={view.example}
                     learnLang={learnLang}
                     kind="example"
                     appearance="ember"
                   />
                 </div>
                 {/* Прямо под примером — подписи не нужно, пара очевидна. */}
-                {info.exampleTranslation && (
+                {view.exampleTranslation && (
                   <p className="review__sentence-translation" lang={nativeLang}>
-                    {info.exampleTranslation}
+                    {view.exampleTranslation}
                   </p>
                 )}
               </div>
@@ -464,7 +473,7 @@ export default function ReviewScreen({
               // Нет сохранённого примера (редкий случай для старых данных) —
               // показываем хотя бы само слово, чтобы экран оставался рабочим.
               <p className="review__sentence" lang={learnLang}>
-                {currentWord}
+                {view.word}
               </p>
             )}
 
@@ -472,31 +481,31 @@ export default function ReviewScreen({
             <div className="review__answer">
               <div className="review__word-row">
                 <h1 id="review-word" className="review__word" lang={learnLang}>
-                  {currentWord}
+                  {view.word}
                 </h1>
                 <PlayButton
-                  text={currentWord}
+                  text={view.word}
                   learnLang={learnLang}
                   kind="word"
                   appearance="ember"
                 />
               </div>
-              {info.register && (
-                <span className="review__register">{info.register}</span>
+              {view.register && (
+                <span className="review__register">{view.register}</span>
               )}
-              {info.translit && (
-                <p className="review__translit">{info.translit}</p>
+              {view.translit && (
+                <p className="review__translit">{view.translit}</p>
               )}
-              {info.translation && (
-                <p className="review__translation">{info.translation}</p>
+              {view.translation && (
+                <p className="review__translation">{view.translation}</p>
               )}
-              {info.note && (
+              {view.note && (
                 <div className="review__sentence-translation-block">
                   <span className="review__sentence-translation-label">
                     {t("cards.usageNote")}
                   </span>
                   <p className="review__sentence-translation" lang={nativeLang}>
-                    {info.note}
+                    {view.note}
                   </p>
                 </div>
               )}

@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { splitWords } from "../../lib/highlightWord.js";
+import { cardForDisplay } from "../lib/displayText.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import PlayButton from "./PlayButton.jsx";
 import ConjugationPanel from "./ConjugationPanel.jsx";
@@ -119,7 +120,7 @@ export function ExampleBlock({
  * innerRef / style / className — прокидываются на <article> для свайпа и анимаций.
  */
 export default function WordCard({
-  card,
+  card: rawCard,
   learnLang,
   nativeLang,
   onWordTap,
@@ -129,6 +130,15 @@ export default function WordCard({
   className = "",
 }) {
   const { t } = useI18n();
+
+  // Показываем ПОЧИЩЕННУЮ копию: у карточек, взятых до появления зачистки, в
+  // слове и примере остались знаки ударения. Ключ слова при этом не меняется —
+  // экран (взять/знаю/пропустить, wordInfo) работает с исходной карточкой,
+  // сюда приходит только текст на экран.
+  const card = useMemo(
+    () => cardForDisplay(rawCard, learnLang),
+    [rawCard, learnLang],
+  );
 
   // «Детали» сбрасываем при смене слова — открытая панель не должна переезжать
   // на следующую карточку.

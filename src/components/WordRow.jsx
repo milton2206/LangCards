@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { cardForDisplay } from "../lib/displayText.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import PlayButton from "./PlayButton.jsx";
 import ConjugationPanel from "./ConjugationPanel.jsx";
@@ -33,7 +34,7 @@ import Icon from "./icons/Icon.jsx";
  * там список должен просматриваться целиком).
  */
 export default function WordRow({
-  item,
+  item: rawItem,
   learnLang,
   nativeLang,
   picking = false,
@@ -47,6 +48,15 @@ export default function WordRow({
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+
+  // На экран — почищенная копия (старые записи в wordInfo сохранились со
+  // знаками ударения). Список продолжает работать с исходным словом: и ключ
+  // строки, и действия («Выучил», «Вернуть», отметка в режиме выбора) приходят
+  // от родителя и сюда не заглядывают.
+  const item = useMemo(
+    () => cardForDisplay(rawItem, learnLang),
+    [rawItem, learnLang],
+  );
 
   const isVerb = item.pos === "verb";
   const hasDetails = Boolean(item.translit || item.example || isVerb);

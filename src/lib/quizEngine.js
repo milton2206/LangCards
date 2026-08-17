@@ -3,6 +3,7 @@ import {
   highlightWordInExample,
   sameWordEntry,
 } from "../../lib/highlightWord.js";
+import { learnText, nativeText } from "./displayText.js";
 
 // ============================================================================
 // Тест с вариантами ответа: СБОРКА ЗАДАНИЙ. Чистые функции — ни React, ни сети,
@@ -203,10 +204,13 @@ function comparableLength(a, b) {
 // смысловое ядро слова (без артикля): в предложении артикль уже стоит, и
 // «der der Arzt» читалось бы нелепо. Часть речи у вариантов одна, поэтому
 // набор выглядит однородно и артиклем правильный ответ не выдаётся.
+// ВАЖНО: вариантом показываем entry.display — слово БЕЗ знаков ударения, а не
+// entry.word. entry.word остаётся ключом (по нему оценивается слово в
+// повторении и берётся запись из wordInfo) и не меняется никогда.
 const OPTION_TEXT = {
   wordToTranslation: (entry) => entry.translation,
-  translationToWord: (entry) => entry.word,
-  cloze: (entry) => coreWord(entry.word),
+  translationToWord: (entry) => entry.display,
+  cloze: (entry) => coreWord(entry.display),
 };
 
 /**
@@ -214,20 +218,23 @@ const OPTION_TEXT = {
  * записи, из которых вообще можно собрать задание: слово + перевод. Пример
  * нужен лишь формату с пропуском и обязательным не является.
  */
-export function buildQuizPool(words, wordInfo) {
+export function buildQuizPool(words, wordInfo, learnLang) {
   const seen = new Set();
   const pool = [];
   for (const word of words || []) {
     const key = norm(word);
     if (!key || seen.has(key)) continue;
     const info = wordInfo?.[word];
-    const translation = String(info?.translation || "").trim();
+    const translation = nativeText(String(info?.translation || "").trim());
     if (!translation) continue;
     seen.add(key);
     pool.push({
+      // Ключ — как лежит в списках и в srsByWord. Не показывается и не меняется.
       word,
+      // То же слово ДЛЯ ПОКАЗА: у старых записей в нём остались знаки ударения.
+      display: learnText(word, learnLang),
       translation,
-      example: String(info?.example || "").trim(),
+      example: learnText(String(info?.example || "").trim(), learnLang),
       pos: info?.pos || "",
     });
   }
@@ -257,7 +264,9 @@ function candidatesFor(entry, pool, format) {
     if (candidate.word === entry.word) return false;
     if (posOf(candidate) !== posOf(entry)) return false;
     // Одна и та же словарная запись в двух видах («der Arzt» и «Arzt»).
-    if (sameWordEntry(candidate.word, entry.word)) return false;
+    // Сравниваем ПОКАЗЫВАЕМЫЕ формы: знак ударения в старой записи иначе
+    // помешал бы узнать одно и то же слово («спасибо́» и «спасибо»).
+    if (sameWordEntry(candidate.display, entry.display)) return false;
     const text = textOf(candidate);
     if (!text) return false;
     if (norm(text) === answerKey) return false;
@@ -269,7 +278,7 @@ function candidatesFor(entry, pool, format) {
 /** Предложение примера с вырезанным изучаемым словом: [{ text, blank }]. */
 function clozeSegments(entry, lemmaOf) {
   if (!entry.example) return null;
-  const segments = highlightWordInExample(entry.example, entry.word, lemmaOf);
+  const segments = highlightWordInExample(entry.example, entry.display, lemmaOf);
   if (!segments.some((s) => s.highlight)) return null; // слово в примере не найдено
   return segments.map((s) => ({ text: s.text, blank: Boolean(s.highlight) }));
 }
@@ -329,10 +338,11 @@ export function buildQuizTask({
     );
 
     return {
+      // Ключ слова — для оценки в повторении. НЕ показывается.
       word: entry.word,
       format,
       // Что показываем вопросом: слово, перевод или предложение с пропуском.
-      prompt: format === "translationToWord" ? entry.translation : entry.word,
+      prompt: format === "translationToWord" ? entry.translation : entry.display,
       promptLang: format === "translationToWord" ? "native" : "learn",
       segments, // только у формата с пропуском
       optionsLang: format === "wordToTranslation" ? "native" : "learn",

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
+import { cardForDisplay } from "../lib/displayText.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./KnownReviewScreen.css";
 
@@ -92,7 +93,10 @@ export default function KnownReviewScreen({
     );
   }
 
+  // Показ — почищенная копия (у старых записей остались знаки ударения).
+  // currentWord остаётся ключом: им берётся запись и по нему возвращают слово.
   const info = wordInfo[currentWord] || {};
+  const view = cardForDisplay({ ...info, word: currentWord }, learnLang);
 
   return (
     <section className="knownreview" aria-labelledby="knownreview-word">
@@ -113,32 +117,32 @@ export default function KnownReviewScreen({
       <article className="knownreview__card">
         {/* Лицо — само слово: «помню ли я, что это значит?» */}
         <h1 id="knownreview-word" className="knownreview__word" lang={learnLang}>
-          {currentWord}
+          {view.word}
         </h1>
 
         {revealed ? (
           <>
             <div className="knownreview__divider" />
             <div className="knownreview__answer">
-              {info.translit && (
-                <p className="knownreview__translit">{info.translit}</p>
+              {view.translit && (
+                <p className="knownreview__translit">{view.translit}</p>
               )}
-              {info.translation && (
+              {view.translation && (
                 <p className="knownreview__translation" lang={nativeLang}>
-                  {info.translation}
+                  {view.translation}
                 </p>
               )}
-              {info.example && (
+              {view.example && (
                 <p className="knownreview__example" lang={learnLang}>
-                  {info.example}
+                  {view.example}
                 </p>
               )}
-              {info.exampleTranslation && (
+              {view.exampleTranslation && (
                 <p
                   className="knownreview__example-translation"
                   lang={nativeLang}
                 >
-                  {info.exampleTranslation}
+                  {view.exampleTranslation}
                 </p>
               )}
             </div>
