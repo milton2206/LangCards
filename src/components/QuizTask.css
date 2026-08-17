@@ -1,0 +1,106 @@
+/* ============================================================================
+ * Задание теста с вариантами ответа — оформление Ember.
+ * ----------------------------------------------------------------------------
+ * Те же приёмы, что у вопросов на понимание и у теста уровня: материал задания
+ * в тёплой карточке (Alegreya — три алфавита читаются ровно), варианты —
+ * плашки. ДО ответа плашки одинаковы и нейтральны (правильный не подсказан),
+ * ПОСЛЕ — правильный оливковым, ошибочный выбор красноватым. Отдельной плашки
+ * с вердиктом нет: результат говорит сама кнопка.
+ * ========================================================================== */
+
+.quiz-task {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Что делать — на родном языке (интерфейс, Fira). */
+.quiz-task__prompt {
+  color: var(--ember-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+/* Материал задания: слово, перевод или предложение с пропуском. */
+.quiz-task__text {
+  font-family: var(--font-word);
+  padding: 18px 16px;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius);
+  background-color: var(--ember-card);
+  color: var(--ember-text);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Место вырезанного слова — заметный прочерк, а не пустота: иначе непонятно,
+   куда подставлять. Ширина фиксирована, чтобы длина пропуска не подсказывала
+   длину слова. */
+.quiz-task__blank {
+  display: inline-block;
+  position: relative;
+  width: 4.5em;
+  vertical-align: baseline;
+  border-bottom: 2px solid var(--ember-accent);
+}
+
+.quiz-task__options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quiz-task__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.45;
+  text-align: left;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.quiz-task__option-icon {
+  flex: 0 0 auto;
+}
+
+.quiz-task__option-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.quiz-task__option:active {
+  border-color: var(--ember-accent);
+  background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
+}
+
+/* После ответа кнопки неактивны; невыбранные слегка приглушаются. */
+.quiz-task__option:disabled {
+  opacity: 0.6;
+}
+
+.quiz-task__option.is-correct {
+  border-color: var(--ember-learned);
+  background-color: color-mix(in srgb, var(--ember-learned) 18%, transparent);
+  color: var(--ember-learned);
+  opacity: 1;
+}
+
+.quiz-task__option.is-wrong {
+  border-color: var(--ember-danger);
+  background-color: color-mix(in srgb, var(--ember-danger) 16%, transparent);
+  color: var(--ember-danger);
+  opacity: 1;
+}

@@ -575,6 +575,42 @@ export default {
     years: { one: "in {n} year", many: "in {n} years" },
   },
 
+  // Multiple-choice quiz. Two modes, shared strings: some review words are shown
+  // as a quiz question, and there is a separate practice run outside the lesson.
+  quiz: {
+    entry: "Multiple choice",
+    title: "Multiple choice",
+    // What to do — short, in the interface language. The formats rotate on their
+    // own (you don't pick one), so the line just names the current question.
+    promptWord: "Pick the translation",
+    promptTranslation: "Pick the word",
+    promptCloze: "Pick the missing word",
+    // The gap is drawn as a dash — screen readers get the word instead, or the
+    // sentence would be read without a break.
+    blankAria: "blank",
+    // Result for screen readers: on screen the colour and the icon say it.
+    right: "Correct",
+    wrong: "Wrong",
+    next: "Next",
+    finish: "Finish",
+    progress: "Question {n} of {total}",
+    doneTitle: "Round finished",
+    score: "Correct: {n} of {total}",
+    again: "Play again",
+    // The threshold stays visible: while you have few words, we say how many are
+    // still missing instead of hiding the feature.
+    locked: "{n} more {word} and the quiz opens",
+    lockedShort: "The quiz opens once you have {n} more {word}",
+    lockedHint:
+      "Questions are built from your own words — the wrong options come from them too. With fewer than {min} words the options would start repeating and the quiz would turn into guesswork.",
+    noSrsNote:
+      "Practice for its own sake: nothing is saved here — neither your review dates nor your progress move.",
+    reviewNote:
+      "A correct answer counts as “Good”, a wrong one as “Again”.",
+    empty:
+      "Nothing to build a question from yet: your words need translations. Add a few more words and come back.",
+  },
+
   // "Looks like you know it" checkpoint: an offer to move a mature word to the
   // known list. Tone — a calm question, not a congratulation or a reward.
   knownOffer: {
@@ -716,6 +752,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      quiz: {
+        title: "Multiple-choice quiz",
+        desc: "There's a quiz now: a word and four options. Some of your review words are shown this way instead of the self-rated card — a correct answer counts as “Good”, a wrong one as “Again”. The cards haven't gone anywhere: the quiz alternates with them. And if you just feel like drilling words, the quiz also opens on its own — nothing is saved there and your progress doesn't move.",
+      },
       warmLookup: {
         title: "Translations are prepared ahead of time",
         desc: "As soon as a reading text opens, the app quietly prepares translations for the words you don't know yet — while you're still reading the title and the first lines. Tapping a word then shows the translation right away, with no wait. With no connection nothing changes: the translation arrives on tap, as before.",

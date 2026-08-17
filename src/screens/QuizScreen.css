@@ -1,0 +1,157 @@
+/* ============================================================================
+ * Отдельный (игровой) режим теста с вариантами ответа — оформление Ember.
+ * ----------------------------------------------------------------------------
+ * Само задание рисует общий компонент QuizTask (со своими стилями). Здесь —
+ * обвязка экрана: шапка, точки прогресса, кнопка «Дальше», итог прогона и
+ * спокойная строка о том, что этот режим ничего не записывает.
+ * ========================================================================== */
+
+.quiz {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: var(--ember-bg);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+}
+
+.quiz__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quiz__back {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.quiz__title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-word);
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--ember-text);
+}
+
+/* ---------- Служебные состояния (порог, пусто, итог) ---------- */
+.quiz__center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.quiz__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 40%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
+  color: var(--ember-accent);
+}
+
+.quiz__locked-title,
+.quiz__done-title {
+  font-family: var(--font-word);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ember-text);
+}
+
+.quiz__hint {
+  color: var(--ember-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.quiz__done-emoji {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.quiz__score {
+  color: var(--ember-learned);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* ---------- Прогресс прогона ---------- */
+.quiz__dots {
+  display: flex;
+  align-self: flex-end;
+  gap: 6px;
+}
+
+.quiz__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background-color: var(--ember-border);
+}
+
+.quiz__dot.is-done {
+  background-color: var(--ember-learned);
+}
+
+.quiz__dot.is-active {
+  background-color: var(--ember-accent);
+}
+
+/* ---------- Кнопки ---------- */
+.quiz__next,
+.quiz__primary {
+  width: 100%;
+  min-height: 48px;
+  border: none;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.quiz__ghost {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+}
+
+.quiz__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Тихая строка внизу: этот режим ничего не записывает. */
+.quiz__footnote {
+  margin-top: auto;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom));
+  color: var(--ember-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  text-align: center;
+}

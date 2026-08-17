@@ -1,10 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { highlightWordInExample } from "../../lib/highlightWord.js";
 import { lemmaOfForm } from "../lib/conjugationClient.js";
 import { formatInterval } from "../i18n/format.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { nextSrs, shouldOfferKnown } from "../hooks/useWordLists.js";
+import {
+  buildQuizTask,
+  QUIZ_MIN_WORDS,
+  QUIZ_REVIEW_EVERY,
+  QUIZ_REVIEW_SLOT,
+} from "../lib/quizEngine.js";
 import PlayButton from "../components/PlayButton.jsx";
+import QuizTask from "../components/QuizTask.jsx";
 import Icon from "../components/icons/Icon.jsx";
 import "./ReviewScreen.css";
 
@@ -38,6 +45,10 @@ const KNOWN_OFFERS_PER_SESSION = 6;
  * затем самооценка (4 кнопки) пересчитывает интервал повтора (см. nextSrs
  * в useWordLists.js) и переходит к следующему слову.
  *
+ * ЧАСТЬ слов показывается ТЕСТОМ с вариантами ответа вместо карточки с
+ * самооценкой (см. блок «Тест в потоке повторения» ниже). Тест карточки не
+ * заменяет — он с ними ЧЕРЕДУЕТСЯ: пример и озвучка остаются несущей идеей.
+ *
  * dueWords — живой список слов «пора повторить» (пересчитывается в App.jsx
  * после каждой оценки: слово с обновлённым nextReviewDate уходит из очереди
  * само, отдельный index не нужен).
@@ -66,6 +77,9 @@ export default function ReviewScreen({
   // как раньше — предложение просто не показывается.
   onPromoteToKnown = null,
   onOfferShown = null,
+  // Пул своих слов для теста с вариантами (взятые + известные с переводом).
+  // Пустой или короткий пул — теста просто не будет, повторение идёт как раньше.
+  quizPool = [],
 }) {
   const { t, lang } = useI18n();
   const [revealed, setRevealed] = useState(false);
@@ -78,6 +92,21 @@ export default function ReviewScreen({
   // дальше» равносильно «пока оставить» и переживает закрытие приложения.
   const [knownOffer, setKnownOffer] = useState(null);
   const offersLeftRef = useRef(KNOWN_OFFERS_PER_SESSION);
+
+  // ---------- Тест в потоке повторения ----------
+  // step — сквозной номер показанного задания за это занятие (не номер слова:
+  // «Не помню» возвращает слово в очередь, и оно считается заново). По нему и
+  // чередуются карточки с тестом, и чередуются форматы самого теста.
+  const [step, setStep] = useState(0);
+  const [quizChosen, setQuizChosen] = useState(null);
+  // Слова, на которых человек уже ошибся в тесте: они возвращаются в очередь и
+  // дальше показываются ТОЛЬКО карточкой. Правильный ответ ему только что
+  // показали — спрашивать тем же тестом снова бессмысленно, а вот пример с
+  // озвучкой после ошибки как раз к месту.
+  const failedQuizRef = useRef(new Set());
+  // «Соль» перемешивания на этот заход: порядок вариантов стабилен, пока
+  // задание на экране, но у следующего занятия он другой.
+  const quizSaltRef = useRef(Math.random().toString(36).slice(2));
 
   // Синхронизация очереди с актуальным набором «пора повторить»: убираем слова,
   // которые уже ушли на интервал (после Трудно/Нормально/Легко), и добавляем
@@ -99,9 +128,10 @@ export default function ReviewScreen({
   const total = queue.length;
   const currentWord = queue[0];
 
-  // Новое слово в очереди — прячем ответ снова.
+  // Новое слово в очереди — прячем ответ и снимаем выбранный вариант теста.
   useEffect(() => {
     setRevealed(false);
+    setQuizChosen(null);
   }, [currentWord]);
 
   // Все созревшие пройдены (очередь опустела) — сообщаем движку ОДИН раз.
@@ -117,10 +147,44 @@ export default function ReviewScreen({
     }
   }, [currentWord, knownOffer, onFinished]);
 
+  // Начальные формы — из уже накопленного индекса спряжений (сети за ним нет).
+  const lemmaOf = useCallback(
+    (form) => lemmaOfForm(learnLang, form),
+    [learnLang],
+  );
+
+  // Тест вместо карточки — каждое N-е задание, и только если задание реально
+  // собирается из СВОИХ слов человека. Не собралось (мало похожих слов нужной
+  // части речи) — слово идёт обычной карточкой: лучше пропустить тест, чем
+  // показать очевидное. Порог QUIZ_MIN_WORDS общий с отдельным режимом.
+  const quizTask = useMemo(() => {
+    if (!currentWord) return null;
+    if (quizPool.length < QUIZ_MIN_WORDS) return null;
+    if (step % QUIZ_REVIEW_EVERY !== QUIZ_REVIEW_SLOT) return null;
+    if (failedQuizRef.current.has(currentWord)) return null;
+    const entry = quizPool.find((e) => e.word === currentWord);
+    if (!entry) return null;
+    return buildQuizTask({
+      entry,
+      pool: quizPool,
+      // Номер ЗАДАНИЯ ТЕСТА, а не номер шага повторения. Тесты выпадают всегда
+      // на один и тот же остаток от деления шага, поэтому от самого step формат
+      // был бы вечно одним и тем же (только «перевод → слово»), а форматы
+      // должны чередоваться сами.
+      index: Math.floor(step / QUIZ_REVIEW_EVERY),
+      salt: quizSaltRef.current,
+      lemmaOf,
+    });
+  }, [currentWord, quizPool, step, lemmaOf]);
+
   // «Не помню» — вернуть слово в текущую сессию через несколько карточек, не
   // применяя интервал. Остальные оценки — обычный SRS (слово покидает сессию).
   function handleGrade(word, grade) {
     setRevealed(false);
+    setQuizChosen(null);
+    // Одно задание показано — двигаем сквозной счётчик (от него зависит, чем
+    // будет следующее: карточкой или тестом, и каким форматом теста).
+    setStep((s) => s + 1);
     // Предложение по предыдущему слову больше не к месту — человек пошёл
     // дальше. Это и есть «пока оставить», спрашивать второй раз не будем.
     setKnownOffer(null);
@@ -146,6 +210,22 @@ export default function ReviewScreen({
     offersLeftRef.current -= 1;
     setKnownOffer({ word, interval });
     onOfferShown?.(word, interval);
+  }
+
+  // Ответ на тест ЗАСЧИТЫВАЕТСЯ ОЦЕНКОЙ, той же самой, что и кнопка на
+  // карточке: верно → «Нормально», неверно → «Не помню». Промежуточных оценок
+  // тест не даёт, и это нормально — оттенки («Трудно»/«Легко») остаются на
+  // карточках. Идём через тот же handleGrade, поэтому и SRS, и чек-пойнт
+  // «перенести в известные» работают ровно как после оценки на карточке.
+  //
+  // Оценка применяется НЕ в момент ответа, а по кнопке «Дальше»: иначе слово
+  // ушло бы из очереди сразу и человек не успел бы увидеть, где правильный
+  // вариант.
+  function handleQuizNext() {
+    if (quizChosen === null || !quizTask) return;
+    const correct = Boolean(quizTask.options[quizChosen]?.correct);
+    if (!correct) failedQuizRef.current.add(quizTask.word);
+    handleGrade(quizTask.word, correct ? "good" : "again");
   }
 
   // Перенос по согласию: слово уходит в известные КАК ЕСТЬ — состояние
@@ -216,15 +296,62 @@ export default function ReviewScreen({
     );
   }
 
+  // Шапка одна на оба вида задания (карточка и тест): счётчик «осталось» и
+  // выход не должны прыгать при чередовании.
+  const headerBar = (
+    <header className="review__header">
+      <button
+        type="button"
+        className="review__back"
+        onClick={onBack}
+        aria-label={t("common.back")}
+      >
+        ←
+      </button>
+      <span className="review__remaining">
+        {t("review.remaining", { n: total })}
+      </span>
+    </header>
+  );
+
+  // ---------- Задание тестом (вместо карточки с самооценкой) ----------
+  if (quizTask) {
+    return (
+      <section className="review">
+        {headerBar}
+        {offerBanner}
+        <div className="review__quiz">
+          <QuizTask
+            task={quizTask}
+            chosen={quizChosen}
+            onAnswer={setQuizChosen}
+            learnLang={learnLang}
+            nativeLang={nativeLang}
+          />
+          {quizChosen !== null && (
+            <button
+              type="button"
+              className="review__quiz-next"
+              onClick={handleQuizNext}
+            >
+              {t("quiz.next")}
+            </button>
+          )}
+          {/* Честно говорим, как ответ засчитывается: тест — это те же две
+              оценки, а не отдельная валюта. */}
+          <p className="review__quiz-note">{t("quiz.reviewNote")}</p>
+        </div>
+      </section>
+    );
+  }
+
   const info = wordInfo[currentWord] || {};
   const hasExample = Boolean(info.example);
   const segments = hasExample
     ? // Третьим аргументом — доступ к уже накопленному индексу начальных форм:
       // только им связываются формы с другой основой (ging ↔ gehen). Сети за
       // ним нет, промах индекса штатен — сработает сравнение по основе.
-      highlightWordInExample(info.example, currentWord, (form) =>
-        lemmaOfForm(learnLang, form),
-      )
+      highlightWordInExample(info.example, currentWord, lemmaOf)
     : [];
 
   // Какой интервал реально применится при каждой оценке — считаем той же
@@ -238,19 +365,7 @@ export default function ReviewScreen({
 
   return (
     <section className="review" aria-labelledby="review-word">
-      <header className="review__header">
-        <button
-          type="button"
-          className="review__back"
-          onClick={onBack}
-          aria-label={t("common.back")}
-        >
-          ←
-        </button>
-        <span className="review__remaining">
-          {t("review.remaining", { n: total })}
-        </span>
-      </header>
+      {headerBar}
 
       {offerBanner}
 

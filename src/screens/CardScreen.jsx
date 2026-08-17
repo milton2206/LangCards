@@ -88,6 +88,11 @@ function SecondaryActions({
   onOpenAddWord,
   onOpenReading,
   onOpenListening,
+  onOpenQuiz,
+  // Порог теста виден: пока своих слов меньше нужного, кнопка не прячется, а
+  // честно говорит, сколько осталось (см. quiz.lockedShort).
+  quizPoolSize = 0,
+  quizMinWords = 0,
   primaryGenerate = false,
   // Сколько мест свободно и хватает ли их на целую порцию. Генерация запускается
   // ТОЛЬКО когда порция поместится целиком: иначе часть карточек пропала бы, а
@@ -96,7 +101,10 @@ function SecondaryActions({
   freeSlots = Infinity,
   roomForBatch = true,
 }) {
-  const { t } = useI18n();
+  const { t, tp } = useI18n();
+  // Слов хватает на тест? Порог общий с самим режимом (см. lib/quizEngine.js) —
+  // здесь только показ.
+  const quizReady = quizPoolSize >= quizMinWords;
   return (
     <>
       <GenerateModePicker value={generateMode} onChange={onChangeGenerateMode} />
@@ -137,6 +145,25 @@ function SecondaryActions({
       <button type="button" className="cards__generate" onClick={onOpenListening}>
         🎧 {t("listening.entry")}
       </button>
+      {/* Тест с вариантами ответа — отдельный режим, вне занятия и вне
+          расписания. Живёт здесь, среди прочих «чем ещё заняться»: он ничего не
+          записывает и в план дня не входит. */}
+      <button
+        type="button"
+        className="cards__generate"
+        onClick={onOpenQuiz}
+        disabled={!quizReady}
+      >
+        🎯 {t("quiz.entry")}
+      </button>
+      {!quizReady && (
+        <p className="cards__slots cards__slots--why" role="status">
+          {t("quiz.lockedShort", {
+            n: quizMinWords - quizPoolSize,
+            word: tp("plural.words", quizMinWords - quizPoolSize),
+          })}
+        </p>
+      )}
     </>
   );
 }
@@ -185,6 +212,10 @@ export default function CardScreen({
   onOpenReading,
   onOpenListening,
   onAddWordFromExample,
+  // Тест с вариантами ответа (отдельный режим) + его видимый порог открытия.
+  onOpenQuiz,
+  quizPoolSize = 0,
+  quizMinWords = 0,
   onOpenReview,
   onOpenStats,
   onOpenTutorial,
@@ -638,6 +669,9 @@ export default function CardScreen({
               onOpenListening={onOpenListening}
               freeSlots={freeSlots}
               roomForBatch={roomForBatch}
+              onOpenQuiz={onOpenQuiz}
+              quizPoolSize={quizPoolSize}
+              quizMinWords={quizMinWords}
               primaryGenerate
             />
           </div>
@@ -753,6 +787,9 @@ export default function CardScreen({
               onOpenListening={onOpenListening}
               freeSlots={freeSlots}
               roomForBatch={roomForBatch}
+              onOpenQuiz={onOpenQuiz}
+              quizPoolSize={quizPoolSize}
+              quizMinWords={quizMinWords}
             />
           </div>
         )}

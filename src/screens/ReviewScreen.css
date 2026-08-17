@@ -484,3 +484,34 @@
   font-size: 1rem;
   font-weight: 700;
 }
+
+/* ---------- Задание тестом вместо карточки ----------
+   Само задание рисует общий компонент QuizTask; здесь — только место под него
+   в потоке повторения: та же шапка, тот же ритм, кнопка «Дальше» на месте
+   кнопок оценки. */
+.review__quiz {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+}
+
+.review__quiz-next {
+  min-height: 48px;
+  border: none;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+/* Как ответ засчитывается — тихой строкой под заданием. */
+.review__quiz-note {
+  color: var(--ember-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  text-align: center;
+}

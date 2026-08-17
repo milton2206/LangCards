@@ -18,6 +18,7 @@ import KnownReviewScreen from "./screens/KnownReviewScreen.jsx";
 import SettingsScreen from "./screens/SettingsScreen.jsx";
 import LanguagesScreen from "./screens/LanguagesScreen.jsx";
 import ReviewScreen from "./screens/ReviewScreen.jsx";
+import QuizScreen from "./screens/QuizScreen.jsx";
 import StatsScreen from "./screens/StatsScreen.jsx";
 import AuthScreen from "./screens/AuthScreen.jsx";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen.jsx";
@@ -66,6 +67,7 @@ import {
   hasSeenTutorial,
   markTutorialSeen,
 } from "./lib/localCache.js";
+import { buildQuizPool, QUIZ_MIN_WORDS } from "./lib/quizEngine.js";
 import { loadGenerateCount } from "./lib/generateCount.js";
 import { loadGenerateMode } from "./lib/generateMode.js";
 import {
@@ -376,6 +378,20 @@ export default function App() {
 
   // Слова, которым сегодня пора на повтор (отдельно от потока новых карточек).
   const dueWords = getDueWords(vocab.takenWords, vocab.srsByWord, vocab.todayKey);
+
+  // ---------- Тест с вариантами ответа ----------
+  // Пул для теста — СВОИ слова активной пары: и взятые, и известные. Неверные
+  // варианты берутся только отсюда, к модели за ними не ходим. Один пул на оба
+  // режима (тест в повторении и отдельная «игрушка») и на порог открытия —
+  // чтобы «сколько у меня слов» считалось в одном месте.
+  const quizPool = useMemo(
+    () =>
+      buildQuizPool(
+        [...vocab.takenWords, ...vocab.knownWords],
+        vocab.wordInfo,
+      ),
+    [vocab.takenWords, vocab.knownWords, vocab.wordInfo],
+  );
 
   // ---------- Недельная раскладка (фаза 4.5) + ручное редактирование ----------
   // Раскладка заполняется АВТОМАТИЧЕСКИ как стартовая, но дни можно менять
@@ -1285,6 +1301,9 @@ export default function App() {
               setScreen("review");
             }}
             onOpenStats={() => setScreen("stats")}
+            onOpenQuiz={() => setScreen("quiz")}
+            quizPoolSize={quizPool.length}
+            quizMinWords={QUIZ_MIN_WORDS}
             onOpenTutorial={() => setTutorial("short")}
             onExitSession={exitSession}
             sessionNewBlock={sessionBlock === "newWords"}
@@ -1310,6 +1329,19 @@ export default function App() {
             // Взято сегодня по этой паре — тем же числом блок отмечается
             // выполненным (autoDoneFor), поэтому счётчик с галочкой не разойдутся.
             newWordsTaken={takenTodayForPair}
+          />
+        )}
+
+        {/* Тест с вариантами — ОТДЕЛЬНЫЙ режим: вне занятия и вне расписания,
+            открывается из ручного хаба в любой момент. На SRS не влияет вообще,
+            поэтому сюда не передаётся ни одна пишущая функция — только пул слов.
+            Возврат — в хаб, откуда режим и открыли. */}
+        {screen === "quiz" && (
+          <QuizScreen
+            pool={quizPool}
+            learnLang={learnLang}
+            nativeLang={nativeLang}
+            onBack={() => setScreen("cards")}
           />
         )}
 
@@ -1339,6 +1371,7 @@ export default function App() {
             onFinished={() => completeExercise("review")}
             onPromoteToKnown={vocab.markKnown}
             onOfferShown={vocab.noteKnownOffer}
+            quizPool={quizPool}
           />
         )}
 
@@ -1576,6 +1609,7 @@ export default function App() {
             "review",
             "known",
             "knownreview",
+            "quiz",
           ].includes(screen)
         }
       >
