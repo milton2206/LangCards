@@ -6,6 +6,25 @@ import { apiFetch, parseApiError } from "../lib/apiClient.js";
 const STORE_KEY = "cardsByPair";
 const LEGACY_KEY = "cardsBatch"; // старый общий ключ — для миграции
 
+// ЗАПАС. Сервер просит у модели больше, чем нужно отдать (часть пачки съедают
+// исключения и проверки качества). Всё, что не поместилось в текущую порцию,
+// не выбрасываем, а кладём сюда — и добираем из него в следующий раз, когда
+// модель принесёт мало нового. Именно от этого «порция убывала»: 10, 5, 4, 2.
+//
+// Запас привязан не только к паре, но и к НАБОРУ ПАРАМЕТРОВ (тема, уровень,
+// тип контента): карточки по «работе» уровня B1 нельзя подмешивать в порцию по
+// «ресторану» A1. Не совпал набор — запас для этой генерации не используется.
+const RESERVE_KEY = "cardsReserveByPair";
+const RESERVE_MAX = 40; // потолок хранения, чтобы localStorage не пух
+
+// Подпись набора параметров: карточки из запаса годятся только под такой же.
+// «Удиви меня» (random) в запас не идёт вовсе — там тема и уровень случайны.
+function reserveTag(params) {
+  return params?.random
+    ? null
+    : [params?.topic || "", params?.level || "", params?.mode || "words"].join("|");
+}
+
 function loadJSON(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
@@ -97,19 +116,61 @@ export function useCards(pairKey) {
         }
 
         const data = await res.json();
-        const batch = Array.isArray(data) ? data : data.cards;
-        if (!Array.isArray(batch) || batch.length === 0) {
+        const fresh = Array.isArray(data) ? data : data.cards;
+        if (!Array.isArray(fresh) || fresh.length === 0) {
           // eslint-disable-next-line no-console
           console.warn("[cards] сервер вернул пустую пачку (HTTP 200)");
           setError({ code: "noCards" });
           return;
         }
+
+        // Сколько РЕАЛЬНО просили (params.count уже ужат дневной нормой в
+        // buildParams) — от этого числа считается и порция, и недобор.
+        const asked = Number(params.count) || fresh.length;
+        const tag = reserveTag(params);
+
+        // Запас прошлых генераций: годится только с той же подписью и только
+        // то, чего нет в свежей пачке и что человек ещё не разобрал.
+        const store = loadJSON(RESERVE_KEY, {});
+        const saved = store[pairKey];
+        const excluded = new Set((params.exclude || []).map((w) => String(w)));
+        const freshWords = new Set(fresh.map((c) => c.word));
+        const usableReserve =
+          tag && saved?.tag === tag && Array.isArray(saved.cards)
+            ? saved.cards.filter(
+                (c) => c?.word && !freshWords.has(c.word) && !excluded.has(c.word),
+              )
+            : [];
+
+        // Порция: свежие карточки, а если их меньше запрошенного — добираем из
+        // запаса. Человек просил 20 и получает 20, даже когда модель принесла 9.
+        const batch = fresh.slice(0, asked);
+        const fromReserve = usableReserve.slice(0, Math.max(0, asked - batch.length));
+        const finalBatch = [...batch, ...fromReserve];
+
+        // Лишнее не выбрасываем: остаток свежих + неиспользованный запас.
+        if (tag) {
+          const rest = [
+            ...fresh.slice(asked),
+            ...usableReserve.slice(fromReserve.length),
+          ].slice(0, RESERVE_MAX);
+          const next = { ...store, [pairKey]: { tag, cards: rest } };
+          try {
+            localStorage.setItem(RESERVE_KEY, JSON.stringify(next));
+          } catch {
+            // переполнение хранилища — запас не критичен, молча пропускаем
+          }
+        }
+
         // Недобор — не молчаливая пропажа: экран честно скажет, сколько нашлось.
-        // Сравниваем с тем, что РЕАЛЬНО просили (params.count уже ужат дневной
-        // нормой в buildParams), иначе сообщение врало бы про норму.
-        const asked = Number(params.count) || batch.length;
-        setShortfall(batch.length < asked ? { got: batch.length, asked } : null);
-        setStore((prev) => ({ ...prev, [pairKey]: batch }));
+        // Считаем ПОСЛЕ добора из запаса: если запас закрыл разницу, недобора
+        // для человека и не было.
+        setShortfall(
+          finalBatch.length < asked
+            ? { got: finalBatch.length, asked }
+            : null,
+        );
+        setStore((prev) => ({ ...prev, [pairKey]: finalBatch }));
         // Прогрева озвучки здесь БОЛЬШЕ НЕТ: греет экран карточек — окном
         // вокруг текущей карточки, по мере листания (см. CardScreen). Греть всю
         // пачку отсюда значило тратить общую суточную квоту на карточки, до
