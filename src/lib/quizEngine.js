@@ -185,6 +185,42 @@ function looksSynonymous(a, b) {
   return false;
 }
 
+// ---------------------------------------------------------------------------
+// Что в тест НЕ пускаем
+// ---------------------------------------------------------------------------
+
+// Сколько слов допускаем в одной части перевода. Перевод-перечисление вида
+// «чомусь не встиг; не встиг; неспішно пропустив» вариантом нечитаем: в тесте
+// человек выбирает из четырёх плашек, и такую он просто не дочитает.
+const MAX_WORDS_IN_TRANSLATION_PART = 2;
+
+/**
+ * ОДИНОЧНОЕ ли это слово. Тест — про слово, а не про оборот: многословный
+ * заголовок («to put off», «Ich bin völlig im Plan») в четырёх вариантах не
+ * читается, а вырезать его из примера тем более нечем.
+ *
+ * Заодно это отсекает старые сомнительные обороты, накопившиеся до правила
+ * REAL_USAGE_RULE («не мой чай», «съесть слова», «не сумей»): все они
+ * многословные. Отдельной пометки «бракованное» для этого не нужно — в
+ * повторении и в списках такие карточки продолжают показываться как раньше,
+ * там у них есть пример и контекст.
+ */
+function isSingleWord(word) {
+  const core = coreWord(word);
+  if (!core || /[;/|]/.test(core)) return false; // «der Husten / husten» — два заголовка
+  return core.split(/\s+/).filter(Boolean).length === 1;
+}
+
+/** Годится ли перевод показом в варианте: без длинных перечислений. */
+function isShowableTranslation(translation) {
+  const parts = String(translation).split(";").map((p) => p.trim()).filter(Boolean);
+  if (parts.length === 0) return false;
+  if (parts.length === 1) return true; // одиночный перевод длины не боится
+  return parts.every(
+    (p) => p.split(/\s+/).filter(Boolean).length <= MAX_WORDS_IN_TRANSLATION_PART,
+  );
+}
+
 /** Сопоставимая длина показываемых вариантов (короткий среди длинных виден). */
 function comparableLength(a, b) {
   const la = norm(a).length;
@@ -215,8 +251,13 @@ const OPTION_TEXT = {
 
 /**
  * Пул для теста из СВОИХ слов пользователя (взятые + известные). Берём только
- * записи, из которых вообще можно собрать задание: слово + перевод. Пример
- * нужен лишь формату с пропуском и обязательным не является.
+ * записи, из которых вообще можно собрать ЧИТАЕМОЕ задание: слово + перевод,
+ * слово ОДИНОЧНОЕ, перевод без длинных перечислений. Пример нужен лишь формату
+ * с пропуском и обязательным не является.
+ *
+ * Отсеянное из теста НИКУДА не девается: в повторении такие слова идут обычной
+ * карточкой, в списках лежат как лежали. Тест — единственное место, где оборот
+ * оказывается вырван из контекста, поэтому фильтр стоит только здесь.
  */
 export function buildQuizPool(words, wordInfo, learnLang) {
   const seen = new Set();
@@ -227,12 +268,17 @@ export function buildQuizPool(words, wordInfo, learnLang) {
     const info = wordInfo?.[word];
     const translation = nativeText(String(info?.translation || "").trim());
     if (!translation) continue;
+    // Многословный заголовок и заголовок-оборот (pos "phrase") в тест не идут.
+    const display = learnText(word, learnLang);
+    if (norm(info?.pos) === "phrase") continue;
+    if (!isSingleWord(display)) continue;
+    if (!isShowableTranslation(translation)) continue;
     seen.add(key);
     pool.push({
       // Ключ — как лежит в списках и в srsByWord. Не показывается и не меняется.
       word,
       // То же слово ДЛЯ ПОКАЗА: у старых записей в нём остались знаки ударения.
-      display: learnText(word, learnLang),
+      display,
       translation,
       example: learnText(String(info?.example || "").trim(), learnLang),
       pos: info?.pos || "",
@@ -275,11 +321,33 @@ function candidatesFor(entry, pool, format) {
   });
 }
 
-/** Предложение примера с вырезанным изучаемым словом: [{ text, blank }]. */
+/**
+ * Предложение примера с вырезанным изучаемым словом: [{ text, blank }] — или
+ * null, если задание с пропуском для этого слова собирать НЕЛЬЗЯ.
+ *
+ * ПОЧЕМУ МОЖНО НЕ ВСЕГДА. Слово вырезается из примера в его РЕАЛЬНОЙ форме
+ * («Я подметил, что…»), а варианты лежат в карточках в словарной («подметить»).
+ * Если подставить словарную, задание становится НЕРЕШАЕМЫМ: верного варианта
+ * среди четырёх просто нет. Приводить чужие слова к нужной форме нам нечем —
+ * морфологии в приложении нет и заводить её ради теста незачем.
+ *
+ * Поэтому правило простое: пропуск собирается ТОЛЬКО когда форма в примере
+ * совпадает со словарной (отличие лишь в заглавной букве в начале предложения
+ * — это та же форма). Тогда все четыре варианта — словарные, и они однородны.
+ * Не совпало — формат не собираем, задание уйдёт следующему по кругу
+ * (см. buildQuizTask): лучше пропустить, чем показать нерешаемое.
+ *
+ * Форму ищет ОБЩАЯ highlightWordInExample — та же, что подсвечивает слово в
+ * примере на карточке повторения. Своего поиска словоформы здесь нет.
+ */
 function clozeSegments(entry, lemmaOf) {
   if (!entry.example) return null;
   const segments = highlightWordInExample(entry.example, entry.display, lemmaOf);
-  if (!segments.some((s) => s.highlight)) return null; // слово в примере не найдено
+  const found = segments.find((s) => s.highlight);
+  if (!found) return null; // слово в примере не найдено
+  // Вырезанная форма против словарной. Регистр не в счёт: «Столовая закрыта» —
+  // та же форма, просто начало предложения.
+  if (norm(found.text) !== norm(coreWord(entry.display))) return null;
   return segments.map((s) => ({ text: s.text, blank: Boolean(s.highlight) }));
 }
 

@@ -752,6 +752,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      quizFixes: {
+        title: "The quiz plays fair now",
+        desc: "Fill-in-the-blank questions no longer break on word forms. The blank used to cut an inflected form out of the sentence while the options offered the dictionary one — so none of the four answers was actually correct. Such a question is now built only when the form in the sentence matches the dictionary form; otherwise the word goes to a different question type. The quiz also sticks to single words now: long phrases and list-style translations were unreadable as options. They stay in review and in your lists, where they still have a sentence around them.",
+      },
       cleanWords: {
         title: "Words without stray marks or missing letters",
         desc: "Stress marks sometimes slipped into the words themselves, and in older cards they simply stayed there. They are now removed as the word is shown — on the card, in review, in your lists and in the quiz. Your progress on those words is fully intact: only what appears on screen is cleaned up. Greek is left alone, where the mark is part of the spelling. And if the generator ever builds a card whose word and example don't match, that card is no longer shown.",
