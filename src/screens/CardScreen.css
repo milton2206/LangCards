@@ -1050,3 +1050,68 @@
   font-size: 1rem;
   font-weight: 600;
 }
+
+/* ---------- Тема кончилась ----------
+   Плашка спокойная, а не тревожная: вычерпать тему — достижение, и красным
+   тут светить нечего. Терракотовая рамка как у прочих подсказок экрана.
+   Внутри — сразу способ сменить тему (тот же TopicPicker, что в настройках),
+   чтобы человеку не пришлось никуда уходить из места, где он упёрся. */
+.cards__topic-note {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 30%, transparent);
+  border-radius: var(--ember-radius-sm);
+  background-color: color-mix(in srgb, var(--ember-accent) 8%, transparent);
+}
+
+.cards__topic-note-title {
+  color: var(--ember-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.cards__topic-note-hint {
+  color: var(--ember-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.cards__topic-note-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cards__topic-note-btn {
+  flex: 1;
+  min-width: 140px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-accent);
+  color: var(--ember-on-accent);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.cards__topic-note-ghost {
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--ember-border);
+  border-radius: var(--ember-radius-sm);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+}
+
+/* Выбор темы внутри плашки: тот же компонент, что в настройках, поэтому даём
+   ему только отбивку сверху — свои отступы он приносит сам. */
+.cards__topic-picker {
+  padding-top: 4px;
+}

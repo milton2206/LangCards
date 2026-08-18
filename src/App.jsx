@@ -68,6 +68,12 @@ import {
   markTutorialSeen,
 } from "./lib/localCache.js";
 import { buildQuizPool, QUIZ_MIN_WORDS } from "./lib/quizEngine.js";
+import {
+  topicKey,
+  isExhausted,
+  noteBatchResult,
+  pickNextTopic,
+} from "./lib/topicExhaustion.js";
 import { loadGenerateCount } from "./lib/generateCount.js";
 import { loadGenerateMode } from "./lib/generateMode.js";
 import {
@@ -887,8 +893,43 @@ export default function App() {
   // Онбординг нужен, пока нет активной пары или темы/уровня (после входа).
   const needsSetup = !activeLanguage || !settings.topic || !settings.level;
 
+  // ---------- Тема кончилась → берём другую ----------
+  // Пул слов на тройке «язык × уровень × тема» конечен, и человек его
+  // вычерпывает. Упереться в стену он не должен: когда недобор повторяется,
+  // следующая генерация сама берёт другую тему — приложение и так решает за
+  // человека расписание, объём занятия и чередование форматов, тема из того же
+  // ряда. Но молча подменять нельзя, поэтому о замене говорит экран карточек
+  // (topicSwitch), и оттуда же можно выбрать другую тему или задать свою.
+  //
+  // { from, to } — с какой темы на какую перешли; to === null означает «менять
+  // не на что, все темы вычерпаны» — тогда экран зовёт задать свою.
+  const [topicSwitch, setTopicSwitch] = useState(null);
+
+  // По какой теме шла последняя генерация (для учёта исхода). Ref, а не state:
+  // значение нужно эффекту ниже, а перерисовывать из-за него нечего.
+  const genTopicKeyRef = useRef(null);
+  const genLoadingRef = useRef(false);
+
+  // Исход генерации: полная пачка обнуляет счётчик недоборов по теме, недобор —
+  // увеличивает. Ловим момент, когда загрузка ЗАКОНЧИЛАСЬ: только тогда
+  // shortfall и error уже посчитаны. Сбой генерации (нет сети, лимит) в счёт не
+  // идёт — он не про исчерпание темы.
+  useEffect(() => {
+    if (loading) {
+      genLoadingRef.current = true;
+      return;
+    }
+    if (!genLoadingRef.current) return;
+    genLoadingRef.current = false;
+    const key = genTopicKeyRef.current;
+    genTopicKeyRef.current = null;
+    if (!key || error) return;
+    noteBatchResult(key, !shortfall);
+  }, [loading, error, shortfall]);
+
   // Параметры генерации: активная пара + тема/уровень из настроек + исключения.
-  function buildParams({ random = false } = {}) {
+  // topic — необязательная подмена темы (когда прежняя исчерпана).
+  function buildParams({ random = false, topic } = {}) {
     const deferred = vocab.skippedWords
       .filter((s) => (s.returnDate ?? "") > vocab.todayKey)
       .map((s) => s.word);
@@ -902,7 +943,7 @@ export default function App() {
     return {
       learnLang,
       nativeLang,
-      topic: settings.topic,
+      topic: topic || settings.topic,
       level: settings.level,
       exclude: [
         ...new Set([...vocab.takenWords, ...vocab.knownWords, ...deferred]),
@@ -921,16 +962,51 @@ export default function App() {
 
   function handleGenerate() {
     lastRandomRef.current = false;
-    generate(buildParams());
+    const keyOf = (t) =>
+      topicKey({ pairKey, level: settings.level, topic: t, mode: generateMode });
+
+    // Тема исчерпана — берём другую и говорим об этом. Если менять не на что
+    // (все вычерпаны), тему НЕ подменяем: экран предложит задать свою, и это
+    // честнее, чем крутить пустую тему по кругу.
+    let topic = settings.topic;
+    if (isExhausted(keyOf(topic))) {
+      const next = pickNextTopic({
+        current: topic,
+        presetIds: PRESET_TOPIC_OPTIONS.map((o) => o.id),
+        customTopics: activeCustomTopics,
+        pairKey,
+        level: settings.level,
+        mode: generateMode,
+      });
+      setTopicSwitch({ from: topic, to: next });
+      if (next) {
+        updateSetting("topic", next);
+        topic = next;
+      }
+    }
+
+    genTopicKeyRef.current = keyOf(topic);
+    generate(buildParams({ topic }));
   }
 
+  // «Удиви меня»: темы у режима нет вовсе — ни менять, ни считать недоборы по
+  // ней не нужно, и подсказку про смену темы экран здесь не показывает.
   function handleGenerateRandom() {
     lastRandomRef.current = true;
+    genTopicKeyRef.current = null;
+    setTopicSwitch(null);
     generate(buildParams({ random: true }));
   }
 
   function handleRetryGenerate() {
     generate(buildParams({ random: lastRandomRef.current }));
+  }
+
+  // Тему выбрали руками из подсказки на экране карточек — тот же обработчик,
+  // что и в настройках (updateSetting), плюс подсказка больше не нужна.
+  function handlePickTopic(id) {
+    updateSetting("topic", id);
+    setTopicSwitch(null);
   }
 
   // Ручное добавление своего слова: готовую карточку кладём в изучение текущей
@@ -1305,6 +1381,17 @@ export default function App() {
             onOpenQuiz={() => setScreen("quiz")}
             quizPoolSize={quizPool.length}
             quizMinWords={QUIZ_MIN_WORDS}
+            // Тема кончилась: что показать и чем дать сменить тему на месте.
+            // Механизм своих тем тот же, что в настройках (TopicPicker +
+            // handleAddCustomTopic) — второй реализации не заводим.
+            topicSwitch={topicSwitch}
+            onDismissTopicSwitch={() => setTopicSwitch(null)}
+            topic={settings.topic}
+            customTopics={activeCustomTopics}
+            canManageTopics={canManageTopics}
+            onSelectTopic={handlePickTopic}
+            onAddCustomTopic={handleAddCustomTopic}
+            onRemoveCustomTopic={handleRemoveCustomTopic}
             onOpenTutorial={() => setTutorial("short")}
             onExitSession={exitSession}
             sessionNewBlock={sessionBlock === "newWords"}

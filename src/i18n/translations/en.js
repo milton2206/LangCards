@@ -252,6 +252,16 @@ export default {
     duplicate: "You already have that topic.",
     needAccount:
       "Custom topics appear once you're signed in — they're stored on the language pair.",
+    // The topic ran out. Calm tone, no apology: running a topic dry is an
+    // achievement, not a failure of the app.
+    exhaustedSwitched:
+      "You've used up the words on “{from}” — switched to “{to}”. Pick another topic or set your own.",
+    exhaustedAll:
+      "You've used up the words on “{from}”, and you've been through the other topics too. Set your own topic — that opens up new words.",
+    narrowHint:
+      "The narrower the topic, the more useful the words: “doctor's appointment” gives you more of what you need than “medicine”.",
+    openPicker: "Pick a topic",
+    hidePicker: "Collapse",
   },
 
   // Placement test (phase 6.3).
@@ -752,6 +762,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      topicSwitch: {
+        title: "Ran out of words on a topic? We'll take another",
+        desc: "There's a finite number of words on any one topic at your level, and sooner or later you use them all up — that's normal, you've been through it. The app now picks another topic itself and tells you, instead of quietly handing you two cards at a time. From that same message you can choose a different topic or set your own — “doctor's appointment”, “renting a flat”, anything. The narrower the topic, the more useful the words.",
+      },
       quizFixes: {
         title: "The quiz plays fair now",
         desc: "Fill-in-the-blank questions no longer break on word forms. The blank used to cut an inflected form out of the sentence while the options offered the dictionary one — so none of the four answers was actually correct. Such a question is now built only when the form in the sentence matches the dictionary form; otherwise the word goes to a different question type. The quiz also sticks to single words now: long phrases and list-style translations were unreadable as options. They stay in review and in your lists, where they still have a sentence around them.",

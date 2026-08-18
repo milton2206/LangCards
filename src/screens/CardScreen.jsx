@@ -12,6 +12,8 @@ import {
 } from "../lib/ttsClient.js";
 import WordLookupSheet from "../components/WordLookupSheet.jsx";
 import WordCard from "../components/WordCard.jsx";
+import TopicPicker from "../components/TopicPicker.jsx";
+import { ONBOARDING_STEPS, optionLabelKey } from "../data/onboarding.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import LanguageSwitcher from "../components/LanguageSwitcher.jsx";
 import DailyBalance from "../components/DailyBalance.jsx";
@@ -19,6 +21,12 @@ import WeekSchedule from "../components/WeekSchedule.jsx";
 import Icon from "../components/icons/Icon.jsx";
 import { LANG_EMOJI } from "../data/onboarding.js";
 import "./CardScreen.css";
+
+// Id готовых тем: по нему отличаем пресет (у него переводимое название) от
+// своей темы пользователя (её показываем как есть).
+const PRESET_TOPIC_IDS = new Set(
+  ONBOARDING_STEPS.find((s) => s.key === "topic").options.map((o) => o.id),
+);
 
 // Переключатель «сколько карточек генерировать за раз» (5/10/20) — рядом с
 // кнопкой генерации в обоих местах, где она встречается на этом экране.
@@ -216,6 +224,16 @@ export default function CardScreen({
   onOpenQuiz,
   quizPoolSize = 0,
   quizMinWords = 0,
+  // Тема кончилась и её сменили: { from, to }; to === null — менять не на что.
+  // Всё остальное — тот же механизм тем, что в настройках.
+  topicSwitch = null,
+  onDismissTopicSwitch,
+  topic,
+  customTopics = [],
+  canManageTopics = false,
+  onSelectTopic,
+  onAddCustomTopic,
+  onRemoveCustomTopic,
   onOpenReview,
   onOpenStats,
   onOpenTutorial,
@@ -260,6 +278,13 @@ export default function CardScreen({
   // «Ещё» под карточкой — по умолчанию закрыто: на экране одно решение, всё
   // остальное открывается по запросу.
   const [moreOpen, setMoreOpen] = useState(false);
+
+  // Выбор темы прямо из подсказки «тема кончилась» — тоже по запросу.
+  const [topicOpen, setTopicOpen] = useState(false);
+
+  // Название темы: у пресета — переведённое, у своей — она сама.
+  const topicLabel = (id) =>
+    PRESET_TOPIC_IDS.has(id) ? t(optionLabelKey("topic", id)) : String(id || "");
 
   function handleTake(word) {
     const ok = take(word);
@@ -555,6 +580,70 @@ export default function CardScreen({
     </p>
   ) : null;
 
+  // ---------- Тема кончилась ----------
+  // Тон спокойный и без извинений: вычерпать тему — это достижение, а не сбой.
+  // Рядом сразу способ сменить тему, а не совет идти в настройки: человек
+  // упёрся ЗДЕСЬ, и уходить куда-то ради этого он не станет.
+  const topicNote = topicSwitch ? (
+    <div className="cards__topic-note" role="status">
+      <p className="cards__topic-note-title">
+        {topicSwitch.to
+          ? t("topics.exhaustedSwitched", {
+              from: topicLabel(topicSwitch.from),
+              to: topicLabel(topicSwitch.to),
+            })
+          : t("topics.exhaustedAll", { from: topicLabel(topicSwitch.from) })}
+      </p>
+      {/* Своя тема — главный выход: пул конечен на ТРОЙКЕ, а тема может быть
+          сколь угодно узкой. Поэтому подсказываем саму мысль, а не только
+          кнопку: «приём у врача» — это новый пул поверх вычерпанной «медицины». */}
+      <p className="cards__topic-note-hint">{t("topics.narrowHint")}</p>
+      <div className="cards__topic-note-actions">
+        <button
+          type="button"
+          className="cards__topic-note-btn"
+          aria-expanded={topicOpen}
+          onClick={() => setTopicOpen((v) => !v)}
+        >
+          {t(topicOpen ? "topics.hidePicker" : "topics.openPicker")}
+        </button>
+        {!topicOpen && (
+          <button
+            type="button"
+            className="cards__topic-note-ghost"
+            onClick={onDismissTopicSwitch}
+          >
+            {t("common.gotIt")}
+          </button>
+        )}
+      </div>
+      {/* ТОТ ЖЕ TopicPicker, что в настройках: и пресеты, и поле своей темы.
+          Второй реализации ввода не заводим — механизм один. */}
+      {topicOpen && (
+        <div className="cards__topic-picker">
+          <TopicPicker
+            value={topic}
+            customTopics={customTopics}
+            canManage={canManageTopics}
+            onSelect={(id) => {
+              setTopicOpen(false);
+              onSelectTopic?.(id);
+            }}
+            // Своя тема добавляется и СРАЗУ становится выбранной (так делает
+            // handleAddCustomTopic), то есть это тоже выбор темы — значит
+            // подсказка своё отработала и должна уйти, как и при выборе чипа.
+            onAddCustom={(name) => {
+              setTopicOpen(false);
+              onDismissTopicSwitch?.();
+              onAddCustomTopic?.(name);
+            }}
+            onRemoveCustom={onRemoveCustomTopic}
+          />
+        </div>
+      )}
+    </div>
+  ) : null;
+
   const quotaNote = dailyNorm?.reached ? (
     <p className="cards__quota-note" role="status">
       <span className="cards__quota-check" aria-hidden="true">
@@ -630,6 +719,7 @@ export default function CardScreen({
         {balanceStrip}
         {weekStrip}
         {shortNote}
+        {topicNote}
         {quotaNote}
         <div className="cards__center">
           {empty ? (
@@ -699,6 +789,7 @@ export default function CardScreen({
         {t("cards.remaining", { n: remaining })}
       </p>
       {shortNote}
+        {topicNote}
       {quotaNote}
 
       {/* Чистая карточка: никаких наложений на текст. Подсказка жеста — это
