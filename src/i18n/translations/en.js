@@ -1230,22 +1230,12 @@ export default {
       install: "Install on phone",
     },
     demo: {
-      translit: "[to paRAthiro]",
-      translation: "window",
-      exampleTranslation: "I open the window every morning.",
       tapHint: "Tap a word in the example — the translation shows below.",
       swipeHint: "Drag the card left or right.",
       knowConfirm: "“Know” — word removed (this is a demo, your progress is safe).",
       takeConfirm: "“Take” — word added to learning (this is a demo, your progress is safe).",
       gradeHint: "Rate yourself: easier — less often, harder — more often. Nothing here is saved.",
       glossFallback: "a word from the example",
-      gloss: {
-        "Ανοίγω": "I open",
-        "το": "the (article)",
-        "παράθυρο": "window",
-        "κάθε": "every",
-        "πρωί": "morning",
-      },
     },
     session: {
       label: "Today · {lang}",

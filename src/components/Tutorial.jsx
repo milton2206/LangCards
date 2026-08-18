@@ -4,6 +4,10 @@ import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
 import WordCard, { ExampleBlock } from "./WordCard.jsx";
 import WordLookupSheet from "./WordLookupSheet.jsx";
 import Icon from "./icons/Icon.jsx";
+import {
+  tutorialDemoCard,
+  tutorialDemoGloss,
+} from "../data/tutorialDemo.js";
 import "./Tutorial.css";
 
 // ============================================================================
@@ -13,14 +17,14 @@ import "./Tutorial.css";
 // макетам), "detailed" — подробный разбор по группам (из настроек и с 4-го
 // экрана). Демо-карточка/пример/свайп/всплывашка — это НАСТОЯЩИЕ компоненты
 // приложения (WordCard, WordLookupSheet, useSwipeCard), только в «песочнице»:
-// действия НЕ пишутся в прогресс/SRS. Контент демо — фиксированный греческий
-// пример (как на макетах), перевод — на языке интерфейса (nativeLang).
+// действия НЕ пишутся в прогресс/SRS.
+//
+// Контент демо — заготовка ПОД ПАРУ пользователя (см. data/tutorialDemo.js):
+// пример на языке, который он только что выбрал, перевод — на родном. Раньше
+// пример был всегда греческий, и человек, пришедший за английским, встречал на
+// первом же экране чужой алфавит. Карточка не генерируется: это самый первый
+// экран, ждать модель там нечего.
 // ============================================================================
-
-// Демо-язык примеров — греческий (как на макетах), независимо от реальной пары
-// пользователя: туториал показывает механику, а не его конкретный контент.
-const DEMO_LEARN = "el";
-const DEMO_EXAMPLE = "Ανοίγω το παράθυρο κάθε πρωί.";
 
 // Короткая версия — 4 экрана (по макетам).
 const SHORT_STEPS = [
@@ -55,6 +59,7 @@ const GRADES = ["again", "hard", "good", "easy"];
  * @param {() => void} onClose         — закрыть туториал (флаг «просмотрено»).
  * @param {() => void} onOpenDetailed  — переключиться на подробный (с 4-го экрана).
  * @param {() => void} onStartSession  — «Начать занятие» (закрыть → к занятию).
+ * @param {string} learnLang           — изучаемый язык (на нём демо-пример).
  * @param {string} nativeLang          — язык интерфейса (для перевода демо).
  */
 export default function Tutorial({
@@ -62,6 +67,7 @@ export default function Tutorial({
   onClose,
   onOpenDetailed,
   onStartSession,
+  learnLang,
   nativeLang = "ru",
 }) {
   const { t } = useI18n();
@@ -71,29 +77,25 @@ export default function Tutorial({
   const step = steps[index];
   const isLast = index === steps.length - 1;
 
-  // Демо-карточка: перевод/пример — на языке интерфейса (nativeLang), слово и
-  // пример на изучаемом (греческий) фиксированы.
-  const demoCard = useMemo(
-    () => ({
-      word: "το παράθυρο",
-      translit: t("tutorial.demo.translit"),
-      translation: t("tutorial.demo.translation"),
-      example: DEMO_EXAMPLE,
-      exampleTranslation: t("tutorial.demo.exampleTranslation"),
-    }),
-    [t],
+  // Демо-карточка: слово и пример — на ИЗУЧАЕМОМ языке пользователя, перевод и
+  // транскрипция — на родном. demo.learnLang, а не learnLang: у выключенного
+  // языка заготовки нет, и подпись/озвучка должны идти за тем языком, который
+  // реально показан (см. data/tutorialDemo.js).
+  const demo = useMemo(
+    () => tutorialDemoCard(learnLang, nativeLang),
+    [learnLang, nativeLang],
   );
+  const demoLang = demo.learnLang;
+  const demoCard = demo.card;
 
   // Всплывашка перевода — РЕАЛЬНЫЙ WordLookupSheet, но кормим готовыми демо-
   // данными (мгновенно, офлайн, без записи в SRS). Перевод слова — из демо-
-  // глоссария на языке интерфейса.
+  // глоссария той же заготовки.
   const [demoLookup, setDemoLookup] = useState(null);
   function openDemoLookup(word) {
     const key = String(word).replace(/[.,!?·;:()»«"']/g, "").trim();
-    const gloss = t("tutorial.demo.gloss");
     const translation =
-      (gloss && typeof gloss === "object" && gloss[key]) ||
-      t("tutorial.demo.glossFallback");
+      tutorialDemoGloss(demo.gloss, key) || t("tutorial.demo.glossFallback");
     setDemoLookup({ word: key, status: "ready", card: { word: key, translation } });
   }
 
@@ -209,9 +211,9 @@ export default function Tutorial({
                   ровно та, которую человек встретит в приложении. */}
               <div className="cards__card tut__example-card">
                 <ExampleBlock
-                  example={DEMO_EXAMPLE}
-                  exampleTranslation={t("tutorial.demo.exampleTranslation")}
-                  learnLang={DEMO_LEARN}
+                  example={demoCard.example}
+                  exampleTranslation={demoCard.exampleTranslation}
+                  learnLang={demoLang}
                   onWordTap={openDemoLookup}
                 />
               </div>
@@ -237,7 +239,7 @@ export default function Tutorial({
               </div>
               <WordCard
                 card={demoCard}
-                learnLang={DEMO_LEARN}
+                learnLang={demoLang}
                 nativeLang={nativeLang}
                 innerRef={swipe.cardRef}
                 style={cardStyle}
@@ -284,7 +286,9 @@ export default function Tutorial({
               <div className="tut__session">
                 <div className="tut__session-head">
                   <span className="tut__session-title">
-                    {t("tutorial.session.label", { lang: t("lang.el") })}
+                    {t("tutorial.session.label", {
+                      lang: t("lang." + demoLang),
+                    })}
                   </span>
                   <span className="tut__session-mins">
                     {t("tutorial.session.minutes", { n: 9 })}
@@ -406,7 +410,7 @@ export default function Tutorial({
       {/* Реальная всплывашка перевода — общий компонент (демо-данные, без SRS). */}
       <WordLookupSheet
         lookup={demoLookup}
-        learnLang={DEMO_LEARN}
+        learnLang={demoLang}
         nativeLang={nativeLang}
         onAdd={() => true}
         onClose={() => setDemoLookup(null)}

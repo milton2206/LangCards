@@ -1720,6 +1720,7 @@ export default function App() {
               closeTutorial();
               setScreen("session");
             }}
+            learnLang={learnLang}
             nativeLang={nativeLang}
           />
         )}
