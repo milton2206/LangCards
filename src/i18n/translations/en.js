@@ -1217,7 +1217,7 @@ export default {
     begin: "Let's go",
     alreadyKnow: "I'll figure it out myself",
     startSession: "Start session",
-    openDetailed: "Detailed guide",
+    openDetailed: "How to use",
     tryIt: "Try it yourself",
     groups: {
       cards: "Cards & words",
@@ -1238,11 +1238,8 @@ export default {
       glossFallback: "a word from the example",
     },
     session: {
-      label: "Today · {lang}",
-      minutes: "≈ {n} min",
-      cards: "{n} cards",
-      text: "text",
-      dialogue: "dialogue",
+      // The preview title and block labels come from session.* — the very
+      // strings the real session screen uses.
       coreTitle: "This is the core",
       coreText:
         "The full walkthrough is in settings, under “How to use”. Open it anytime.",
@@ -1259,15 +1256,15 @@ export default {
       },
       swipe: {
         title: "One movement — and done",
-        text: "Left — already know it. Right — take it into your words. Drag the card to feel it.",
+        text: "Left — already know it. Right — take it into your “Learning” list. Drag the card to feel it.",
       },
       sessionReady: {
         title: "Today's session is ready",
-        text: "We put together today's plan for you — cards, a bit of reading, and a dialogue. It's a little different every day.",
+        text: "We put together today's plan for you — review, new words, a bit of reading, and a dialogue. It's a little different every day.",
       },
       d_swipe: {
         title: "The card and the swipe",
-        text: "A word with its translation and a living example. Left — “Know”, right — “Take into learning”. Try it right here.",
+        text: "A word with its translation and a living example. Left — “Know”, right — “Take”. Try it right here.",
       },
       d_lookup: {
         title: "Tap a word for its meaning",
@@ -1277,7 +1274,7 @@ export default {
         title: "More on the card",
         text: "The card adapts to the word — it shows only what's relevant.",
         points: [
-          "Plural form for nouns",
+          "Transcription and the plural form — under “Details”",
           "A conjugation table for verbs — on request",
           "Add your own word straight from an example",
         ],
@@ -1288,7 +1285,7 @@ export default {
       },
       d_session: {
         title: "Daily session",
-        text: "Each day the app assembles a short plan for you: review, a bit of reading, and a dialogue.",
+        text: "Each day the app assembles a short plan for you: review, new words, a bit of reading, and a dialogue.",
       },
       d_reading: {
         title: "Reading",
@@ -1296,7 +1293,7 @@ export default {
         points: [
           "Tap a word for its translation in context",
           "The ¶ mark breaks a sentence down by grammar",
-          "At the end — “Did you get it?” questions",
+          "At the end — the “Check comprehension” button: questions about the text",
         ],
       },
       d_listening: {
@@ -1329,8 +1326,7 @@ export default {
         text: "LangCards can be installed like a regular app.",
         points: [
           "Add to the home screen (PWA) — full screen",
-          "An account is required — sign up once",
-          "Your progress syncs across devices",
+          "Sign in with the same account on your phone — your progress comes along",
         ],
       },
     },

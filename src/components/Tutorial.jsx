@@ -48,11 +48,24 @@ const DETAILED_STEPS = [
   { id: "d_listening", kind: "info", group: "listening", icon: "listening", points: 3 },
   { id: "d_languages", kind: "info", group: "languages", icon: "languages", points: 2 },
   { id: "d_level", kind: "info", group: "level", icon: "target", points: 2 },
-  { id: "d_install", kind: "info", group: "install", icon: "download", points: 3 },
+  { id: "d_install", kind: "info", group: "install", icon: "download", points: 2 },
 ];
 
 // Оценки повторения — те же смысловые цвета Ember, что на экране повторения.
 const GRADES = ["again", "hard", "good", "easy"];
+
+// Блоки занятия для превью — ЧЕТЫРЕ базовых типа плана и их иконки ровно те же,
+// что на экране занятия (см. sessionEngine.buildSession и SessionScreen). Имена
+// берём из session.block.* — одна подпись на приложение и туториал, чтобы они не
+// разъезжались при переименовании. Превью показывает ТИПИЧНЫЙ день: без акцента
+// дня, добавок «хотите ещё?», дня отдыха и отметок — это уже разбор экрана, а не
+// знакомство.
+const SESSION_BLOCKS = [
+  { type: "review", icon: "review" },
+  { type: "newWords", icon: "spark" },
+  { type: "reading", icon: "reading" },
+  { type: "listening", icon: "listening" },
+];
 
 /**
  * @param {"short"|"detailed"} mode
@@ -286,27 +299,16 @@ export default function Tutorial({
               <div className="tut__session">
                 <div className="tut__session-head">
                   <span className="tut__session-title">
-                    {t("tutorial.session.label", {
-                      lang: t("lang." + demoLang),
-                    })}
-                  </span>
-                  <span className="tut__session-mins">
-                    {t("tutorial.session.minutes", { n: 9 })}
+                    {t("session.title")}
                   </span>
                 </div>
                 <div className="tut__session-tiles">
-                  <div className="tut__tile">
-                    <Icon name="review" size={22} />
-                    <span>{t("tutorial.session.cards", { n: 12 })}</span>
-                  </div>
-                  <div className="tut__tile">
-                    <Icon name="reading" size={22} />
-                    <span>{t("tutorial.session.text")}</span>
-                  </div>
-                  <div className="tut__tile">
-                    <Icon name="listening" size={22} />
-                    <span>{t("tutorial.session.dialogue")}</span>
-                  </div>
+                  {SESSION_BLOCKS.map((b) => (
+                    <div key={b.type} className="tut__tile">
+                      <Icon name={b.icon} size={22} />
+                      <span>{t(`session.block.${b.type}`)}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
               <div className="tut__core">

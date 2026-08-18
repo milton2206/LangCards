@@ -248,19 +248,16 @@
   font-size: 0.9375rem;
 }
 
-.tut__session-mins {
-  flex: 0 0 auto;
-  color: var(--ember-text-muted);
-  font-size: 0.8125rem;
-}
-
+/* Блоков четыре, а имена у них длинные («Чтение с вопросами»): в одну строку на
+   телефоне они превращаются в лапшу из переносов. Сетка 2×2 занимает столько же
+   места по высоте, сколько занимал ряд из трёх плиток. */
 .tut__session-tiles {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 
 .tut__tile {
-  flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
