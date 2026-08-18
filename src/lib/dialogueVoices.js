@@ -1,3 +1,5 @@
+import { PRIMARY_VOICE } from "./ttsClient.js";
+
 // Кто каким голосом говорит в диалоге аудирования (фаза 6.2).
 //
 // Раньше все реплики озвучивались одним голосом языка, и диалог звучал как
@@ -17,6 +19,10 @@
 const FEMALE = "f";
 const MALE = "m";
 
+// Все идентификаторы, которые сервер понимает (TTS_VOICES в lib/tts.js). Список
+// здесь для ПРОВЕРКИ: что бы ни случилось выше, наружу уходит значение из него.
+const KNOWN_VOICES = [PRIMARY_VOICE, FEMALE, MALE, `${FEMALE}2`, `${MALE}2`];
+
 // Пол реплики → наш идентификатор. Терпим и слова, и одну букву: поле приходит
 // из ответа модели, сервер его уже нормализует, но кэш диалогов на устройстве
 // живёт долго и может помнить записи постарше.
@@ -25,6 +31,15 @@ function voiceKindOf(gender) {
   if (s.startsWith("m") || s.startsWith("м")) return MALE;
   if (s.startsWith("f") || s.startsWith("w") || s.startsWith("ж")) return FEMALE;
   return null;
+}
+
+// Последнее слово перед отправкой: неизвестный голос → ОСНОВНОЙ. Голос — это
+// украшение (кто каким тембром говорит), и из-за него озвучка не должна
+// отказывать: пусть реплику скажет основной голос языка, чем не скажет никто.
+// Тот же принцип, что и на сервере (normalizeVoice/resolveVoice в lib/tts.js) —
+// оба конца цепочки деградируют одинаково.
+function safeVoice(id) {
+  return KNOWN_VOICES.includes(id) ? id : PRIMARY_VOICE;
 }
 
 /**
@@ -56,8 +71,8 @@ export function assignDialogueVoices(lines) {
       usedByKind.set(kind, used + 1);
       // Первый собеседник этого пола — обычный голос, следующий — он же ниже
       // тоном. Третьего и дальше (в диалоге их не бывает) сводим туда же.
-      bySpeaker.set(speaker, used === 0 ? kind : `${kind}2`);
+      bySpeaker.set(speaker, safeVoice(used === 0 ? kind : `${kind}2`));
     }
-    return { ...line, voice: bySpeaker.get(speaker) };
+    return { ...line, voice: safeVoice(bySpeaker.get(speaker)) };
   });
 }

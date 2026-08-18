@@ -481,6 +481,7 @@ export default {
     failedShort: "No audio",
     offlineShort: "Offline",
     limitShort: "Limit",
+    emptyShort: "No text",
     // Full explanation under the player + retry of the AUDIO only.
     retry: "Retry audio",
     retrying: "Loading…",
@@ -493,7 +494,13 @@ export default {
       "You've used today's audio limit. It resets tomorrow (at 00:00 UTC).",
     errCooldown: "Too often. Wait {seconds}s and try again.",
     errSession: "Your session has expired. Please sign in again.",
-    errUnavailable: "This text can't be voiced.",
+    // This used to be one line for two different cases — "This text can't be
+    // voiced": neither what happened nor what to do. Now they are separate and
+    // both say it plainly.
+    errEmpty:
+      "There is nothing to voice: this exercise has no text. Questions and the breakdown still work.",
+    errTooLong:
+      "This phrase is longer than {max} characters — too long to voice in one go.",
   },
 
   // Weekly language schedule (phase 4.5).

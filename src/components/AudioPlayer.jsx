@@ -4,6 +4,8 @@ import {
   forgetTtsUrl,
   claimAudio,
   releaseAudio,
+  splitForTts,
+  MAX_TTS_TEXT_LEN,
   RETRYABLE_REASONS,
 } from "../lib/ttsClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
@@ -64,17 +66,46 @@ export default function AudioPlayer({
   const { t } = useI18n();
   const ember = appearance === "ember";
 
+  // Что реально запрашиваем у озвучки. Дорожка (реплика диалога, предложение
+  // текста) — это ЕДИНИЦА СМЫСЛА, а один запрос озвучки ограничен по длине,
+  // поэтому одна дорожка может стать НЕСКОЛЬКИМИ кусками (см. splitForTts). Для
+  // слушателя не меняется ничего: плеер и так склеивает несколько файлов в одну
+  // шкалу времени.
+  //
+  // Дорожки БЕЗ ТЕКСТА отпадают тут же — озвучивать в них нечего. Раньше такая
+  // дорожка роняла весь набор: одна пустая реплика — и молчал целый диалог.
+  // Пропустить её честнее: остальное человек услышит.
+  const pieces = useMemo(() => {
+    const out = [];
+    for (const tr of tracks || []) {
+      for (const text of splitForTts(tr.text)) {
+        out.push({
+          text,
+          learnLang: tr.learnLang,
+          rate: tr.rate,
+          voice: tr.voice,
+        });
+      }
+    }
+    return out;
+  }, [tracks]);
+
+  // Озвучивать нечего вовсе: дорожки пришли, а текста в них нет. Это НЕ то же,
+  // что «дорожек ещё нет» (содержимое не приехало) — и сказать об этом надо
+  // разными словами.
+  const nothingToSpeak = (tracks || []).length > 0 && pieces.length === 0;
+
   // Подпись набора: список текстов+голосов+скоростей. По ней сбрасываемся при
   // смене содержимого (новое предложение, другой текст, другая скорость).
   const sig = useMemo(
     () =>
-      (tracks || [])
+      pieces
         .map(
           (tr) =>
             `${tr.learnLang}|${tr.voice ?? "primary"}|${tr.rate ?? 1}|${tr.text}`,
         )
         .join(""),
-    [tracks],
+    [pieces],
   );
 
   const audioRef = useRef(null);
@@ -85,7 +116,7 @@ export default function AudioPlayer({
 
   const [phase, setPhase] = useState("idle"); // idle | preparing | ready | error
   // Почему озвучка не получилась (см. fetchTtsUrlResult): offline | rateLimit |
-  // rateCooldown | sessionExpired | unavailable | failed. Нужна, чтобы объяснить
+  // rateCooldown | sessionExpired | empty | tooLong | failed. Нужна, чтобы объяснить
   // человеку причину, а не показывать одно «Нет аудио» на все случаи.
   const [errorReason, setErrorReason] = useState(null);
   const [errorParams, setErrorParams] = useState(null);
@@ -182,8 +213,14 @@ export default function AudioPlayer({
     setPhase("preparing");
     setErrorReason(null);
     setErrorParams(null);
+    // Озвучивать нечего — так и говорим, вместо безымянного отказа.
+    if (nothingToSpeak) {
+      setErrorReason("empty");
+      setPhase("error");
+      return null;
+    }
     try {
-      const list = tracks || [];
+      const list = pieces;
       const resolved = [];
       for (const [i, tr] of list.entries()) {
         const ask = () =>
@@ -198,7 +235,7 @@ export default function AudioPlayer({
         if (!url && RETRYABLE_REASONS.includes(reason)) {
           // eslint-disable-next-line no-console
           console.warn(
-            `[audio] дорожка ${i + 1}/${list.length} не получена (${reason}) — повтор`,
+            `[audio] кусок ${i + 1}/${list.length} не получен (${reason}) — повтор`,
           );
           ({ url, reason, params } = await ask());
         }
@@ -207,7 +244,7 @@ export default function AudioPlayer({
           // это неразличимо, а для разбора важно (первая или, скажем, третья).
           // eslint-disable-next-line no-console
           console.warn(
-            `[audio] озвучка диалога не готова: дорожка ${i + 1} из ${list.length}, причина ${reason || "failed"}, ${tr.learnLang}/${tr.voice ?? "primary"}`,
+            `[audio] озвучка не готова: кусок ${i + 1} из ${list.length}, причина ${reason || "failed"}, ${tr.learnLang}/${tr.voice ?? "primary"}`,
           );
           setErrorReason(reason || "failed");
           setErrorParams(params || null);
@@ -226,7 +263,7 @@ export default function AudioPlayer({
       setPhase("error");
       return null;
     }
-  }, [tracks]);
+  }, [pieces, nothingToSpeak]);
 
   // Автозапуск при появлении/смене содержимого (аудирование).
   useEffect(() => {
@@ -284,7 +321,7 @@ export default function AudioPlayer({
       return;
     }
     retriedRef.current = true;
-    for (const tr of tracks || []) {
+    for (const tr of pieces) {
       forgetTtsUrl({
         text: tr.text,
         learnLang: tr.learnLang,
@@ -377,7 +414,7 @@ export default function AudioPlayer({
     if (busy) return;
     // Свежие ссылки: если в кэш попал URL, который потом не проиграть,
     // повтор не должен подсунуть его же.
-    for (const tr of tracks || []) {
+    for (const tr of pieces) {
       forgetTtsUrl({
         text: tr.text,
         learnLang: tr.learnLang,
@@ -467,7 +504,9 @@ export default function AudioPlayer({
       ? "audio.offlineShort"
       : reason === "rateLimit" || reason === "rateCooldown"
         ? "audio.limitShort"
-        : "audio.failedShort";
+        : reason === "empty"
+          ? "audio.emptyShort"
+          : "audio.failedShort";
   const reasonKey = {
     offline: "audio.errOffline",
     // Сеть у устройства есть, а запрос не дошёл: сервер молчит, оборвалось
@@ -476,7 +515,13 @@ export default function AudioPlayer({
     rateLimit: "audio.errLimit",
     rateCooldown: "audio.errCooldown",
     sessionExpired: "audio.errSession",
-    unavailable: "audio.errUnavailable",
+    // Две БЫВШИЕ «unavailable»-причины, разведённые по смыслу. Прежний текст
+    // («Этот текст не получается озвучить») не говорил ни что случилось, ни
+    // что делать, а кнопки повтора при нём нет — тупик без объяснения.
+    empty: "audio.errEmpty",
+    // Длинное плеер режет сам (splitForTts), так что сюда он не приходит —
+    // строка на случай, если озвучку попросят одним куском.
+    tooLong: "audio.errTooLong",
     failed: "audio.errFailed",
   }[reason];
 
@@ -577,12 +622,15 @@ export default function AudioPlayer({
         role="status"
       >
         <span className="aplayer__error-text">
-          {t(reasonKey, { seconds: errorParams?.seconds ?? 1 })}
+          {t(reasonKey, {
+            seconds: errorParams?.seconds ?? 1,
+            max: errorParams?.max ?? MAX_TTS_TEXT_LEN,
+          })}
         </span>
-        {/* «Текст не озвучить» повтором не лечится — кнопку не показываем.
-            Офлайн кнопку показываем, но выключенной: она оживёт сама, когда
-            вернётся связь (слушаем события online/offline выше). */}
-        {reason !== "unavailable" && (
+        {/* Ни пустой текст, ни превышение длины повтором не лечатся — кнопку
+            не показываем. Офлайн кнопку показываем, но выключенной: она оживёт
+            сама, когда вернётся связь (слушаем события online/offline выше). */}
+        {reason !== "empty" && reason !== "tooLong" && (
           <button
             type="button"
             className="aplayer__retry"
