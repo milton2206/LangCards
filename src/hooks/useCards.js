@@ -14,14 +14,30 @@ const LEGACY_KEY = "cardsBatch"; // старый общий ключ — для 
 // Запас привязан не только к паре, но и к НАБОРУ ПАРАМЕТРОВ (тема, уровень,
 // тип контента): карточки по «работе» уровня B1 нельзя подмешивать в порцию по
 // «ресторану» A1. Не совпал набор — запас для этой генерации не используется.
+//
+// ХРАНИМ ПО ТЕГУ, А НЕ ОДНИМ СЛОТОМ НА ПАРУ. Раньше у пары был один запас с
+// подписью, и любая смена набора его затирала. Хуже всего это выходило при
+// АВТОСМЕНЕ ТЕМЫ: тема меняется как раз потому, что пул исчерпан, — то есть
+// накопленные карточки выбрасывались ровно в тот момент, когда их не хватает.
+// Теперь карточки по «медицине» дожидаются возвращения к «медицине», а не
+// пропадают при переходе на «работу». То же со сменой уровня и режима.
 const RESERVE_KEY = "cardsReserveByPair";
-const RESERVE_MAX = 40; // потолок хранения, чтобы localStorage не пух
+const RESERVE_MAX = 40; // потолок карточек в ОДНОМ запасе (на тег)
+// Сколько наборов держим на пару. Теги множатся по теме × уровню × режиму, и
+// без потолка хранилище росло бы с каждой новой темой. Восьми хватает на все
+// пресетные темы текущего уровня и режима; при исчерпании вытесняем самый
+// старый по времени записи (а запись случается при каждой генерации с этим
+// тегом, так что «самый старый» — это «дольше всех не использованный»).
+const RESERVE_MAX_TAGS = 8;
 
 // Подпись набора параметров: карточки из запаса годятся только под такой же.
-// «Удиви меня» (random) в запас не идёт вовсе — там тема и уровень случайны.
+// «Удиви меня» — свой общий тег: темы и уровня там нет, но излишек случайной
+// генерации годится для следующего случайного захода, а смешаться с тематическим
+// запасом он не может (обычный тег всегда содержит разделители «|»).
+const RANDOM_TAG = "random";
 function reserveTag(params) {
   return params?.random
-    ? null
+    ? RANDOM_TAG
     : [params?.topic || "", params?.level || "", params?.mode || "words"].join("|");
 }
 
@@ -31,6 +47,43 @@ function loadJSON(key, fallback) {
     return raw ? JSON.parse(raw) : fallback;
   } catch {
     return fallback;
+  }
+}
+
+/**
+ * Запас пары в виде { тег: { cards, at } }.
+ *
+ * Терпит СТАРЫЙ формат — { tag, cards }, один слот на пару: читаем его как один
+ * тег, чтобы у тех, у кого запас уже накоплен, он не пропал при обновлении.
+ * Времени записи у такой записи нет, поэтому она считается самой старой и
+ * уступит место первой — но только когда наберётся RESERVE_MAX_TAGS новых.
+ */
+function readPairReserve(store, pairKey) {
+  const saved = store?.[pairKey];
+  if (!saved || typeof saved !== "object") return {};
+  if (typeof saved.tag === "string" && Array.isArray(saved.cards)) {
+    return { [saved.tag]: { cards: saved.cards, at: 0 } };
+  }
+  const out = {};
+  for (const [tag, entry] of Object.entries(saved)) {
+    if (entry && Array.isArray(entry.cards)) {
+      out[tag] = { cards: entry.cards, at: Number(entry.at) || 0 };
+    }
+  }
+  return out;
+}
+
+/** Записать запас пары: пустые наборы выбрасываем, лишние — самые старые. */
+function savePairReserve(store, pairKey, byTag) {
+  const kept = Object.entries(byTag)
+    .filter(([, entry]) => entry.cards.length > 0)
+    .sort((a, b) => b[1].at - a[1].at)
+    .slice(0, RESERVE_MAX_TAGS);
+  const next = { ...store, [pairKey]: Object.fromEntries(kept) };
+  try {
+    localStorage.setItem(RESERVE_KEY, JSON.stringify(next));
+  } catch {
+    // переполнение хранилища — запас не критичен, молча пропускаем
   }
 }
 
@@ -129,18 +182,16 @@ export function useCards(pairKey) {
         const asked = Number(params.count) || fresh.length;
         const tag = reserveTag(params);
 
-        // Запас прошлых генераций: годится только с той же подписью и только
-        // то, чего нет в свежей пачке и что человек ещё не разобрал.
+        // Запас прошлых генераций: берём набор ЭТОГО тега и только то, чего нет
+        // в свежей пачке и что человек ещё не разобрал. Наборы других тем и
+        // уровней лежат рядом нетронутыми и дождутся возвращения к ним.
         const store = loadJSON(RESERVE_KEY, {});
-        const saved = store[pairKey];
+        const byTag = readPairReserve(store, pairKey);
         const excluded = new Set((params.exclude || []).map((w) => String(w)));
         const freshWords = new Set(fresh.map((c) => c.word));
-        const usableReserve =
-          tag && saved?.tag === tag && Array.isArray(saved.cards)
-            ? saved.cards.filter(
-                (c) => c?.word && !freshWords.has(c.word) && !excluded.has(c.word),
-              )
-            : [];
+        const usableReserve = (byTag[tag]?.cards || []).filter(
+          (c) => c?.word && !freshWords.has(c.word) && !excluded.has(c.word),
+        );
 
         // Порция: свежие карточки, а если их меньше запрошенного — добираем из
         // запаса. Человек просил 20 и получает 20, даже когда модель принесла 9.
@@ -148,19 +199,16 @@ export function useCards(pairKey) {
         const fromReserve = usableReserve.slice(0, Math.max(0, asked - batch.length));
         const finalBatch = [...batch, ...fromReserve];
 
-        // Лишнее не выбрасываем: остаток свежих + неиспользованный запас.
-        if (tag) {
-          const rest = [
+        // Лишнее не выбрасываем: остаток свежих + неиспользованный запас. Пишем
+        // ТОЛЬКО набор этого тега — остальные наборы пары остаются как были.
+        byTag[tag] = {
+          cards: [
             ...fresh.slice(asked),
             ...usableReserve.slice(fromReserve.length),
-          ].slice(0, RESERVE_MAX);
-          const next = { ...store, [pairKey]: { tag, cards: rest } };
-          try {
-            localStorage.setItem(RESERVE_KEY, JSON.stringify(next));
-          } catch {
-            // переполнение хранилища — запас не критичен, молча пропускаем
-          }
-        }
+          ].slice(0, RESERVE_MAX),
+          at: Date.now(),
+        };
+        savePairReserve(store, pairKey, byTag);
 
         // Недобор — не молчаливая пропажа: экран честно скажет, сколько нашлось.
         // Считаем ПОСЛЕ добора из запаса: если запас закрыл разницу, недобора
