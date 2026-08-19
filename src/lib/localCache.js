@@ -42,7 +42,6 @@ const SETUP_KEYS = [
   TUTORIAL_KEY,
   "settings",
   "generateMode",
-  "generateCount",
 ];
 
 // Всё состояние приложения, привязанное к аккаунту/пользователю. Сюда входит и

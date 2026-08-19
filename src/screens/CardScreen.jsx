@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { pickCurrentCard, MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
-import { GENERATE_COUNT_OPTIONS } from "../lib/generateCount.js";
 import { useWordLookup } from "../hooks/useWordLookup.js";
 import { apiErrorText } from "../lib/apiClient.js";
 import {
@@ -28,33 +27,9 @@ const PRESET_TOPIC_IDS = new Set(
   ONBOARDING_STEPS.find((s) => s.key === "topic").options.map((o) => o.id),
 );
 
-// Переключатель «сколько карточек генерировать за раз» (5/10/20) — рядом с
-// кнопкой генерации в обоих местах, где она встречается на этом экране.
-function GenerateCountPicker({ value, onChange, label }) {
-  return (
-    <div className="cards__count-picker">
-      <span className="cards__count-label">{label}</span>
-      <div className="cards__count-options">
-        {GENERATE_COUNT_OPTIONS.map((n) => (
-          <button
-            key={n}
-            type="button"
-            className={
-              "cards__count-chip" + (value === n ? " is-active" : "")
-            }
-            aria-pressed={value === n}
-            onClick={() => onChange(n)}
-          >
-            {n}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // Переключатель типа контента: обычные слова или «Контекст носителей»
-// (идиомы и живые фразы). Рядом с кнопкой генерации, как и выбор количества.
+// (идиомы и живые фразы). Рядом с кнопкой генерации — единственный выбор,
+// который здесь остался: сколько карточек брать, приложение решает само.
 function GenerateModePicker({ value, onChange }) {
   const { t } = useI18n();
   const modes = [
@@ -63,7 +38,7 @@ function GenerateModePicker({ value, onChange }) {
   ];
   return (
     <div className="cards__mode-picker">
-      <span className="cards__count-label">{t("cards.modeLabel")}</span>
+      <span className="cards__mode-label">{t("cards.modeLabel")}</span>
       <div className="cards__mode-options" role="group">
         {modes.map((m) => (
           <button
@@ -89,8 +64,6 @@ function GenerateModePicker({ value, onChange }) {
 function SecondaryActions({
   generateMode,
   onChangeGenerateMode,
-  generateCount,
-  onChangeGenerateCount,
   onGenerate,
   onGenerateRandom,
   onOpenAddWord,
@@ -102,12 +75,11 @@ function SecondaryActions({
   quizPoolSize = 0,
   quizMinWords = 0,
   primaryGenerate = false,
-  // Сколько мест свободно и хватает ли их на целую порцию. Генерация запускается
-  // ТОЛЬКО когда порция поместится целиком: иначе часть карточек пропала бы, а
-  // деньги за них уже потрачены. Добрать из готовой колоды можно и при одном
-  // свободном месте — это ничего не стоит.
-  freeSlots = Infinity,
-  roomForBatch = true,
+  // Мест под активные слова не осталось совсем. Только это и гасит генерацию:
+  // при нехватке места порция не отменяется, а УЖИМАЕТСЯ до числа свободных
+  // мест (см. buildParams в App.jsx). А вот при нуле генерировать бессмысленно —
+  // карточки было бы некуда положить, а деньги за них уже потрачены.
+  noRoom = false,
 }) {
   const { t, tp } = useI18n();
   // Слов хватает на тест? Порог общий с самим режимом (см. lib/quizEngine.js) —
@@ -116,16 +88,11 @@ function SecondaryActions({
   return (
     <>
       <GenerateModePicker value={generateMode} onChange={onChangeGenerateMode} />
-      <GenerateCountPicker
-        value={generateCount}
-        onChange={onChangeGenerateCount}
-        label={t("cards.countLabel")}
-      />
       <button
         type="button"
         className={primaryGenerate ? "cards__retry" : "cards__generate"}
         onClick={onGenerate}
-        disabled={!roomForBatch}
+        disabled={noRoom}
       >
         {t("cards.generate")}
       </button>
@@ -133,14 +100,16 @@ function SecondaryActions({
         type="button"
         className="cards__surprise"
         onClick={onGenerateRandom}
-        disabled={!roomForBatch}
+        disabled={noRoom}
       >
         🎲 {t("cards.surprise")}
       </button>
-      {/* Почему генерация недоступна — прямо под кнопками, с обоими числами. */}
-      {!roomForBatch && (
+      {/* Почему генерация недоступна — прямо под кнопками. Только там, где эти
+          кнопки и есть весь экран (порция разобрана / её ещё нет): под карточкой
+          то же самое уже написано отдельной строкой, и повторять его незачем. */}
+      {noRoom && primaryGenerate && (
         <p className="cards__slots cards__slots--why" role="status">
-          {t("cards.needRoomForBatch", { need: generateCount, free: freeSlots })}
+          {t("cards.slotsFull", { max: MAX_ACTIVE_WORDS })}
         </p>
       )}
       <button type="button" className="cards__generate" onClick={onOpenAddWord}>
@@ -206,8 +175,6 @@ export default function CardScreen({
   weekSchedule,
   restDay,
   dueCount,
-  generateCount,
-  onChangeGenerateCount,
   generateMode,
   onChangeGenerateMode,
   onGenerate,
@@ -249,12 +216,12 @@ export default function CardScreen({
   const { takenWords, knownWords, take, skip, markKnown, rememberCards } = vocab;
 
   // Место под активные слова считает слой данных (см. useWordLists), экран
-  // только показывает. Два разных состояния:
-  //   мест нет вовсе      — «Взять» недоступно, карточка под замком;
-  //   мест меньше порции  — брать из колоды можно, генерировать новую нельзя.
+  // только показывает. Состояние здесь ровно одно: мест нет вовсе — «Взять»
+  // недоступно, карточка под замком, генерировать нечего. Нехватка места под
+  // ЦЕЛУЮ порцию генерацию больше не отменяет: порция ужимается до числа
+  // свободных мест (см. buildParams в App.jsx).
   const freeSlots = vocab.freeSlots;
   const noRoom = vocab.atActiveLimit;
-  const roomForBatch = freeSlots >= generateCount;
 
   // Суточная квота озвучки кончилась (общее состояние приложения, ставит его
   // первый же ответ 429). Кнопки play гаснут сами, а экран говорит об этом
@@ -750,15 +717,12 @@ export default function CardScreen({
             <SecondaryActions
               generateMode={generateMode}
               onChangeGenerateMode={onChangeGenerateMode}
-              generateCount={generateCount}
-              onChangeGenerateCount={onChangeGenerateCount}
               onGenerate={onGenerate}
               onGenerateRandom={onGenerateRandom}
               onOpenAddWord={onOpenAddWord}
               onOpenReading={onOpenReading}
               onOpenListening={onOpenListening}
-              freeSlots={freeSlots}
-              roomForBatch={roomForBatch}
+              noRoom={noRoom}
               onOpenQuiz={onOpenQuiz}
               quizPoolSize={quizPoolSize}
               quizMinWords={quizMinWords}
@@ -838,17 +802,12 @@ export default function CardScreen({
         </p>
       )}
 
-      {/* Состояние мест под колодой. Ноль — «мест нет»; меньше порции —
-          объясняем, что добрать из колоды можно, а новую порцию пока нет. */}
-      {noRoom ? (
+      {/* Состояние мест под колодой: говорим только про упёршийся потолок. */}
+      {noRoom && (
         <p className="cards__slots cards__slots--full">
           {t("cards.slotsFull", { max: MAX_ACTIVE_WORDS })}
         </p>
-      ) : !roomForBatch ? (
-        <p className="cards__slots">
-          {t("cards.slotsFew", { free: freeSlots })}
-        </p>
-      ) : null}
+      )}
 
       {/* Всё, что не нужно для решения «знаю / беру», — под одной свёрнутой
           строкой «Ещё». Прокручивается вместе с контентом (у подписей нет фона,
@@ -869,15 +828,12 @@ export default function CardScreen({
             <SecondaryActions
               generateMode={generateMode}
               onChangeGenerateMode={onChangeGenerateMode}
-              generateCount={generateCount}
-              onChangeGenerateCount={onChangeGenerateCount}
               onGenerate={onGenerate}
               onGenerateRandom={onGenerateRandom}
               onOpenAddWord={onOpenAddWord}
               onOpenReading={onOpenReading}
               onOpenListening={onOpenListening}
-              freeSlots={freeSlots}
-              roomForBatch={roomForBatch}
+              noRoom={noRoom}
               onOpenQuiz={onOpenQuiz}
               quizPoolSize={quizPoolSize}
               quizMinWords={quizMinWords}

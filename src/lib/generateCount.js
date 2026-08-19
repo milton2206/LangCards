@@ -1,12 +1,21 @@
-// Сколько карточек генерировать за раз — выбирает пользователь (5/10/20).
-export const GENERATE_COUNT_OPTIONS = [5, 10, 20];
-export const DEFAULT_GENERATE_COUNT = 10;
+// Размер порции генерации. КОНСТАНТА, а не выбор пользователя: приложение
+// собирает карточки само, и «сколько штук» — не то решение, ради которого стоит
+// держать три кнопки (человек всё равно жал их наугад). Заодно ушла и порция 5:
+// на ней запас у модели упирался в нижний порог BATCH_MARGIN_MIN и выходил
+// непропорционально дорогим (+80% вместо +50%).
+//
+// Это ПОТОЛОК запроса, а не фиксированное число: реальный count ужимается
+// свободными местами под активные слова и остатком дневной нормы языка —
+// см. buildParams в App.jsx.
+export const GENERATE_BATCH_SIZE = 10;
 
-export function loadGenerateCount() {
+// Разовая уборка: раньше выбор 5/10/20 жил в localStorage под ключом
+// "generateCount". Переключателя больше нет, писать в ключ некому — стираем,
+// чтобы в хранилище не осталось мёртвого поля.
+export function dropLegacyGenerateCount() {
   try {
-    const raw = Number(localStorage.getItem("generateCount"));
-    return GENERATE_COUNT_OPTIONS.includes(raw) ? raw : DEFAULT_GENERATE_COUNT;
+    localStorage.removeItem("generateCount");
   } catch {
-    return DEFAULT_GENERATE_COUNT;
+    // приватный режим/переполнение — потеря некритична
   }
 }

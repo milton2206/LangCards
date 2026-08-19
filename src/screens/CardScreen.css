@@ -787,47 +787,13 @@
   margin-top: 2px;
 }
 
-/* Переключатель «сколько карточек генерировать» — рядом с кнопкой генерации */
-.cards__count-picker {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.cards__count-label {
+/* Переключатель типа контента (Слова / Контекст носителей) — метка сверху,
+   две кнопки во всю ширину под ней (подпись «Контекст носителей» длинная). */
+.cards__mode-label {
   color: var(--ember-text-muted);
   font-size: 0.8125rem;
 }
 
-.cards__count-options {
-  display: flex;
-  gap: 6px;
-}
-
-.cards__count-chip {
-  min-width: 36px;
-  min-height: 32px;
-  padding: 4px 10px;
-  border: 1.5px solid var(--ember-border);
-  border-radius: 999px;
-  background-color: var(--ember-surface);
-  color: var(--ember-text);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  transition:
-    border-color 0.15s,
-    background-color 0.15s;
-}
-
-.cards__count-chip.is-active {
-  border-color: var(--ember-accent);
-  background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
-  color: var(--ember-accent);
-}
-
-/* Переключатель типа контента (Слова / Контекст носителей) — метка сверху,
-   две кнопки во всю ширину под ней (подпись «Контекст носителей» длинная). */
 .cards__mode-picker {
   display: flex;
   flex-direction: column;

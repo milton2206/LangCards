@@ -88,13 +88,8 @@ export default {
     generate: "Generate new cards",
     surprise: "Surprise me",
     remaining: "Left in batch: {n}",
-    countLabel: "Cards:",
-    // Room for active words: deck state and why generation is unavailable.
+    // Room for active words: the ceiling is full — nothing to generate.
     slotsFull: "No room · {max} of {max}",
-    slotsFew:
-      "{free} places free. Not enough for a new batch, but you can still take from the deck.",
-    needRoomForBatch:
-      "A new batch needs {need} free places. You have {free} right now.",
     // Short batch: fewer cards arrived than asked for.
     shortBatch: "Only {got} of {asked} words turned out to be new.",
     plural: "pl.",
@@ -769,6 +764,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      simplerGeneration: {
+        title: "No more choosing how many cards",
+        desc: "The three buttons “5 / 10 / 20” next to the generate button are gone: the app now takes as many cards as will fit. Usually that's ten, but if only three places are left before the active-words ceiling, exactly three arrive instead of ten with seven thrown away. Before, generation simply refused to start in that case and you had to clear the list first. Everything else stays: the content type (words or “Native context”), “Surprise me”, and your daily norm per language.",
+      },
       topicSwitch: {
         title: "Ran out of words on a topic? We'll take another",
         desc: "There's a finite number of words on any one topic at your level, and sooner or later you use them all up — that's normal, you've been through it. The app now picks another topic itself and tells you, instead of quietly handing you two cards at a time. From that same message you can choose a different topic or set your own — “doctor's appointment”, “renting a flat”, anything. The narrower the topic, the more useful the words.",

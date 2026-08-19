@@ -74,7 +74,10 @@ import {
   noteBatchResult,
   pickNextTopic,
 } from "./lib/topicExhaustion.js";
-import { loadGenerateCount } from "./lib/generateCount.js";
+import {
+  GENERATE_BATCH_SIZE,
+  dropLegacyGenerateCount,
+} from "./lib/generateCount.js";
 import { loadGenerateMode } from "./lib/generateMode.js";
 import {
   loadListeningLevel,
@@ -346,11 +349,12 @@ export default function App() {
   const { cards, loading, error, shortfall, generate, clearError } =
     useCards(pairKey);
 
-  // Сколько карточек генерировать за раз — сохраняется между сессиями.
-  const [generateCount, setGenerateCount] = useState(loadGenerateCount);
+  // Сколько карточек генерировать за раз, человек больше НЕ выбирает: порция —
+  // константа GENERATE_BATCH_SIZE, ужатая свободными местами и дневной нормой
+  // (см. buildParams ниже). Здесь осталась только разовая уборка старого ключа.
   useEffect(() => {
-    localStorage.setItem("generateCount", String(generateCount));
-  }, [generateCount]);
+    dropLegacyGenerateCount();
+  }, []);
 
   // Тип контента: обычные слова или «Контекст носителей» (идиомы/фразы).
   const [generateMode, setGenerateMode] = useState(loadGenerateMode);
@@ -560,9 +564,9 @@ export default function App() {
         activeLanguage.nativeLang !== userLangs.priorityLanguage.nativeLang),
   );
 
-  // Дневная норма новых слов активной пары. Фолбэк — константа (не generateCount):
-  // движок сам меняет размер порции генерации под блок «новые слова», а норма от
-  // неё зависеть не должна, иначе была бы обратная связь (норма ← порция ← норма).
+  // Дневная норма новых слов активной пары. Фолбэк — своя константа, НЕ размер
+  // порции генерации: движок сам меняет объём блока «новые слова», а норма от
+  // порции зависеть не должна, иначе была бы обратная связь (норма ← порция ← норма).
   const sessionDailyNewLimit = Math.max(
     1,
     Number(activeLanguage?.dailyNewLimit) || 10,
@@ -933,9 +937,14 @@ export default function App() {
     const deferred = vocab.skippedWords
       .filter((s) => (s.returnDate ?? "") > vocab.todayKey)
       .map((s) => s.word);
+    // ПОДРЕЗКА ПОРЦИИ. Просим GENERATE_BATCH_SIZE, но не больше, чем реально
+    // поместится: свободно 3 места — просим 3, а не 10. Иначе часть карточек
+    // некуда положить, а деньги за них уже потрачены. Ноль здесь недостижим
+    // (при нуле свободных мест кнопка генерации погашена), но нижнюю единицу
+    // держим явно: count=0 сервер молча прочитал бы как 10 (generateCards.js).
+    let count = Math.max(1, Math.min(GENERATE_BATCH_SIZE, vocab.freeSlots));
     // Порция не превышает остаток дневной нормы языка (только мультирежим).
     // Остаток 0 — пользователь идёт «сверх нормы» осознанно: не ограничиваем.
-    let count = generateCount;
     if (activeBalance) {
       const remaining = activeBalance.quota - activeBalance.taken;
       if (remaining > 0 && remaining < count) count = remaining;
@@ -1353,8 +1362,6 @@ export default function App() {
             weekSchedule={scheduleActive ? userLangs.weeklySchedule : null}
             restDay={restDay}
             dueCount={dueWords.length}
-            generateCount={generateCount}
-            onChangeGenerateCount={setGenerateCount}
             generateMode={generateMode}
             onChangeGenerateMode={setGenerateMode}
             onGenerate={handleGenerate}
