@@ -185,8 +185,8 @@ export function useCards(pairKey) {
         // Запас прошлых генераций: берём набор ЭТОГО тега и только то, чего нет
         // в свежей пачке и что человек ещё не разобрал. Наборы других тем и
         // уровней лежат рядом нетронутыми и дождутся возвращения к ним.
-        const store = loadJSON(RESERVE_KEY, {});
-        const byTag = readPairReserve(store, pairKey);
+        const reserveStore = loadJSON(RESERVE_KEY, {});
+        const byTag = readPairReserve(reserveStore, pairKey);
         const excluded = new Set((params.exclude || []).map((w) => String(w)));
         const freshWords = new Set(fresh.map((c) => c.word));
         const usableReserve = (byTag[tag]?.cards || []).filter(
@@ -208,7 +208,7 @@ export function useCards(pairKey) {
           ].slice(0, RESERVE_MAX),
           at: Date.now(),
         };
-        savePairReserve(store, pairKey, byTag);
+        savePairReserve(reserveStore, pairKey, byTag);
 
         // Недобор — не молчаливая пропажа: экран честно скажет, сколько нашлось.
         // Считаем ПОСЛЕ добора из запаса: если запас закрыл разницу, недобора
