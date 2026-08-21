@@ -697,23 +697,45 @@ export default function App() {
 
   // Запуск блока: движок только выстраивает порядок и объём и открывает
   // СУЩЕСТВУЮЩИЙ экран — своих экранов не заводит.
+  //
+  // ВСЁ ТЕЛО В try/catch НЕ ДЛЯ КРАСОТЫ. Это единственный обработчик и тела
+  // блока, и кнопки «Продолжить: …», и блоков-добавок. Любое исключение внутри
+  // обрывает его ДО setScreen — и снаружи это выглядит как «кнопка не нажимается»:
+  // экран не меняется, ничего не мигает, причины не видно. Именно так блок
+  // «Новые слова» и оказался наглухо закрыт, когда здесь осталась ссылка на
+  // удалённый setGenerateCount. Теперь такой сбой хотя бы называет себя в консоли.
   function startSessionBlock(block) {
-    setSessionBlock(block.type);
-    if (block.type === "review") setScreen("review");
-    else if (block.type === "reading") {
-      setSessionSentences(block.sentences || null);
-      setScreen("reading");
-    } else if (block.type === "listening") {
-      setSessionQuestions(block.questions || null);
-      setListeningMode("comprehension"); // блок аудирования — диалог с вопросами
-      setScreen("listening");
-    } else if (block.type === "newWords") {
-      // Объём блока — размер порции генерации (сама генерация зажата суточным
-      // лимитом в buildParams). Взятие слов идёт обычным потоком карточек.
-      if (block.count > 0) setGenerateCount(block.count);
-      // Акцент «новые слова» → случайные слова / «Удиви меня» (подсказка хабу).
-      setSessionRandom(Boolean(block.random));
-      setScreen("cards");
+    try {
+      setSessionBlock(block.type);
+      if (block.type === "review") setScreen("review");
+      else if (block.type === "reading") {
+        setSessionSentences(block.sentences || null);
+        setScreen("reading");
+      } else if (block.type === "listening") {
+        setSessionQuestions(block.questions || null);
+        setListeningMode("comprehension"); // блок аудирования — диалог с вопросами
+        setScreen("listening");
+      } else if (block.type === "newWords") {
+        // Размер порции здесь БОЛЬШЕ НЕ ЗАДАЁТСЯ: он константа (см.
+        // GENERATE_BATCH_SIZE) и ужимается свободными местами и остатком дневной
+        // нормы в buildParams. Объём блока (block.count) — это ЦЕЛЬ дня, её
+        // показывает счётчик «0 из 10»; взятие слов идёт обычным потоком карточек.
+        // Акцент «новые слова» → случайные слова / «Удиви меня» (подсказка хабу).
+        setSessionRandom(Boolean(block.random));
+        setScreen("cards");
+      } else {
+        // Формат, которого движок не знает: план собран, а открывать нечего.
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[session] блок «${block?.type}» открыть нечем: нет ветки под этот формат`,
+        );
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[session] не удалось открыть блок «${block?.type}»:`,
+        e?.message || e,
+      );
     }
   }
 
