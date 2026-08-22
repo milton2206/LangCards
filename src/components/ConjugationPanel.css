@@ -99,12 +99,32 @@
   color: var(--ember-text-muted);
 }
 
-/* Подписи местоимений (родной язык) — приглушённый столбец слева. */
+/* Столбец местоимений — ДВЕ строки: сверху местоимение на изучаемом языке
+   (его и учат вместе с формой), под ним перевод помельче и приглушённо.
+   Стопкой, а не «I · я»: таблица узкая, справа три столбца форм, и длинные
+   местоимения («nosotros», «αυτός/αυτή») в одну строку тянули бы её вширь. */
 .conj__pron {
   font-family: var(--font-ui);
   font-weight: 600;
   color: var(--ember-text-muted);
   white-space: nowrap;
+  vertical-align: top;
+}
+
+/* Местоимение изучаемого языка — той же гарнитурой и цветом, что и формы
+   справа: это одна связка, а не подпись к ней. */
+.conj__pron-learn {
+  display: block;
+  font-family: var(--font-word);
+  font-weight: 600;
+  color: var(--ember-text);
+}
+
+.conj__pron-native {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ember-text-muted);
 }
 
 /* Сами формы — на изучаемом языке, Alegreya (три алфавита читаются ровно). */

@@ -767,6 +767,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      clearerForms: {
+        title: "One pronunciation format, and forms with their own pronouns",
+        desc: "The pronunciation hint used to arrive sometimes in Latin letters, sometimes in Cyrillic, sometimes in phonetic-alphabet symbols — occasionally all of them mixed into one line. The format is now fixed in advance for each pair of languages: if the language you're learning uses the Latin alphabet, the hint is always in Latin letters, written the way the word sounds — [uh-POINT-muhnt]. It is never written in Cyrillic any more: Cyrillic cannot carry th, æ or ŋ and teaches the wrong pronunciation. For Greek with a Russian or Ukrainian interface it is always Cyrillic instead. Cards you already saved stay as they are — the rule applies to new ones. Alongside that, the verb-forms table now shows the pronoun in the language you're learning with the translation beneath it, so you learn “I go” rather than “я go”.",
+      },
       bothDirections: {
         title: "Words are asked both ways",
         desc: "Until now a word always appeared the same way: a sentence in the language you're learning, with the translation a tap away. With that sameness you end up memorising the card rather than the word — you recognise it by its familiar shape and the answer comes back, yet the word never surfaces in real life. The direction now alternates: one session you recall the translation, the next you recall the word itself from its translation. The reverse card shows the translation and nothing else — no example, no transcription, no audio, or the answer would be sitting right there. The very first review of a word is always the old way: you've only just picked it up.",

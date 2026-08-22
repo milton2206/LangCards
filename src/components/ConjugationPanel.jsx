@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { requestConjugation, normalizeForm } from "../lib/conjugationClient.js";
+import { learnPronoun } from "../lib/pronouns.js";
 import { apiErrorText } from "../lib/apiClient.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import Icon from "./icons/Icon.jsx";
 import "./ConjugationPanel.css";
 
-// Порядок строк (лица-числа) и столбцов (времена) таблицы спряжения. Подписи
-// местоимений и заголовки времён — из i18n на родном языке (cards.pron.* /
-// cards.tense.*), формы — на изучаемом. Времена идут по естественной оси:
+// Порядок строк (лица-числа) и столбцов (времена) таблицы спряжения. Формы и
+// МЕСТОИМЕНИЯ — на изучаемом языке, заголовки времён и перевод местоимения —
+// на родном (cards.tense.* / cards.pron.*). Времена идут по естественной оси:
 // настоящее → прошедшее → будущее.
 const PERSONS = ["1sg", "2sg", "3sg", "1pl", "2pl", "3pl"];
 const TENSES = ["present", "past", "future"];
@@ -77,6 +78,15 @@ export default function ConjugationPanel({
     }
   }
 
+  // Местоимение изучаемого языка для строки таблицы. Языка нет в списке —
+  // вернётся пустая строка, и строка выглядит как раньше (только перевод).
+  const pronOf = (person) => learnPronoun(learnLang, person);
+  // Совпало ли местоимение изучаемого языка с подписью на родном (сравниваем
+  // без регистра и без разделителей: «он · она» и «он/она» — одно и то же).
+  const flat = (s) => String(s).toLowerCase().replace(/[s·/]+/g, "");
+  const samePronoun = (person) =>
+    Boolean(pronOf(person)) && flat(pronOf(person)) === flat(t(`cards.pron.${person}`));
+
   // Начальную форму показываем, только если она отличается от того, что человек
   // видел/тапнул — иначе это шум.
   const shownForm = form || word;
@@ -128,8 +138,25 @@ export default function ConjugationPanel({
               <tbody>
                 {PERSONS.map((p) => (
                   <tr key={p}>
+                    {/* МЕСТОИМЕНИЕ НА ИЗУЧАЕМОМ ЯЗЫКЕ — сверху и крупнее, а
+                        перевод под ним мельче: учится связка целиком («I go»,
+                        «du gehst»), а не форма с русской подписью сбоку. Двумя
+                        строками, а не «I · я»: таблица узкая, в ней три
+                        столбца форм, и длинные местоимения («nosotros»,
+                        «αυτός/αυτή») в одну строку раздували бы её вширь. */}
                     <th scope="row" className="conj__pron">
-                      {t(`cards.pron.${p}`)}
+                      {pronOf(p) && (
+                        <span className="conj__pron-learn" lang={learnLang}>
+                          {pronOf(p)}
+                        </span>
+                      )}
+                      {/* У близких языков (русский для украинца) местоимение
+                          совпадает с переводом — вторую строку не дублируем. */}
+                      {!samePronoun(p) && (
+                        <span className="conj__pron-native">
+                          {t(`cards.pron.${p}`)}
+                        </span>
+                      )}
                     </th>
                     {TENSES.map((tn) => {
                       const cell = conj.table[tn]?.[p] || "";
