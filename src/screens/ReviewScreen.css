@@ -78,6 +78,30 @@
   text-align: left;
 }
 
+/* ---------- Лицо обратной карточки: только перевод ----------
+   Спрашиваем слово на изучаемом языке, показывая перевод на родном. Ни
+   примера, ни транскрипции, ни озвучки здесь нет — каждое выдало бы ответ
+   (см. ReviewScreen.jsx). Перевод — единственное, что на экране, поэтому он
+   крупный и по центру, как заголовок. */
+.review__front--reverse {
+  gap: 14px;
+}
+
+/* Подпись «Какое это слово?» — тихая, над переводом. */
+.review__ask {
+  color: var(--ember-text-muted);
+  font-size: 0.875rem;
+}
+
+.review__reverse-translation {
+  font-family: var(--font-word);
+  font-size: clamp(1.5rem, 8vw, 2rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+  overflow-wrap: anywhere;
+}
+
 .review__front-word {
   display: inline-flex;
   align-items: center;

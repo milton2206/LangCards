@@ -5,6 +5,7 @@ import { formatInterval } from "../i18n/format.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { nextSrs, shouldOfferKnown } from "../hooks/useWordLists.js";
 import { cardForDisplay, learnText } from "../lib/displayText.js";
+import { reviewDirection, REVERSE } from "../lib/reviewDirection.js";
 import {
   buildQuizTask,
   QUIZ_MIN_WORDS,
@@ -40,8 +41,14 @@ const KNOWN_OFFERS_PER_SESSION = 6;
  * Экран повторения ВЗЯТЫХ слов (интервальное повторение) — отдельный режим
  * от потока новых карточек (Взять/Пропустить/Знаю там не трогаем).
  *
- * Лицо карточки — пример предложения целиком, с выделенным изучаемым словом
- * (учим слово в контексте, а не изолированно). По тапу «Показать перевод»
+ * НАПРАВЛЕНИЕ ВОПРОСА ЧЕРЕДУЕТСЯ у одного и того же слова между повторениями
+ * (см. lib/reviewDirection.js). ПРЯМОЕ: лицо — пример предложения целиком, с
+ * выделенным изучаемым словом (учим слово в контексте, а не изолированно).
+ * ОБРАТНОЕ: лицо — только перевод на родном языке, человек вспоминает само
+ * слово; примера, транскрипции и озвучки на лице НЕТ — каждое из них выдало бы
+ * ответ. Оборот в обоих направлениях одинаковый.
+ *
+ * По тапу «Показать перевод» (в обратном направлении — «Показать слово»)
  * открывается само слово, транскрипция, перевод слова и перевод предложения,
  * затем самооценка (4 кнопки) пересчитывает интервал повтора (см. nextSrs
  * в useWordLists.js) и переходит к следующему слову.
@@ -367,6 +374,18 @@ export default function ReviewScreen({
   // функцией, что и на самом нажатии (nextSrs), с текущими параметрами
   // ИМЕННО этого слова, поэтому у разных слов подписи разные.
   const currentSrs = srsByWord[currentWord];
+
+  // Сторона вопроса для ЭТОГО слова. Считается от repetitions, поэтому внутри
+  // сессии не меняется: «Не помню» SRS не применяет (слово лишь переносится по
+  // очереди), и слово возвращается той же стороной — см. lib/reviewDirection.js.
+  //
+  // К ТЕСТУ ЭТО НЕ ОТНОСИТСЯ. Если слово выпало на тест с вариантами, экран
+  // вернул разметку теста выше и до карточки не дошёл: два механизма стоят
+  // последовательно, а не спорят за одно и то же слово. Тест чередует свои
+  // форматы сам (см. buildQuizTask), направление карточки его не касается.
+  const isReverse =
+    reviewDirection(currentSrs, Boolean(view.translation)) === REVERSE;
+
   const gradesWithInterval = GRADES.map((g) => ({
     ...g,
     interval: nextSrs(currentSrs, g.grade, todayKey).interval,
@@ -379,7 +398,30 @@ export default function ReviewScreen({
       {offerBanner}
 
       <article className="review__card">
-        {!revealed ? (
+        {!revealed && isReverse ? (
+          /* ЛИЦО ОБРАТНОЙ КАРТОЧКИ: ТОЛЬКО ПЕРЕВОД, и это существенно.
+             Примера здесь нет — в нём стоит само изучаемое слово, то есть
+             ответ. Транскрипции нет — она читается как слово. Кнопки озвучки
+             нет — послушать слово значит услышать ответ. Всё это появляется на
+             обороте, вместе с разбором. */
+          <div className="review__front review__front--reverse">
+            <p className="review__ask">{t("review.askWord")}</p>
+            <p
+              id="review-word"
+              className="review__reverse-translation"
+              lang={nativeLang}
+            >
+              {view.translation}
+            </p>
+            <button
+              type="button"
+              className="review__reveal"
+              onClick={() => setRevealed(true)}
+            >
+              {t("review.revealWord")}
+            </button>
+          </div>
+        ) : !revealed ? (
           /* Лицо: ПРИМЕР целиком с выделенным изучаемым словом — слово
              вспоминается в контексте, а не в пустоте. Транскрипции здесь нет
              намеренно: она подсказывала бы ответ раньше времени. Разбор (слово,

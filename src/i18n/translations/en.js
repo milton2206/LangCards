@@ -568,6 +568,9 @@ export default {
     doneHint: "New words to review will appear when they're due.",
     remaining: "Left to review: {n}",
     reveal: "Show translation",
+    // Reverse direction: the front shows the translation, the word is the answer.
+    askWord: "Which word is this?",
+    revealWord: "Show word",
     replayNow: "review now",
   },
   // Anki-style short terms — familiar to flashcard-app users, keeps buttons short.
@@ -764,6 +767,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      bothDirections: {
+        title: "Words are asked both ways",
+        desc: "Until now a word always appeared the same way: a sentence in the language you're learning, with the translation a tap away. With that sameness you end up memorising the card rather than the word — you recognise it by its familiar shape and the answer comes back, yet the word never surfaces in real life. The direction now alternates: one session you recall the translation, the next you recall the word itself from its translation. The reverse card shows the translation and nothing else — no example, no transcription, no audio, or the answer would be sitting right there. The very first review of a word is always the old way: you've only just picked it up.",
+      },
       simplerGeneration: {
         title: "No more choosing how many cards",
         desc: "The three buttons “5 / 10 / 20” next to the generate button are gone: the app now takes as many cards as will fit. Usually that's ten, but if only three places are left before the active-words ceiling, exactly three arrive instead of ten with seven thrown away. Before, generation simply refused to start in that case and you had to clear the list first. Everything else stays: the content type (words or “Native context”), “Surprise me”, and your daily norm per language.",
