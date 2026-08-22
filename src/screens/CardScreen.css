@@ -467,6 +467,13 @@
   letter-spacing: 0.5px;
 }
 
+/* Приблизительная запись кириллицей — под точной, тише её. */
+.cards__translit--approx {
+  opacity: 0.75;
+  font-size: 0.875em;
+  letter-spacing: 0.3px;
+}
+
 .cards__translation {
   font-size: 1.25rem;
   font-weight: 500;

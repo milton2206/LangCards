@@ -767,6 +767,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      readableTranslit: {
+        title: "Pronunciation you can read without knowing phonetic symbols",
+        desc: "The precise pronunciation — the one dictionaries print — is written in phonetic-alphabet symbols: əˈpɔɪntmənt. It is exact, but nobody who hasn't learned those symbols can read it, and that is most people. A second, approximate version in ordinary letters now sits beside it: [tə ˈsɔːt ˈaʊt] · [tuh SORT OWT]. If you know the symbols you read it exactly; if you don't, you read it approximately; either way you get something. Greek cards with the wrong stress also no longer reach you: when the stress in the transcription disagrees with the accent mark on the word itself, the card is rejected and another takes its place.",
+      },
       clearerForms: {
         title: "One pronunciation format, and forms with their own pronouns",
         desc: "The pronunciation hint used to arrive sometimes in Latin letters, sometimes in Cyrillic, sometimes in phonetic-alphabet symbols — occasionally all of them mixed into one line. The format is now fixed in advance for each pair of languages: if the language you're learning uses the Latin alphabet, the hint is always in Latin letters, written the way the word sounds — [uh-POINT-muhnt]. It is never written in Cyrillic any more: Cyrillic cannot carry th, æ or ŋ and teaches the wrong pronunciation. For Greek with a Russian or Ukrainian interface it is always Cyrillic instead. Cards you already saved stay as they are — the rule applies to new ones. Alongside that, the verb-forms table now shows the pronoun in the language you're learning with the translation beneath it, so you learn “I go” rather than “я go”.",

@@ -1,5 +1,6 @@
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
+import { splitTranslit } from "../lib/displayText.js";
 import PlayButton from "./PlayButton.jsx";
 import ConjugationPanel from "./ConjugationPanel.jsx";
 import "./WordLookupSheet.css";
@@ -219,8 +220,15 @@ export default function WordLookupSheet({
 
         {card && (
           <div className="lookup__body">
-            {card.translit && (
-              <p className="lookup__translit">{card.translit}</p>
+            {splitTranslit(card.translit).exact && (
+              <p className="lookup__translit">
+                {splitTranslit(card.translit).exact}
+              </p>
+            )}
+            {splitTranslit(card.translit).approx && (
+              <p className="lookup__translit lookup__translit--approx">
+                {splitTranslit(card.translit).approx}
+              </p>
             )}
             <p className="lookup__translation" lang={nativeLang}>
               {card.translation}

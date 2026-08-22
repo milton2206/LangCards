@@ -538,6 +538,11 @@ export default function ReviewScreen({
               {view.translit && (
                 <p className="review__translit">{view.translit}</p>
               )}
+              {view.translitApprox && (
+                <p className="review__translit review__translit--approx">
+                  {view.translitApprox}
+                </p>
+              )}
               {view.translation && (
                 <p className="review__translation">{view.translation}</p>
               )}

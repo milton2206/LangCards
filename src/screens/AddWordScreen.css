@@ -281,3 +281,10 @@
   width: 100%;
   max-width: 280px;
 }
+
+/* Приблизительная запись кириллицей — под точной, тише её. */
+.addword__translit--approx {
+  opacity: 0.75;
+  font-size: 0.875em;
+  letter-spacing: 0.3px;
+}

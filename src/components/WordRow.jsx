@@ -141,6 +141,11 @@ export default function WordRow({
           {item.translit && (
             <span className="mywords__translit">{item.translit}</span>
           )}
+          {item.translitApprox && (
+            <span className="mywords__translit mywords__translit--approx">
+              {item.translitApprox}
+            </span>
+          )}
 
           {item.example && (
             <div className="mywords__example">

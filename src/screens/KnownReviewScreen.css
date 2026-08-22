@@ -196,3 +196,10 @@
   font-size: 1rem;
   font-weight: 600;
 }
+
+/* Приблизительная запись кириллицей — под точной, тише её. */
+.knownreview__translit--approx {
+  opacity: 0.75;
+  font-size: 0.875em;
+  letter-spacing: 0.3px;
+}

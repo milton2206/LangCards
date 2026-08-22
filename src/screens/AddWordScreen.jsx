@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { requestManualCard } from "../lib/manualCard.js";
 import { apiErrorText } from "../lib/apiClient.js";
+import { splitTranslit } from "../lib/displayText.js";
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import Icon from "../components/icons/Icon.jsx";
 import "./AddWordScreen.css";
@@ -155,8 +156,15 @@ export default function AddWordScreen({
                   <h2 className="addword__word" lang={learnLang}>
                     {card.word}
                   </h2>
-                  {card.translit && (
-                    <p className="addword__translit">{card.translit}</p>
+                  {splitTranslit(card.translit).exact && (
+                    <p className="addword__translit">
+                      {splitTranslit(card.translit).exact}
+                    </p>
+                  )}
+                  {splitTranslit(card.translit).approx && (
+                    <p className="addword__translit addword__translit--approx">
+                      {splitTranslit(card.translit).approx}
+                    </p>
                   )}
                   <p className="addword__translation">{card.translation}</p>
                 </div>

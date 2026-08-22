@@ -127,6 +127,11 @@ export default function KnownReviewScreen({
               {view.translit && (
                 <p className="knownreview__translit">{view.translit}</p>
               )}
+              {view.translitApprox && (
+                <p className="knownreview__translit knownreview__translit--approx">
+                  {view.translitApprox}
+                </p>
+              )}
               {view.translation && (
                 <p className="knownreview__translation" lang={nativeLang}>
                   {view.translation}

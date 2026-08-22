@@ -193,8 +193,17 @@ export default function WordCard({
           {detailsOpen && (
             <div className="cards__details-body">
               {/* Транскрипция показывается всегда; прочерк — если генератор её
-                  не дал (идиомы, старые карточки), чтобы панель не была пустой. */}
+                  не дал (идиомы, старые карточки), чтобы панель не была пустой.
+                  Точная запись (IPA) и приблизительная кириллицей — ДВУМЯ
+                  строками: одной они не помещаются на узкий экран и рвутся
+                  посреди знаков. У старых карточек второй записи нет, и строка
+                  просто не рисуется. */}
               <p className="cards__translit">{card.translit || "—"}</p>
+              {card.translitApprox && (
+                <p className="cards__translit cards__translit--approx">
+                  {card.translitApprox}
+                </p>
+              )}
               {card.plural && (
                 <p className="cards__plural">
                   <span className="cards__plural-label">

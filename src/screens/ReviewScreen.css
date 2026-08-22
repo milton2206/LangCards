@@ -248,6 +248,13 @@
   letter-spacing: 0.5px;
 }
 
+/* Приблизительная запись кириллицей — под точной, тише её. */
+.review__translit--approx {
+  opacity: 0.75;
+  font-size: 0.875em;
+  letter-spacing: 0.3px;
+}
+
 .review__translation {
   font-size: 1.1875rem;
   font-weight: 500;
