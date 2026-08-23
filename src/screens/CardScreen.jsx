@@ -249,6 +249,59 @@ export default function CardScreen({
   // Выбор темы прямо из подсказки «тема кончилась» — тоже по запросу.
   const [topicOpen, setTopicOpen] = useState(false);
 
+  // Пришли сюда СПЕЦИАЛЬНО ради темы (кнопка «задать свою» в плашке занятия —
+  // topicSwitch.open) — раскрываем сразу: человек уже нажал, просить второй раз
+  // незачем.
+  useEffect(() => {
+    if (topicSwitch?.open) setTopicOpen(true);
+  }, [topicSwitch]);
+
+  // ---------- Выбор темы ----------
+  // ОДНА механика на все места, где человек упирается в конец пула: подсказку
+  // автосмены ниже и экран ошибки «новых слов не нашлось». Раньше выбор был
+  // только в подсказке, а ветка ошибки возвращалась ДО неё — текст советовал
+  // сменить тему, а сменить было нечем.
+  const topicPickerButton = (
+    <button
+      type="button"
+      className="cards__topic-note-btn"
+      aria-expanded={topicOpen}
+      onClick={() => setTopicOpen((v) => !v)}
+    >
+      {t(topicOpen ? "topics.hidePicker" : "topics.openPicker")}
+    </button>
+  );
+
+  // ТОТ ЖЕ TopicPicker, что в настройках: и пресеты, и поле своей темы.
+  // Второй реализации ввода не заводим — механизм один.
+  const topicPickerBody = topicOpen ? (
+    <div className="cards__topic-picker">
+      <TopicPicker
+        value={topic}
+        customTopics={customTopics}
+        canManage={canManageTopics}
+        onSelect={(id) => {
+          setTopicOpen(false);
+          // Пришли сюда с экрана ошибки — тема выбрана, ошибка больше не про
+          // что: уводим человека обратно к колоде, где есть кнопка генерации.
+          // На подсказке автосмены ошибки нет, и это ничего не меняет.
+          onClearError?.();
+          onSelectTopic?.(id);
+        }}
+        // Своя тема добавляется и СРАЗУ становится выбранной (так делает
+        // handleAddCustomTopic), то есть это тоже выбор темы — значит
+        // подсказка своё отработала и должна уйти, как и при выборе чипа.
+        onAddCustom={(name) => {
+          setTopicOpen(false);
+          onClearError?.();
+          onDismissTopicSwitch?.();
+          onAddCustomTopic?.(name);
+        }}
+        onRemoveCustom={onRemoveCustomTopic}
+      />
+    </div>
+  ) : null;
+
   // Название темы: у пресета — переведённое, у своей — она сама.
   const topicLabel = (id) =>
     PRESET_TOPIC_IDS.has(id) ? t(optionLabelKey("topic", id)) : String(id || "");
@@ -364,7 +417,8 @@ export default function CardScreen({
         <p className="cards__status-hint">{errorText}</p>
         <div className="cards__status-actions">
           {/* Повторяем именно упавшую генерацию (обычную или «Удиви меня») —
-              App помнит тип последней попытки. */}
+              App помнит тип последней попытки, а обычная идёт через ту же
+              дверь, что и первая, то есть со сменой вычерпанной темы. */}
           <button
             type="button"
             className="cards__retry"
@@ -376,6 +430,17 @@ export default function CardScreen({
             {t("common.back")}
           </button>
         </div>
+        {/* ВЫХОД, а не только совет. Текст выше говорит «смените тему» — и
+            менять её нужно ЗДЕСЬ же: экран ошибки возвращается раньше колоды, и
+            подсказка автосмены с выбором темы сюда не доходила. Механика та же
+            (общий TopicPicker), поэтому второй реализации не появляется. */}
+        {noNewWords && (
+          <div className="cards__topic-note cards__topic-note--error">
+            <p className="cards__topic-note-hint">{t("topics.narrowHint")}</p>
+            <div className="cards__topic-note-actions">{topicPickerButton}</div>
+            {topicPickerBody}
+          </div>
+        )}
       </section>
     );
   }
@@ -566,14 +631,7 @@ export default function CardScreen({
           кнопку: «приём у врача» — это новый пул поверх вычерпанной «медицины». */}
       <p className="cards__topic-note-hint">{t("topics.narrowHint")}</p>
       <div className="cards__topic-note-actions">
-        <button
-          type="button"
-          className="cards__topic-note-btn"
-          aria-expanded={topicOpen}
-          onClick={() => setTopicOpen((v) => !v)}
-        >
-          {t(topicOpen ? "topics.hidePicker" : "topics.openPicker")}
-        </button>
+        {topicPickerButton}
         {!topicOpen && (
           <button
             type="button"
@@ -584,30 +642,7 @@ export default function CardScreen({
           </button>
         )}
       </div>
-      {/* ТОТ ЖЕ TopicPicker, что в настройках: и пресеты, и поле своей темы.
-          Второй реализации ввода не заводим — механизм один. */}
-      {topicOpen && (
-        <div className="cards__topic-picker">
-          <TopicPicker
-            value={topic}
-            customTopics={customTopics}
-            canManage={canManageTopics}
-            onSelect={(id) => {
-              setTopicOpen(false);
-              onSelectTopic?.(id);
-            }}
-            // Своя тема добавляется и СРАЗУ становится выбранной (так делает
-            // handleAddCustomTopic), то есть это тоже выбор темы — значит
-            // подсказка своё отработала и должна уйти, как и при выборе чипа.
-            onAddCustom={(name) => {
-              setTopicOpen(false);
-              onDismissTopicSwitch?.();
-              onAddCustomTopic?.(name);
-            }}
-            onRemoveCustom={onRemoveCustomTopic}
-          />
-        </div>
-      )}
+      {topicPickerBody}
     </div>
   ) : null;
 

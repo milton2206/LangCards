@@ -71,9 +71,16 @@ import { buildQuizPool, QUIZ_MIN_WORDS } from "./lib/quizEngine.js";
 import {
   topicKey,
   isExhausted,
+  markExhausted,
+  allTopicsExhausted,
   noteBatchResult,
   pickNextTopic,
 } from "./lib/topicExhaustion.js";
+import {
+  noteCardsLimit,
+  clearCardsLimit,
+  isCardsLimitHit,
+} from "./lib/generationLimit.js";
 import {
   GENERATE_BATCH_SIZE,
   dropLegacyGenerateCount,
@@ -273,6 +280,15 @@ export default function App() {
 
   const learnLang = activeLanguage?.learnLang || settings.learnLang;
   const nativeLang = activeLanguage?.nativeLang || settings.nativeLang;
+
+  // Свои темы активной пары. Вести их можно только с аккаунтом (хранятся в
+  // user_languages); пресеты в этот список не входят и не ограничиваются.
+  // Мемо, а не выражение на месте: список читает план занятия, и новый пустой
+  // массив на каждый рендер пересобирал бы план вхолостую.
+  const activeCustomTopics = useMemo(
+    () => activeLanguage?.customTopics || [],
+    [activeLanguage],
+  );
 
   // pairKey строится из активной пары (а не из settings): все экраны и данные
   // (wordsByPair/cardsByPair) уже разделены по нему — смена пары переключает их
@@ -578,6 +594,48 @@ export default function App() {
   const listeningAvailable =
     online && !restDay && vocab.takenWords.length > 0;
 
+  // Учёт исчерпания тем и отметка суточного лимита живут в localStorage: они
+  // переживают перезагрузку, но React об их изменении не знает. Счётчик
+  // поднимается после КАЖДОЙ генерации — ровно тогда, когда учёт и меняется, —
+  // и заставляет план занятия пересобраться.
+  const [genOutcomeTick, setGenOutcomeTick] = useState(0);
+
+  // ПОЧЕМУ взять новые слова сейчас нельзя (кроме нехватки мест — её считает
+  // сам движок по freeSlots). Тот же принцип, что и с местами: задание, которое
+  // нельзя выполнить, в план не ставится, а вместо блока идёт строка с
+  // объяснением и выходом. Порядок — от безусловного к поправимому.
+  //
+  // Новые слова приходят ТОЛЬКО генерацией, поэтому офлайн для них такой же
+  // стоп, как для чтения и аудирования выше, — раньше эти три формата
+  // расходились: текст и диалог сеть проверяли, а новые слова нет.
+  const newWordsBlocked = useMemo(() => {
+    if (!online) return "offline";
+    if (isCardsLimitHit()) return "rateLimit";
+    if (
+      allTopicsExhausted({
+        current: settings.topic,
+        presetIds: PRESET_TOPIC_OPTIONS.map((o) => o.id),
+        customTopics: activeCustomTopics,
+        pairKey,
+        level: settings.level,
+        mode: generateMode,
+      })
+    ) {
+      return "topicsExhausted";
+    }
+    return null;
+    // genOutcomeTick — не значение, а сигнал «учёт в localStorage изменился».
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    online,
+    settings.topic,
+    settings.level,
+    activeCustomTopics,
+    pairKey,
+    generateMode,
+    genOutcomeTick,
+  ]);
+
   // Счётчик дня для ротации акцента базы (целое число дней по локальной дате):
   // сегодня один формат ведущий, завтра другой — «как игра, а не одно и то же».
   const sessionRotationDay = Math.floor(
@@ -632,6 +690,9 @@ export default function App() {
         // Нет свободных мест — блок новых слов в план не попадёт (повторения
         // при этом идут полностью, они от лимита не зависят).
         freeSlots: vocab.freeSlots,
+        // Остальные причины, по которым слова взять неоткуда (нет сети, выбран
+        // суточный лимит, кончились все темы) — движок их знать не может.
+        newWordsBlocked,
       }),
     [
       reviewTarget,
@@ -642,6 +703,7 @@ export default function App() {
       listeningAvailable,
       sessionRotationDay,
       vocab.freeSlots,
+      newWordsBlocked,
     ],
   );
 
@@ -761,6 +823,17 @@ export default function App() {
   function exitSession() {
     setSessionBlock(null);
     setScreen("session");
+  }
+
+  // «Задать свою тему» из плашки занятия. Ведёт к ТОЙ ЖЕ подсказке на экране
+  // карточек, что показывает автосмена: там уже есть и объяснение, и TopicPicker
+  // (тот же, что в настройках). Второй реализации ввода не заводим — открываем
+  // существующую сразу раскрытой (open), чтобы человек не жал «Выбрать тему»
+  // второй раз подряд.
+  function goToOwnTopic() {
+    setTopicSwitch({ from: settings.topic, to: null, open: true });
+    setSessionBlock(null);
+    setScreen("cards");
   }
 
   // «Хочу другое»: ручной выбор формата (хаб карточек), вне логики занятия.
@@ -938,8 +1011,18 @@ export default function App() {
 
   // Исход генерации: полная пачка обнуляет счётчик недоборов по теме, недобор —
   // увеличивает. Ловим момент, когда загрузка ЗАКОНЧИЛАСЬ: только тогда
-  // shortfall и error уже посчитаны. Сбой генерации (нет сети, лимит) в счёт не
-  // идёт — он не про исчерпание темы.
+  // shortfall и error уже посчитаны.
+  //
+  // «НОВЫХ СЛОВ НЕ НАШЛОСЬ» (noNewWords) — НЕ сбой генерации, а конец пула темы,
+  // и засчитывается он сразу за полное исчерпание. Раньше этот ответ приходил
+  // как ошибка и отсекался вместе с обрывом сети — из-за чего счётчик по теме
+  // так и стоял на нуле, автосмена не срабатывала НИКОГДА, и человек упирался в
+  // «Повторить» по кругу. Ждать второго такого ответа незачем: частичный недобор
+  // двусмыслен (потому и считается по два), а пустой ответ при живой модели —
+  // нет. Пороги частичного недобора не тронуты (см. noteBatchResult).
+  //
+  // Остальные сбои (нет сети, суточный лимит, отказ сервера) про исчерпание темы
+  // по-прежнему не говорят ничего и в счёт не идут.
   useEffect(() => {
     if (loading) {
       genLoadingRef.current = true;
@@ -949,8 +1032,19 @@ export default function App() {
     genLoadingRef.current = false;
     const key = genTopicKeyRef.current;
     genTopicKeyRef.current = null;
-    if (!key || error) return;
-    noteBatchResult(key, !shortfall);
+
+    // Суточный лимит — состояние ДНЯ, а не темы: помним его отдельно, чтобы
+    // занятие не ставило блок новых слов, когда генерировать уже нечем. Ключа
+    // темы у «Удиви меня» нет, а лимит общий — поэтому до отсечки по ключу.
+    if (error?.code === "rateLimit") noteCardsLimit();
+    else if (!error) clearCardsLimit();
+
+    if (key) {
+      if (error?.code === "noNewWords") markExhausted(key);
+      else if (!error) noteBatchResult(key, !shortfall);
+    }
+    // Учёт в localStorage мог измениться — пересобираем план занятия.
+    setGenOutcomeTick((v) => v + 1);
   }, [loading, error, shortfall]);
 
   // Параметры генерации: активная пара + тема/уровень из настроек + исключения.
@@ -1029,8 +1123,16 @@ export default function App() {
     generate(buildParams({ random: true }));
   }
 
+  // «Повторить» с экрана ошибки — ТА ЖЕ дверь, что и обычная генерация, а не
+  // прямой вызов мимо неё: иначе повтор упирался бы в ту самую тему, которую
+  // предыдущий ответ только что назвал вычерпанной. Случайную («Удиви меня»)
+  // повторяем как есть — темы у неё нет и менять нечего.
   function handleRetryGenerate() {
-    generate(buildParams({ random: lastRandomRef.current }));
+    if (lastRandomRef.current) {
+      generate(buildParams({ random: true }));
+      return;
+    }
+    handleGenerate();
   }
 
   // Тему выбрали руками из подсказки на экране карточек — тот же обработчик,
@@ -1111,9 +1213,9 @@ export default function App() {
   }
 
   // ---------- Свои темы активной пары ----------
-  // Свои темы можно вести только когда есть пара и аккаунт (хранятся в
-  // user_languages). Пресеты в этот список не входят и не ограничиваются.
-  const activeCustomTopics = activeLanguage?.customTopics || [];
+  // Сам список объявлен ВЫШЕ (рядом с активной парой): его читает не только
+  // выбор темы, но и план занятия — ему нужно знать, осталось ли куда
+  // переключаться, когда пресетные темы кончились.
   const canManageTopics = Boolean(auth.user && activeLanguage);
 
   // Добавить свою тему: чистим/режем как на сервере, отбрасываем пустое и
@@ -1436,6 +1538,8 @@ export default function App() {
             onToggle={toggleSessionBlock}
             onStartBlock={startSessionBlock}
             onManual={goManualHub}
+            // Все темы вычерпаны — единственный выход из плашки: задать свою.
+            onOpenTopics={goToOwnTopic}
             onOpenSettings={() => setScreen("settings")}
             languages={userLangs.languages}
             multiLangMode={userLangs.multiLangMode}

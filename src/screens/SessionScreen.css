@@ -98,6 +98,44 @@
   color: var(--ember-learned);
 }
 
+/* Тело строки: сам текст, а под ним — выход, если он у причины есть
+   (все темы вычерпаны → задать свою). У причин без выхода тело — один абзац. */
+.session__no-room-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.session__no-room-text {
+  margin: 0;
+}
+
+.session__no-room-btn {
+  align-self: flex-start;
+  padding: 7px 14px;
+  border-radius: var(--ember-radius-sm);
+  border: 1px solid color-mix(in srgb, var(--ember-accent) 45%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
+  color: var(--ember-accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.session__no-room-btn:hover {
+  background-color: color-mix(in srgb, var(--ember-accent) 20%, transparent);
+}
+
+/* Вторая подсказка — мельче основной строки: это запасной путь, а не главный. */
+.session__no-room-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--ember-text-muted);
+  opacity: 0.85;
+}
+
 .session__note {
   color: var(--ember-text-muted);
   font-size: 0.8125rem;

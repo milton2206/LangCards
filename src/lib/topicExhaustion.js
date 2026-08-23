@@ -79,6 +79,25 @@ export function isExhausted(key) {
 }
 
 /**
+ * Пометить тему исчерпанной СРАЗУ, не накапливая недоборы.
+ *
+ * Частичный недобор двусмыслен: модель могла просто неудачно ответить, поэтому
+ * его и считают по два. Ответ «новых слов не нашлось» (noNewWords) двусмысленным
+ * не бывает — модель отработала штатно и не принесла НИЧЕГО, чего человек ещё не
+ * знает. Это и есть конец пула, доказывать его вторым таким же ответом значит
+ * потратить ещё одну генерацию (и деньги) ради того, что уже известно.
+ *
+ * Порогов частичного недобора это не меняет: они живут в noteBatchResult.
+ */
+export function markExhausted(key) {
+  if (!key) return 0;
+  const data = load();
+  data[key] = SHORTFALLS_TO_EXHAUST;
+  save(data);
+  return SHORTFALLS_TO_EXHAUST;
+}
+
+/**
  * Следующая тема вместо исчерпанной. Берём из тех же готовых тем и своих тем
  * пользователя — новых не выдумываем и список не трогаем. Своим отдаём
  * ПРЕДПОЧТЕНИЕ: человек их выбрал сам, значит они ему нужнее.
@@ -101,5 +120,33 @@ export function pickNextTopic({
     candidates.find(
       (topic) => !isExhausted(topicKey({ pairKey, level, topic, mode })),
     ) || null
+  );
+}
+
+/**
+ * Менять тему НЕ НА ЧТО: и текущая вычерпана, и все остальные тоже. То же
+ * условие, при котором pickNextTopic возвращает null, — но заданное ВОПРОСОМ, а
+ * не выясненное побочно, уже начав генерацию. Занятие спрашивает его ЗАРАНЕЕ,
+ * чтобы не ставить в план блок, который некому выполнить.
+ *
+ * Считается по текущему типу контента (mode): вычерпанные обычные слова по теме
+ * не значат, что кончились и выражения «Контекста носителей» — у них свой пул и
+ * свой учёт (см. topicKey).
+ */
+export function allTopicsExhausted({
+  current,
+  presetIds = [],
+  customTopics = [],
+  pairKey,
+  level,
+  mode,
+}) {
+  if (!current) return false;
+  if (!isExhausted(topicKey({ pairKey, level, topic: current, mode }))) {
+    return false;
+  }
+  return (
+    pickNextTopic({ current, presetIds, customTopics, pairKey, level, mode }) ===
+    null
   );
 }

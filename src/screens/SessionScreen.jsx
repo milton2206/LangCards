@@ -30,6 +30,27 @@ const BLOCK_ICON = {
   listening: "listening",
 };
 
+// Почему блока новых слов нет в плане → строка вместо него. Ключ причины даёт
+// движок (plan.noNewReason), текст и выход зависят от неё: где выход есть — он
+// рядом, где его нет (сеть, суточная квота) — не выдумываем кнопку ради кнопки.
+const NO_NEW_TEXT = {
+  noRoom: "session.noRoomForNew",
+  offline: "session.noNewOffline",
+  rateLimit: "session.noNewRateLimit",
+  topicsExhausted: "session.noNewTopics",
+};
+
+// Иконка строки. У «мест больше нет» — галочка: список активных слов набран
+// полностью, это выполненная норма, а не помеха. У остальных причин — иконка
+// самого блока новых слов: строка стоит на его месте и читается как его
+// состояние, а не как ошибка.
+const NO_NEW_ICON = {
+  noRoom: "check",
+  offline: "spark",
+  rateLimit: "spark",
+  topicsExhausted: "spark",
+};
+
 // i18n-ключ короткого имени блока (для кнопки «Продолжить: …» и aria).
 const BLOCK_NAME_KEY = {
   review: "review",
@@ -53,6 +74,8 @@ export default function SessionScreen({
   onToggle,
   onStartBlock,
   onManual,
+  // Все темы вычерпаны — увести к вводу своей темы (единственный выход).
+  onOpenTopics,
   onOpenSettings,
   activeLanguage,
   learnLang,
@@ -189,14 +212,41 @@ export default function SessionScreen({
         </div>
       ) : null}
 
-      {/* Мест под новые слова нет — блока в плане нет, и вместо него честная
-          строка. Повторения при этом идут полностью: они от лимита активных
-          слов не зависят. Тон без укора — это нормальное состояние. */}
-      {plan?.noRoomForNew && !plan?.restDay && (
-        <p className="session__no-room" role="status">
-          <Icon name="check" size={16} className="session__no-room-icon" />
-          {t("session.noRoomForNew", { max: MAX_ACTIVE_WORDS })}
-        </p>
+      {/* Новые слова сейчас взять неоткуда — блока в плане нет, и вместо него
+          честная строка с причиной и выходом. Повторения при этом идут
+          полностью: они не зависят ни от лимита активных слов, ни от сети, ни
+          от квоты генерации. Тон без укора — это нормальные состояния, а не
+          провал. */}
+      {plan?.noNewReason && !plan?.restDay && (
+        <div className="session__no-room" role="status">
+          <Icon
+            name={NO_NEW_ICON[plan.noNewReason] || "spark"}
+            size={16}
+            className="session__no-room-icon"
+          />
+          <div className="session__no-room-body">
+            <p className="session__no-room-text">
+              {t(NO_NEW_TEXT[plan.noNewReason], { max: MAX_ACTIVE_WORDS })}
+            </p>
+            {/* Выход — только там, где он есть и зависит от человека. Ни сеть,
+                ни суточная квота от него не зависят: кнопка под ними была бы
+                обманом, поэтому под ними её нет. */}
+            {plan.noNewReason === "topicsExhausted" && onOpenTopics && (
+              <>
+                <button
+                  type="button"
+                  className="session__no-room-btn"
+                  onClick={onOpenTopics}
+                >
+                  {t("session.noNewTopicsAction")}
+                </button>
+                <p className="session__no-room-hint">
+                  {t("session.noNewTopicsHint")}
+                </p>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       {/* План блоков на сегодня — как путь: статус-кружки + соединяющая линия. */}

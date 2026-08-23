@@ -408,6 +408,17 @@ export default {
     // No room for new words — the new-words block is left out, this line instead.
     noRoomForNew:
       "No new words today — {max} already in progress. Let's reinforce what you took.",
+    // There is nowhere to take new words from right now — the block is left out
+    // of the plan and a line stands in its place. Each reason gets its own text
+    // and its own way out: where it depends on the person (topics) a button sits
+    // next to it; where it does not (network, daily quota) only the explanation.
+    // Even tone — these are normal states, not failures.
+    noNewOffline:
+      "New words will be back when the internet is. Reviews work without a connection.",
+    noNewRateLimit: "Generation is used up for today; it resets tomorrow.",
+    noNewTopics: "Words on every topic at this level have run out.",
+    noNewTopicsAction: "Set your own topic",
+    noNewTopicsHint: "You can also raise your level in settings — the words there are different.",
     start: "Start session",
     continue: "Continue: {block}",
     allDone: "Session complete. Great work!",
@@ -767,6 +778,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      noDeadEnds: {
+        title: "No more tasks you cannot complete",
+        desc: "A session could ask you to take 10 new words when there was nowhere to take them from: no internet, every topic at your level used up, or the day's generation allowance spent. The task just sat there unfinished, and on the cards screen \"Try again\" kept returning the same thing. The app now checks in advance: the new-words block is left out of the plan and a line explaining why takes its place. Where the way out is yours to take, it sits right there: if the topics have run out, a button leads to your own topic — which opens up new words, because the narrower the topic, the more it turns up. Where it is not yours to take — the internet, the daily allowance — it simply says when things come back. And most importantly: when a topic really does run dry, the app now recognises it the first time and moves to the next topic itself.",
+      },
       restToday: {
         title: "Words you take today come up for review tomorrow",
         desc: "A session builds its Review block from whatever is due today. A word you had just taken was due the same day, so after clearing your reviews you would pick up new words — and the block filled right back up with them. The day's task never ended. The first review of a new word is now scheduled for the next day: taking new words no longer grows the review block, and the day can be finished. Seeing a word a second time the same day does help memory, and we are giving that up on purpose so that a session can actually be completed. Nothing changed inside review itself: \"I don't remember\" still brings the word back a few cards later in the same run.",
