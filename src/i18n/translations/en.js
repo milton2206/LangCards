@@ -767,6 +767,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      restToday: {
+        title: "Words you take today come up for review tomorrow",
+        desc: "A session builds its Review block from whatever is due today. A word you had just taken was due the same day, so after clearing your reviews you would pick up new words — and the block filled right back up with them. The day's task never ended. The first review of a new word is now scheduled for the next day: taking new words no longer grows the review block, and the day can be finished. Seeing a word a second time the same day does help memory, and we are giving that up on purpose so that a session can actually be completed. Nothing changed inside review itself: \"I don't remember\" still brings the word back a few cards later in the same run.",
+      },
       readableTranslit: {
         title: "Pronunciation you can read without knowing phonetic symbols",
         desc: "The precise pronunciation — the one dictionaries print — is written in phonetic-alphabet symbols: əˈpɔɪntmənt. It is exact, but nobody who hasn't learned those symbols can read it, and that is most people. A second, approximate version in ordinary letters now sits beside it: [tə ˈsɔːt ˈaʊt] · [tuh SORT OWT]. If you know the symbols you read it exactly; if you don't, you read it approximately; either way you get something. Greek cards with the wrong stress also no longer reach you: when the stress in the transcription disagrees with the accent mark on the word itself, the card is rejected and another takes its place.",
