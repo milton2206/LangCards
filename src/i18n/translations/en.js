@@ -404,6 +404,15 @@ export default {
       night: "night",
     },
     progress: "{n} of {total}",
+    // Progress strip under the plan (leads to statistics). The captions are tiny,
+    // so they are short; the numbers themselves come from lib/wordStats.js — the
+    // same calculation the statistics screen uses. "You know" is the share of
+    // learned words among YOUR OWN words.
+    progressLearned: "learned",
+    progressLearning: "learning",
+    progressKnown: "you know",
+    progressAria:
+      "Statistics: {learned} learned, {learning} learning, you know {percent}%",
     allDoneShort: "All done",
     // No room for new words — the new-words block is left out, this line instead.
     noRoomForNew:
@@ -778,6 +787,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      progressAtGlance: {
+        title: "How many words you have learned, right on the session screen",
+        desc: "Finding out how many words you had learned meant hunting down a separate statistics screen — and it opened from exactly one place, an icon with no caption. The answer is now in plain sight: a strip under the day's plan shows three numbers — how many you have learned, how many are in progress, and what share of your words you already know. Most of the time that is all you need, but the strip is tappable and leads to the same statistics screen if you want the details. The numbers are calculated the same way in both places, so they cannot drift apart. While you have no words at all the strip stays away — it appears with the first words you take.",
+      },
       noDeadEnds: {
         title: "No more tasks you cannot complete",
         desc: "A session could ask you to take 10 new words when there was nowhere to take them from: no internet, every topic at your level used up, or the day's generation allowance spent. The task just sat there unfinished, and on the cards screen \"Try again\" kept returning the same thing. The app now checks in advance: the new-words block is left out of the plan and a line explaining why takes its place. Where the way out is yours to take, it sits right there: if the topics have run out, a button leads to your own topic — which opens up new words, because the narrower the topic, the more it turns up. Where it is not yours to take — the internet, the daily allowance — it simply says when things come back. And most importantly: when a topic really does run dry, the app now recognises it the first time and moves to the next topic itself.",

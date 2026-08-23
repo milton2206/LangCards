@@ -1,6 +1,7 @@
 import Flag from "../components/icons/Flag.jsx";
 import Icon from "../components/icons/Icon.jsx";
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
+import { wordStats } from "../lib/wordStats.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./SessionScreen.css";
 
@@ -84,6 +85,11 @@ export default function SessionScreen({
   // блоке новых слов. Число приходит из общего механизма дневной нормы
   // (takenTodayByPair по takenDate), своего счётчика экран не заводит.
   newWordsTaken = 0,
+  // Полоса прогресса под планом: длины списков пары. Своих расчётов экран не
+  // ведёт — числа считает общий wordStats (см. ниже).
+  takenCount = 0,
+  knownCount = 0,
+  onOpenStats,
 }) {
   const { t } = useI18n();
 
@@ -94,6 +100,11 @@ export default function SessionScreen({
   const activeBlock = activeIndex >= 0 ? blocks[activeIndex] : null;
 
   const extras = plan?.extras || [];
+
+  // Прогресс по паре для полосы под планом. Тот же расчёт, что показывает экран
+  // статистики (wordStats), — считать здесь заново значит однажды разойтись с
+  // ним в числах.
+  const progress = wordStats(takenCount, knownCount);
 
   // Дружелюбный подзаголовок «<день недели> <часть суток>» на языке интерфейса
   // (родной язык активной пары). Чисто отображение — из текущей даты.
@@ -354,6 +365,60 @@ export default function SessionScreen({
             <p className="session__empty-text">{t("session.empty")}</p>
           </div>
         )
+      )}
+
+      {/* ПОЛОСА ПРОГРЕССА — не вход в статистику, а сам ОТВЕТ. За числом «сколько
+          я выучил» человек ходил на отдельный экран, хотя число короткое и
+          помещается прямо сюда; экран остался на месте (полоса ведёт в него), но
+          чаще всего идти уже незачем.
+
+          РОВНО ТРИ числа: четвёртое с одного взгляда не читается. Считает их
+          общий wordStats — тот же расчёт, что и на экране статистики.
+          Проценты — доля выученных среди СВОИХ слов, а не «насколько выучен
+          язык» (знаменатель — всё взятое, вместе с ещё не выученным).
+
+          Совсем без слов (total === 0) полосы нет: три нуля новичку — упрёк, а
+          не сводка. Ровно тогда же и экран статистики показывает «пока нет
+          данных», так что появляются они вместе. В выходной полоса ОСТАЁТСЯ:
+          она про пройденный путь, а не про сегодняшние задания, и в день без
+          заданий это единственное, на что стоит посмотреть. */}
+      {progress.total > 0 && onOpenStats && (
+        <button
+          type="button"
+          className="session__progress"
+          onClick={onOpenStats}
+          aria-label={t("session.progressAria", {
+            learned: progress.known,
+            learning: progress.taken,
+            percent: progress.knownPercent,
+          })}
+        >
+          <span className="session__progress-cell">
+            <span className="session__progress-value session__progress-value--learned">
+              {progress.known}
+            </span>
+            <span className="session__progress-label">
+              {t("session.progressLearned")}
+            </span>
+          </span>
+          <span className="session__progress-cell">
+            <span className="session__progress-value">{progress.taken}</span>
+            <span className="session__progress-label">
+              {t("session.progressLearning")}
+            </span>
+          </span>
+          <span className="session__progress-cell">
+            <span className="session__progress-value">
+              {progress.knownPercent}%
+            </span>
+            <span className="session__progress-label">
+              {t("session.progressKnown")}
+            </span>
+          </span>
+          <span className="session__progress-go" aria-hidden="true">
+            ›
+          </span>
+        </button>
       )}
 
       {/* ДОБАВКИ сверху базы: «хотите ещё?». Приоритетному дню их больше. Это

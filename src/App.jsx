@@ -1550,6 +1550,11 @@ export default function App() {
             // Взято сегодня по этой паре — тем же числом блок отмечается
             // выполненным (autoDoneFor), поэтому счётчик с галочкой не разойдутся.
             newWordsTaken={takenTodayForPair}
+            // Полоса прогресса под планом: те же две длины, что уходят на экран
+            // статистики, и тот же расчёт поверх них (lib/wordStats.js).
+            takenCount={vocab.takenWords.length}
+            knownCount={vocab.knownWords.length}
+            onOpenStats={() => setScreen("stats")}
           />
         )}
 

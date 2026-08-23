@@ -1,4 +1,5 @@
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
+import { wordStats } from "../lib/wordStats.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import Flag from "../components/icons/Flag.jsx";
 import "./StatsScreen.css";
@@ -19,9 +20,10 @@ export default function StatsScreen({
   onBack,
 }) {
   const { t } = useI18n();
-  const total = takenCount + knownCount;
-  const knownFraction = total > 0 ? knownCount / total : 0;
-  const knownPercent = Math.round(knownFraction * 100);
+  // Сами числа считает общий wordStats — тот же расчёт читает полоса прогресса
+  // под планом занятия. Здесь остаётся только то, что нужно ИМЕННО этому
+  // экрану для рисования: длина дуги доната и заполненность шкалы лимита.
+  const { total, knownFraction, knownPercent } = wordStats(takenCount, knownCount);
   const knownDash = knownFraction * CIRCUMFERENCE;
 
   const activeFraction = Math.min(takenCount / MAX_ACTIVE_WORDS, 1);
