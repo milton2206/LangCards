@@ -1658,7 +1658,11 @@ export default function App() {
             topic={settings.topic}
             level={settings.level}
             takenWords={vocab.takenWords}
+            knownWords={vocab.knownWords}
             wordInfo={vocab.wordInfo}
+            // Слово из расшифровки диалога берётся в изучение той же дверью,
+            // что и слово из текста чтения (см. handleAddManualCard).
+            onAddWord={handleAddManualCard}
             levelId={listeningLevel}
             onChangeLevel={setListeningLevel}
             mode={listeningMode}

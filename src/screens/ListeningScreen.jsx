@@ -21,6 +21,10 @@ import {
   prewarmPhrases,
   PREWARM_PHRASES,
 } from "../lib/ttsClient.js";
+import { splitWords, coreWord } from "../../lib/highlightWord.js";
+import { warmTextLookups } from "../lib/lookupWarm.js";
+import { useWordLookup } from "../hooks/useWordLookup.js";
+import WordLookupSheet from "../components/WordLookupSheet.jsx";
 import AudioPlayer from "../components/AudioPlayer.jsx";
 import ComprehensionQuestions from "../components/ComprehensionQuestions.jsx";
 import Icon from "../components/icons/Icon.jsx";
@@ -63,7 +67,12 @@ export default function ListeningScreen({
   topic,
   level,
   takenWords,
+  // Известные слова — только для неброской пометки знакомого в расшифровке
+  // (та же подсказка прогресса, что в чтении). На сам диалог не влияют.
+  knownWords,
   wordInfo,
+  // Взять слово из расшифровки в изучение — та же дверь, что у чтения.
+  onAddWord,
   levelId,
   onChangeLevel,
   mode,
@@ -166,25 +175,122 @@ export default function ListeningScreen({
     [dialogueLines, learnLang, listeningLevel.rate],
   );
 
+  // ---------- Просмотр слова из расшифровки ----------
+  // ТОТ ЖЕ механизм, что в чтении: общий useWordLookup + общая шторка
+  // WordLookupSheet (слово, транскрипция, перевод, пример, «Взять в изучение»).
+  // Второй реализации не заводим — иначе одно и то же слово вело бы себя в
+  // диалоге и в тексте по-разному.
+  const lookup = useWordLookup({
+    learnLang,
+    nativeLang,
+    level,
+    onAdd: onAddWord,
+    // Чтобы «такой оборот уже взят» ловилось до обращения к модели.
+    takenWords,
+    // Свои карточки: тап по знакомому слову открывается мгновенно.
+    wordInfo,
+  });
+
+  // Что сейчас выделено (слово или раздвинутый оборот) — границы приходят из
+  // шторки, как и в чтении.
+  const span = lookup.lookup?.span || null;
+
+  // Знакомые слова помечаем неброско — та же подсказка прогресса, что в тексте:
+  // после ответов сразу видно, что уже знаешь, а что стоит тапнуть.
+  const knownSet = useMemo(() => {
+    const set = new Set();
+    for (const w of [...(takenWords || []), ...(knownWords || [])]) {
+      set.add(String(w).toLowerCase());
+      set.add(coreWord(w).toLowerCase());
+    }
+    return set;
+  }, [takenWords, knownWords]);
+
   // Расшифровка диалога — показывается ТОЛЬКО в итоге (после ответов), чтобы её
-  // нельзя было прочитать вместо того, чтобы слушать.
+  // нельзя было прочитать вместо того, чтобы слушать. Это решение, а не деталь:
+  // покажи её раньше — и аудирование перестанет быть аудированием. Момент показа
+  // держит ComprehensionQuestions (footer виден лишь в состоянии «готово»), и
+  // тапабельность слов его НИКАК не меняет: тапать можно ровно то, что уже
+  // разрешено видеть.
+  //
+  // Реплика здесь играет ту же роль, что предложение в чтении: она и контекст
+  // для перевода, и границы, внутри которых оборот можно раздвинуть. Перевод
+  // реплики уже лежит в данных диалога, поэтому «растянуть на всю реплику»
+  // показывает его без обращения к модели.
   const transcript = activeDialogue ? (
     <div className="listening__transcript">
       <h3 className="listening__transcript-title">{t("listening.transcript")}</h3>
-      {activeDialogue.dialogue.map((line, i) => (
-        <div className="listening__line" key={i}>
-          <p className="listening__line-text" lang={learnLang}>
-            <b className="listening__speaker">{line.speaker}:</b> {line.text}
-          </p>
-          {line.translation && (
-            <p className="listening__line-tr" lang={nativeLang}>
-              {line.translation}
+      <p className="listening__transcript-hint">
+        <span className="listening__legend-dot" aria-hidden="true" />
+        {t("listening.transcriptHint")}
+      </p>
+      {activeDialogue.dialogue.map((line, i) => {
+        const inThis = span && span.sentence === line.text;
+        // Номер слова внутри реплики — по нему считаются границы оборота.
+        let wordIndex = -1;
+        return (
+          <div className="listening__line" key={i}>
+            <p className="listening__line-text" lang={learnLang}>
+              <b className="listening__speaker">{line.speaker}:</b>{" "}
+              {splitWords(line.text).map((seg, j) => {
+                if (!seg.isWord) return <span key={j}>{seg.text}</span>;
+                wordIndex += 1;
+                const wi = wordIndex;
+                const picked = inThis && wi >= span.from && wi <= span.to;
+                return (
+                  <button
+                    key={j}
+                    type="button"
+                    className={
+                      "listening__word" +
+                      (knownSet.has(seg.text.toLowerCase()) ? " is-known" : "") +
+                      (picked ? " is-picked" : "")
+                    }
+                    onClick={() =>
+                      lookup.open(seg.text, {
+                        sentence: line.text,
+                        sentenceTranslation: line.translation,
+                        wordIndex: wi,
+                      })
+                    }
+                  >
+                    {seg.text}
+                  </button>
+                );
+              })}
             </p>
-          )}
-        </div>
-      ))}
+            {line.translation && (
+              <p className="listening__line-tr" lang={nativeLang}>
+                {line.translation}
+              </p>
+            )}
+          </div>
+        );
+      })}
     </div>
   ) : null;
+
+  // ПРОГРЕВ ПЕРЕВОДОВ — в момент, когда расшифровка ПОЯВЛЯЕТСЯ, а не когда
+  // загрузился диалог. Раньше нельзя: диалог берётся из кэша мгновенно, и грелся
+  // бы каждый заход на экран, даже если человек просто заглянул. Позже некуда —
+  // дальше только тапы.
+  //
+  // Дороже это не делает: прогрев — ОДИН фоновый вызов вместо N вызовов по
+  // тапам, и он сам молчит, когда греть нечего. В диалоге это частый случай: он
+  // и собран вокруг активных слов пары, поэтому новых смысловых слов там обычно
+  // меньше порога MIN_WARM_WORDS, и запрос просто не уходит.
+  function handleQuestionsFinished() {
+    if (activeDialogue) {
+      warmTextLookups({
+        // lookupWarm ждёт { text } — реплики диалога подходят как есть.
+        sentences: activeDialogue.dialogue,
+        wordInfo,
+        learnLang,
+        nativeLang,
+      });
+    }
+    onQuestionsComplete?.();
+  }
 
   // ---------- Старые форматы (слова) ----------
   const activeSet =
@@ -605,7 +711,7 @@ export default function ListeningScreen({
                 learnLang={learnLang}
                 nativeLang={nativeLang}
                 footer={transcript}
-                onFinished={onQuestionsComplete}
+                onFinished={handleQuestionsFinished}
                 appearance="ember"
               />
             </div>
@@ -940,6 +1046,22 @@ export default function ListeningScreen({
           )}
         </div>
       )}
+
+      {/* Шторка просмотра слова — ТА ЖЕ, что в чтении: слово, транскрипция,
+          перевод, пример и «Взять в изучение». Живёт на уровне экрана, потому
+          что перекрывает его целиком; открывается только тапом по расшифровке,
+          то есть уже после ответов на вопросы. */}
+      <WordLookupSheet
+        lookup={lookup.lookup}
+        learnLang={learnLang}
+        nativeLang={nativeLang}
+        onAdd={lookup.add}
+        onConfirmAdd={lookup.confirmAdd}
+        onCancelAdd={lookup.cancelAdd}
+        onExtend={lookup.extend}
+        onReset={lookup.reset}
+        onClose={lookup.close}
+      />
     </section>
   );
 }

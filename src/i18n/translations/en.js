@@ -320,6 +320,10 @@ export default {
     generatingDialogue: "Writing the dialogue…",
     listenPrompt: "Listen to the dialogue, then answer the questions.",
     transcript: "Dialogue transcript",
+    // Hint under the transcript heading: its words are tappable (the same sheet
+    // as in reading), and green marks what you already know.
+    transcriptHint:
+      "green — words you already know · tap any word to take it into learning",
     dialogueFailed: "Couldn't build the dialogue. Please try again.",
     start: "Start a round ({n})",
     restart: "New round ({n})",
@@ -784,6 +788,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      tapInDialogue: {
+        title: "Tap a word in the dialogue transcript to take it",
+        desc: "Once you have answered the questions, the app shows the dialogue transcript — and every word in it is now tappable, just like in a reading text. The same card opens: pronunciation, translation, an example, and an \"Add to learning\" button. Arrows let you grab neighbouring words to translate a whole phrase, and stretching the selection across the entire line shows that line's translation. Words you already know are marked green, so it is obvious which ones are worth taking. The transcript itself still appears only after the questions: otherwise the dialogue could be read instead of listened to.",
+      },
       planIsEnough: {
         title: "The session no longer nudges you to do more",
         desc: "A \"Want more?\" block used to sit under the day's plan, offering extra formats. It is gone: the plan is the whole of today's work, and finishing it is enough. If you do want to keep going, the \"Something else\" button is still there and works as before — at any moment, not only once the plan is done.",

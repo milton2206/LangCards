@@ -251,6 +251,62 @@
   font-weight: 700;
 }
 
+/* Слово в расшифровке тапается — тот же вид и те же состояния, что у слова в
+   тексте чтения (.reading__word): пунктир снизу «здесь можно тапнуть», тёплая
+   заливка у того, что переводится сейчас, оливковый — у знакомого. Один и тот
+   же жест не должен выглядеть в двух режимах по-разному. */
+.listening__word {
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  border-bottom: 1px dashed
+    color-mix(in srgb, var(--ember-text-muted) 55%, transparent);
+  cursor: pointer;
+}
+
+.listening__word:active {
+  color: var(--ember-accent);
+  border-bottom-color: var(--ember-accent);
+}
+
+/* Что сейчас переводится: слово или раздвинутый оборот. */
+.listening__word.is-picked {
+  background-color: color-mix(in srgb, var(--ember-accent) 26%, transparent);
+  border-bottom-color: var(--ember-accent);
+  border-radius: 3px;
+}
+
+/* Уже знакомое слово — оливковым (спокойный зелёный, без заливки). */
+.listening__word.is-known {
+  color: var(--ember-learned);
+  border-bottom-color: color-mix(in srgb, var(--ember-learned) 50%, transparent);
+}
+
+/* Подсказка под заголовком расшифровки: что слова тапаются и что значит
+   зелёный. Без неё тап остаётся находкой для тех, кто уже видел чтение. */
+.listening__transcript-hint {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--ember-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.listening__legend-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background-color: var(--ember-learned);
+  transform: translateY(-1px);
+}
+
 .listening__line-tr {
   color: var(--ember-text-muted);
   font-size: 0.8125rem;
