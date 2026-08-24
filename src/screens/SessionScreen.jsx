@@ -29,6 +29,7 @@ const BLOCK_ICON = {
   reading: "reading",
   newWords: "spark",
   listening: "listening",
+  knownCheck: "check",
 };
 
 // Почему блока новых слов нет в плане → строка вместо него. Ключ причины даёт
@@ -58,6 +59,7 @@ const BLOCK_NAME_KEY = {
   reading: "reading",
   newWords: "newWords",
   listening: "listening",
+  knownCheck: "knownCheck",
 };
 
 // Часть суток по локальному часу — для дружелюбного подзаголовка «<день> <часть>».
@@ -133,6 +135,8 @@ export default function SessionScreen({
       });
     if (block.type === "reading") return t("session.task.reading");
     if (block.type === "listening") return t("session.task.listening");
+    if (block.type === "knownCheck")
+      return t("session.task.knownCheck", { n: block.count });
     return "";
   }
 

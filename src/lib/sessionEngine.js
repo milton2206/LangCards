@@ -77,6 +77,10 @@ export function buildSession({
   // план не ставится. Сам движок этих состояний знать не может — это сеть,
   // квота и учёт тем, — поэтому их приносит вызывающий код.
   newWordsBlocked = null,
+  // Сколько известных слов отобрано на самопроверку (см. lib/knownCheck.js).
+  // Ноль — блока в плане нет. Сам движок отбор не делает: он про порядок и
+  // объём, а «какие слова давно не проверяли» — вопрос к данным пары.
+  knownCheckCount = 0,
 }) {
   const review = Math.max(0, Number(reviewCount) || 0);
   // База второстепенному дню — плотнее (навёрстывать), приоритетному — обычная.
@@ -144,6 +148,13 @@ export function buildSession({
     if (fmt === "newWords" && accent === "newWords") block.random = true;
     blocks.push(block);
   }
+
+  // Проверка известных — ПОСЛЕДНЕЙ и вне ротации: она приходит примерно раз в
+  // две недели и добавляется к дню, а не отодвигает то, ради чего человек
+  // сегодня пришёл. В акценте дня не участвует, объём ей задаёт не норма, а
+  // сама выборка. Работает офлайн — слова и переводы уже свои.
+  const knownCheck = Math.max(0, Number(knownCheckCount) || 0);
+  if (knownCheck > 0) blocks.push({ type: "knownCheck", count: knownCheck });
 
   return {
     accent,

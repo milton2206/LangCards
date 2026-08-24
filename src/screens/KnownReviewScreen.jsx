@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { cardForDisplay } from "../lib/displayText.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
@@ -15,29 +15,46 @@ function shuffle(list) {
 }
 
 /**
- * Повтор известных слов (идея Димы Еремы): быстрая самопроверка списка «Знаю»
- * по желанию пользователя — без расписания и без влияния на SRS.
+ * Повтор известных слов (идея Димы Еремы): быстрая самопроверка списка «Знаю».
  * Лицо карточки — слово; по тапу открывается перевод и пример.
  * «Помню» — просто дальше. «Вернуть в изучение» — слово уходит обратно в
  * takenWords через существующий restoreToStudy (с лимитом активных слов),
  * сохраняется и синхронизируется как обычно.
+ *
+ * Экран ОДИН на два входа, и второй реализации не заводим:
+ *   • вручную с экрана «Известные» — весь список, как было;
+ *   • блоком занятия — горсть слов, которые дольше всех не проверялись
+ *     (выборку делает lib/knownCheck.js и передаёт сюда пропом words).
+ *
+ * SRS это по-прежнему не касается: «Помню» пишет ровно одну дату проверки
+ * (onChecked), интервалы и серии известных слов не ведутся.
  */
 export default function KnownReviewScreen({
   knownWords,
+  // Что именно проверять. Не задано — весь список известных (ручной вход).
+  words = null,
   wordInfo,
   learnLang,
   nativeLang,
   onRestore,
+  // «Помню» — отметить слово проверенным (только дата, см. markKnownChecked).
+  onChecked,
+  // Очередь пройдена до конца — блок занятия отмечается выполненным.
+  onFinished,
   onBack,
-  // Мест под активные слова нет — «Вернуть в изучение» недоступно (та же
-  // проверка, что и на карточке). Самопроверка при этом работает целиком.
+  // Мест под активные слова нет — вернуть забытое слово прямо сейчас нельзя
+  // (тот же лимит, что и на карточке). Самопроверка при этом работает целиком.
   atLimit = false,
 }) {
   const { t } = useI18n();
-  // Локальная очередь сессии: перемешана один раз при входе.
-  const [queue, setQueue] = useState(() => shuffle(knownWords));
+  // Локальная очередь захода: перемешана один раз при входе.
+  const source = words && words.length > 0 ? words : knownWords;
+  const [queue, setQueue] = useState(() => shuffle(source));
   const [revealed, setRevealed] = useState(false);
   const [limitNotice, setLimitNotice] = useState(false);
+  // Сколько слов человек не вспомнил, но вернуть не смог — мест не было. Их
+  // датой НЕ помечаем, поэтому они придут на следующую проверку первыми.
+  const [deferred, setDeferred] = useState(0);
 
   useEffect(() => {
     if (!limitNotice) return;
@@ -52,20 +69,49 @@ export default function KnownReviewScreen({
     setRevealed(false);
   }, [currentWord]);
 
+  // Очередь пройдена — сообщаем ОДИН раз: по этому событию блок занятия
+  // отмечается выполненным. Заход и выход без разбора отметку не ставит, как и
+  // у чтения с аудированием.
+  const finishedRef = useRef(false);
+  useEffect(() => {
+    if (currentWord || finishedRef.current) return;
+    finishedRef.current = true;
+    onFinished?.();
+  }, [currentWord, onFinished]);
+
   function next() {
     setQueue((prev) => prev.slice(1));
   }
 
-  // «Помню» — идём дальше, ничего не меняя (это самопроверка, не SRS).
+  // «Помню» — отмечаем дату проверки и идём дальше. Больше НИЧЕГО: ни
+  // интервала, ни серии — известные слова вне интервальных повторений.
   function handleRemember() {
+    onChecked?.(currentWord);
     next();
   }
 
   // «Вернуть в изучение» — обратно в активное изучение (существующая механика).
+  //
+  // МЕСТ МОЖЕТ НЕ БЫТЬ, и тупика здесь быть не должно: человек только что
+  // убедился, что слово не помнит, — заставлять его нажать «Помню» значит
+  // соврать в собственных данных, а оставить его на этой карточке значит
+  // запереть проверку. Поэтому слово просто пропускается БЕЗ отметки о
+  // проверке: оно останется в известных и придёт на следующую проверку одним из
+  // первых. Сам лимит не трогаем — освободить место человек решает сам.
   function handleRestore() {
+    if (atLimit) {
+      setDeferred((n) => n + 1);
+      setLimitNotice(true);
+      next();
+      return;
+    }
     const ok = onRestore(currentWord);
     if (ok) next();
-    else setLimitNotice(true);
+    else {
+      setDeferred((n) => n + 1);
+      setLimitNotice(true);
+      next();
+    }
   }
 
   if (!currentWord) {
@@ -85,7 +131,11 @@ export default function KnownReviewScreen({
         <h1 className="knownreview__status-title">
           {t("knownReview.doneTitle")}
         </h1>
-        <p className="knownreview__status-hint">{t("knownReview.doneHint")}</p>
+        <p className="knownreview__status-hint">
+          {deferred > 0
+            ? t("knownReview.doneDeferred", { n: deferred })
+            : t("knownReview.doneHint")}
+        </p>
         <button type="button" className="knownreview__done" onClick={onBack}>
           {t("common.done")}
         </button>
@@ -163,22 +213,25 @@ export default function KnownReviewScreen({
         )}
       </article>
 
-      {/* При полном лимите объясняем постоянно: кнопка «Вернуть» неактивна. */}
+      {/* Мест под активные слова нет — объясняем ЗАРАНЕЕ, ещё до нажатия: что
+          вернуть слово прямо сейчас некуда и что забытое не потеряется. */}
       {(limitNotice || atLimit) && (
         <p className="knownreview__limit" role="status">
-          {t("common.activeLimit", { max: MAX_ACTIVE_WORDS })}
+          {t("knownReview.limitHint", { max: MAX_ACTIVE_WORDS })}
         </p>
       )}
 
       {revealed && (
         <div className="knownreview__actions">
+          {/* Мест нет — та же кнопка называется честно: вернуть сейчас некуда,
+              слово просто придёт на следующую проверку. Неактивной её не
+              делаем, иначе на забытом слове проверка упиралась бы в тупик. */}
           <button
             type="button"
             className="knownreview__btn knownreview__btn--restore"
             onClick={handleRestore}
-            disabled={atLimit}
           >
-            {t("knownReview.restore")}
+            {t(atLimit ? "knownReview.forgot" : "knownReview.restore")}
           </button>
           <button
             type="button"

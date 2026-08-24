@@ -821,6 +821,41 @@ export function useWordLists(pairKey, user, options = {}) {
     [updatePair],
   );
 
+  // ОТМЕТИТЬ ИЗВЕСТНЫЕ СЛОВА ПРОВЕРЕННЫМИ (самопроверка «Помню»).
+  //
+  // Единственное, что пишет проверка известных, — дата. Ни интервала, ни
+  // лёгкости, ни серии: известные слова вне интервальных повторений, и вторым
+  // SRS это не становится (см. lib/knownCheck.js).
+  //
+  // Дата живёт в srs-записи слова, рядом с takenDate и knownAskedInterval, —
+  // это и так общий мешок пометок по слову, а не только поля алгоритма. Так она
+  // едет в облако без единой правки слияния: wordSync переносит srs-запись
+  // ЦЕЛИКОМ (см. mergeSrs — записи известных слов он тоже хранит).
+  //
+  // У слова, попавшего в известные прямо из колоды («Знаю» свайпом), srs-записи
+  // может не быть вовсе. Тогда заводим полную стартовую: неполная запись из
+  // одной даты позже сломала бы возврат в изучение — у слова не оказалось бы
+  // nextReviewDate, и на повтор оно не пришло бы никогда.
+  const markKnownChecked = useCallback(
+    (words) => {
+      const list = Array.isArray(words) ? words : [words];
+      if (list.length === 0) return;
+      const today = toDayKey(new Date());
+      updatePair((cur) => {
+        const srs = { ...(cur.srsByWord || {}) };
+        for (const word of list) {
+          if (!word) continue;
+          srs[word] = {
+            ...(srs[word] || startSrs(today)),
+            knownCheckedDate: today,
+          };
+        }
+        return { ...cur, srsByWord: srs };
+      });
+    },
+    [updatePair],
+  );
+
   // УДАЛИТЬ СОВСЕМ — полностью убрать слова из пары: из всех списков
   // (taken/known/skipped) и из сопутствующих данных (wordInfo, srsByWord).
   // Принимает массив слов (режим выбора в списках). Изменение сохраняется в
@@ -889,6 +924,7 @@ export function useWordLists(pairKey, user, options = {}) {
     restoreToStudy,
     reviewWord, // самооценка при интервальном повторении (Этап 2)
     noteKnownOffer, // «про это слово уже спрашивали» (чек-пойнт «похоже, знаешь»)
+    markKnownChecked, // дата самопроверки известного слова (НЕ повторение)
     // Место под активные слова: сколько ещё влезет и упёрлись ли в потолок.
     // Экраны показывают состояние по ним, а не считают лимит сами.
     freeSlots: slotsLeft,

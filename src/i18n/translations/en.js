@@ -452,6 +452,7 @@ export default {
       reading: "Reading with questions",
       newWords: "New words",
       listening: "Dialogue with questions",
+      knownCheck: "Known words check",
     },
     // Concrete task for the block (not just a title).
     task: {
@@ -460,6 +461,7 @@ export default {
       newWords: "New words · {n}",
       newWordsRandom: "Surprise words · {n}",
       listening: "Dialogue · listen and answer",
+      knownCheck: "Check known words · {n}",
     },
     // Progress of the new-words task: how many are already taken. Shown only
     // while the block is unfinished.
@@ -563,6 +565,13 @@ export default {
     restore: "Back to studying",
     doneTitle: "All words reviewed",
     doneHint: "Whatever slipped away is back in studying. The rest you truly know.",
+    // Words that would not come back but had nowhere to return to: there is no
+    // room among active words. They are NOT marked as checked, so they return.
+    forgot: "I don't remember",
+    limitHint:
+      "You have {max} words in progress — there is no room to bring one back. Anything you did not recall will come round at the next check; free up space in My words and you can return it to studying.",
+    doneDeferred:
+      "Words you did not recall: {n}. There is no room in studying right now, so they stayed among your known words and will come first at the next check.",
   },
 
   errors: {
@@ -788,6 +797,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      keepKnownAlive: {
+        title: "Learned words occasionally come back for a quick check",
+        desc: "A word moved to Known used to go there for good — and six months later it could quietly slip away. Now, roughly every two weeks, a \"Check known words\" block appears in your session: five to eight words that have gone unchecked the longest. You see the word, recall the translation, and either say you remember it or send it back to studying. This is not scheduled review: known words keep no intervals, and the check does not come every day — once you have done it, the next one is at least two weeks away. If there is no room in studying, a forgotten word is not lost: it stays among your known words and comes first at the next check.",
+      },
       tapInDialogue: {
         title: "Tap a word in the dialogue transcript to take it",
         desc: "Once you have answered the questions, the app shows the dialogue transcript — and every word in it is now tappable, just like in a reading text. The same card opens: pronunciation, translation, an example, and an \"Add to learning\" button. Arrows let you grab neighbouring words to translate a whole phrase, and stretching the selection across the entire line shows that line's translation. Words you already know are marked green, so it is obvious which ones are worth taking. The transcript itself still appears only after the questions: otherwise the dialogue could be read instead of listened to.",

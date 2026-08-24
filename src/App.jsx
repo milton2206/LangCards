@@ -68,6 +68,7 @@ import {
   markTutorialSeen,
 } from "./lib/localCache.js";
 import { buildQuizPool, QUIZ_MIN_WORDS } from "./lib/quizEngine.js";
+import { pickKnownCheck } from "./lib/knownCheck.js";
 import {
   topicKey,
   isExhausted,
@@ -405,6 +406,14 @@ export default function App() {
   // Слова, которым сегодня пора на повтор (отдельно от потока новых карточек).
   const dueWords = getDueWords(vocab.takenWords, vocab.srsByWord, vocab.todayKey);
 
+  // Проверка известных: пора ли и какие слова взять. Считается по датам
+  // последней проверки (см. lib/knownCheck.js) — к интервальным повторениям
+  // отношения не имеет, известные слова в них не участвуют.
+  const knownCheck = useMemo(
+    () => pickKnownCheck(vocab.knownWords, vocab.srsByWord, vocab.todayKey),
+    [vocab.knownWords, vocab.srsByWord, vocab.todayKey],
+  );
+
   // ---------- Тест с вариантами ответа ----------
   // Пул для теста — СВОИ слова активной пары: и взятые, и известные. Неверные
   // варианты берутся только отсюда, к модели за ними не ходим. Один пул на оба
@@ -657,14 +666,25 @@ export default function App() {
   const [sessionRandom, setSessionRandom] = useState(false);
 
   // Смена дня или пары: перечитываем прогресс (пустой на новый день) и, если
-  // снимок числа созревших ещё не сделан, снимаем его — чтобы подпись
-  // «Повторение · N» не «плыла» по мере повторения.
+  // снимки объёмов ещё не сделаны, снимаем их — чтобы подписи «Повторение · N»
+  // и «Проверить известные · N» не «плыли» по ходу разбора.
+  //
+  // У проверки известных снимок нужен ещё и затем, чтобы ПРОЙДЕННЫЙ блок не
+  // исчезал из плана: сразу после разбора условие «пора» становится ложным (мы
+  // только что проверили), и блок, считайся он по живому условию, пропал бы
+  // вместо галочки — не как все остальные блоки.
   useEffect(() => {
     const p = loadSessionProgress(pairKey, vocab.todayKey);
+    let changed = false;
     if (p.reviewTarget == null) {
       p.reviewTarget = dueWords.length;
-      saveSessionProgress(pairKey, vocab.todayKey, p);
+      changed = true;
     }
+    if (p.knownCheckTarget == null) {
+      p.knownCheckTarget = knownCheck.due ? knownCheck.words.length : 0;
+      changed = true;
+    }
+    if (changed) saveSessionProgress(pairKey, vocab.todayKey, p);
     setSessionProgress(p);
     setSessionBlock(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -676,6 +696,8 @@ export default function App() {
   }
 
   const reviewTarget = sessionProgress.reviewTarget || 0;
+  // Объём проверки известных на сегодня — снимок, а не живое условие (см. выше).
+  const knownCheckTarget = sessionProgress.knownCheckTarget || 0;
 
   const sessionPlan = useMemo(
     () =>
@@ -693,6 +715,9 @@ export default function App() {
         // Остальные причины, по которым слова взять неоткуда (нет сети, выбран
         // суточный лимит, кончились все темы) — движок их знать не может.
         newWordsBlocked,
+        // Проверка известных: объём берём из снимка дня, поэтому пройденный
+        // блок остаётся в плане с галочкой, а не исчезает.
+        knownCheckCount: knownCheckTarget,
       }),
     [
       reviewTarget,
@@ -704,6 +729,7 @@ export default function App() {
       sessionRotationDay,
       vocab.freeSlots,
       newWordsBlocked,
+      knownCheckTarget,
     ],
   );
 
@@ -738,6 +764,10 @@ export default function App() {
       return sessionNewTarget > 0 && takenTodayForPair >= sessionNewTarget;
     if (type === "reading") return Boolean(sessionProgress.events?.reading);
     if (type === "listening") return Boolean(sessionProgress.events?.listening);
+    // Проверка известных — по событию «очередь пройдена», как чтение и аудио:
+    // заход и выход без разбора блок не закрывают.
+    if (type === "knownCheck")
+      return Boolean(sessionProgress.events?.knownCheck);
     return false;
   }
   // Итоговый статус: ручная отметка ПЕРЕКРЫВАЕТ авто (тот же чекбокс).
@@ -777,6 +807,10 @@ export default function App() {
         setSessionQuestions(block.questions || null);
         setListeningMode("comprehension"); // блок аудирования — диалог с вопросами
         setScreen("listening");
+      } else if (block.type === "knownCheck") {
+        // Экран самопроверки ТОТ ЖЕ, что открывается вручную с «Известных», —
+        // отличается только источником очереди (выборка вместо всего списка).
+        setScreen("knownreview");
       } else if (block.type === "newWords") {
         // Размер порции здесь БОЛЬШЕ НЕ ЗАДАЁТСЯ: он константа (см.
         // GENERATE_BATCH_SIZE) и ужимается свободными местами и остатком дневной
@@ -806,7 +840,7 @@ export default function App() {
   // затем, если упражнение открывалось ИЗ занятия, возвращаемся к плану. Простой
   // заход и выход отметку НЕ ставит — это и есть исправление бага.
   function completeExercise(type) {
-    if (type === "reading" || type === "listening") {
+    if (type === "reading" || type === "listening" || type === "knownCheck") {
       persistProgress({
         ...sessionProgress,
         events: { ...sessionProgress.events, [type]: true },
@@ -1697,12 +1731,20 @@ export default function App() {
         {screen === "knownreview" && (
           <KnownReviewScreen
             knownWords={vocab.knownWords}
+            // Из занятия — только созревшая выборка; вручную с «Известных» —
+            // весь список, как было (проп не задаём).
+            words={sessionBlock === "knownCheck" ? knownCheck.words : null}
             wordInfo={vocab.wordInfo}
             learnLang={learnLang}
             nativeLang={nativeLang}
             onRestore={vocab.restoreToStudy}
+            // «Помню» пишет ТОЛЬКО дату проверки — не повторение.
+            onChecked={vocab.markKnownChecked}
+            onFinished={() => completeExercise("knownCheck")}
             atLimit={vocab.atActiveLimit}
-            onBack={() => setScreen("known")}
+            onBack={() =>
+              sessionBlock === "knownCheck" ? exitSession() : setScreen("known")
+            }
           />
         )}
 
