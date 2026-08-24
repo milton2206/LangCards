@@ -99,8 +99,6 @@ export default function SessionScreen({
   const activeIndex = blocks.findIndex((b) => !doneMap[b.type]);
   const activeBlock = activeIndex >= 0 ? blocks[activeIndex] : null;
 
-  const extras = plan?.extras || [];
-
   // Прогресс по паре для полосы под планом. Тот же расчёт, что показывает экран
   // статистики (wordStats), — считать здесь заново значит однажды разойтись с
   // ним в числах.
@@ -421,35 +419,9 @@ export default function SessionScreen({
         </button>
       )}
 
-      {/* ДОБАВКИ сверху базы: «хотите ещё?». Приоритетному дню их больше. Это
-          отдельные предложения продолжить — в прогресс базы не входят. */}
-      {extras.length > 0 && !plan?.restDay && (
-        <div className="session__extras">
-          <p className="session__extras-title">{t("session.extrasTitle")}</p>
-          <div className="session__extras-list">
-            {extras.map((block, i) => (
-              <button
-                key={`${block.type}-${i}`}
-                type="button"
-                className="session__extra"
-                onClick={() => onStartBlock(block)}
-              >
-                <Icon
-                  name={BLOCK_ICON[block.type]}
-                  size={18}
-                  className="session__extra-icon"
-                />
-                {t("session.extraItem", {
-                  block: t(`session.block.${BLOCK_NAME_KEY[block.type]}`),
-                })}
-              </button>
-            ))}
-          </div>
-          <p className="session__extras-hint">{t("session.extrasHint")}</p>
-        </div>
-      )}
-
-      {/* Свобода выбора: одним нравится, когда ведут, другие хотят выбрать сами. */}
+      {/* Свобода выбора: одним нравится, когда ведут, другие хотят выбрать сами.
+          Единственный способ продолжить сверх плана — блока «хотите ещё?» под
+          планом больше нет (он дублировал эту же кнопку, только с условием). */}
       <button type="button" className="session__manual" onClick={onManual}>
         {plan?.restDay ? t("session.studyAnyway") : t("session.manual")}
       </button>

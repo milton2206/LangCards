@@ -438,12 +438,9 @@ export default {
     backToSession: "To session",
     secondaryNote:
       "A secondary language today — the base is a bit denser to catch up: you study it less often.",
-    // Day accent (base rotation) and extras on top.
+    // Day accent — the leading format in the base rotation.
     accentNote: "Today's focus: {block}",
     accentBadge: "focus",
-    extrasTitle: "Want more?",
-    extraItem: "More: {block}",
-    extrasHint: "Finished the base — you can keep going with another format.",
     restTitle: "A rest day by your schedule",
     restHint: "Reviews are always available. Want to study — start manually.",
     block: {
@@ -787,6 +784,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      planIsEnough: {
+        title: "The session no longer nudges you to do more",
+        desc: "A \"Want more?\" block used to sit under the day's plan, offering extra formats. It is gone: the plan is the whole of today's work, and finishing it is enough. If you do want to keep going, the \"Something else\" button is still there and works as before — at any moment, not only once the plan is done.",
+      },
       progressAtGlance: {
         title: "How many words you have learned, right on the session screen",
         desc: "Finding out how many words you had learned meant hunting down a separate statistics screen — and it opened from exactly one place, an icon with no caption. The answer is now in plain sight: a strip under the day's plan shows three numbers — how many you have learned, how many are in progress, and what share of your words you already know. Most of the time that is all you need, but the strip is tappable and leads to the same statistics screen if you want the details. The numbers are calculated the same way in both places, so they cannot drift apart. While you have no words at all the strip stays away — it appears with the first words you take.",

@@ -400,7 +400,6 @@
   color: var(--ember-text);
 }
 
-/* ---------- Добавки сверху («хотите ещё?») ---------- */
 /* ---------- Полоса прогресса под планом ----------
    Сводка «сколько выучено» прямо на экране занятия. НАМЕРЕННО тише блоков
    плана: она ИТОГ, а не задание, и спорить с ними за внимание не должна —
@@ -454,52 +453,6 @@
   color: var(--ember-text-muted);
   font-size: 1.125rem;
   line-height: 1;
-}
-
-.session__extras {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px;
-  border-radius: var(--ember-radius);
-  background-color: var(--ember-surface);
-}
-
-.session__extras-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--ember-text);
-}
-
-.session__extras-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.session__extra {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 40px;
-  padding: 8px 14px;
-  border: 1px solid var(--ember-border);
-  border-radius: 999px;
-  background-color: var(--ember-card);
-  color: var(--ember-text);
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
-.session__extra-icon {
-  flex: 0 0 auto;
-  color: var(--ember-accent);
-}
-
-.session__extras-hint {
-  font-size: 0.75rem;
-  line-height: 1.4;
-  color: var(--ember-text-muted);
 }
 
 /* ---------- Свобода выбора («хочу другое») — нейтральная кнопка ---------- */
