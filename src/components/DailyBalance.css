@@ -7,7 +7,7 @@
 }
 
 .balance__label {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 0.8125rem;
   margin-right: 2px;
 }
@@ -18,10 +18,10 @@
   gap: 5px;
   min-height: 34px;
   padding: 4px 10px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--ember-border);
   border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 0.8125rem;
   font-weight: 700;
   transition:
@@ -30,7 +30,7 @@
 }
 
 .balance__chip.is-active {
-  border-color: var(--accent);
+  border-color: var(--ember-accent);
   background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
 }
 
@@ -44,7 +44,7 @@
 }
 
 .balance__count {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-weight: 600;
 }
 

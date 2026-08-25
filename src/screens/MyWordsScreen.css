@@ -97,7 +97,8 @@
   border: 1px solid color-mix(in srgb, var(--ember-accent) 45%, transparent);
   border-radius: var(--ember-radius-sm);
   background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
-  color: var(--ember-accent);
+  /* Текст цвета темы: акцент поверх акцентной заливки давал 4.13 на свету. */
+  color: var(--ember-text);
   font-family: var(--font-ui);
   font-size: 0.875rem;
   font-weight: 700;
@@ -150,14 +151,19 @@
   height: 22px;
   padding: 0 6px;
   border-radius: 999px;
-  background-color: color-mix(in srgb, var(--ember-text) 12%, transparent);
+  /* Заливка из ПРИГЛУШЁННОГО тона, а не из цвета самого текста: подложка из
+     того же цвета съедала контраст до 3.57 на светлой теме (норма 4.5). */
+  background-color: color-mix(in srgb, var(--ember-text-muted) 18%, transparent);
   color: var(--ember-text);
   font-size: 0.75rem;
   font-weight: 700;
 }
 
+/* На выбранной вкладке счётчик сидел цветом on-accent поверх заливки из того же
+   on-accent — 3.57 на светлой теме. Заливку берём плотнее и от цвета вкладки,
+   текст остаётся on-accent: он и задуман читаться поверх акцента. */
 .wordtabs__tab.is-active .wordtabs__count {
-  background-color: color-mix(in srgb, var(--ember-on-accent) 22%, transparent);
+  background-color: color-mix(in srgb, var(--ember-accent) 55%, transparent);
   color: var(--ember-on-accent);
 }
 
@@ -238,7 +244,8 @@
   border: 1px solid color-mix(in srgb, var(--ember-accent) 50%, transparent);
   border-radius: 999px;
   background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
-  color: var(--ember-accent);
+  /* Текст цвета темы: акцент поверх акцентной заливки давал 4.02 на свету. */
+  color: var(--ember-text);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -330,14 +337,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Срок — цвет в ПЛАШКЕ, текст цвета темы: акцент поверх заливки из того же
+   акцента давал 4.33 на свету (норма 4.5). Терракота/олива/нейтраль различают
+   срочность по-прежнему — самой плашкой. */
 .mywords__due--today {
   background-color: color-mix(in srgb, var(--ember-accent) 16%, transparent);
-  color: var(--ember-accent);
+  color: var(--ember-text);
 }
 
 .mywords__due--near {
   background-color: color-mix(in srgb, var(--ember-learned) 16%, transparent);
-  color: var(--ember-learned);
+  color: var(--ember-text);
 }
 
 .mywords__due--far {
@@ -353,7 +363,8 @@
   border: 1px solid color-mix(in srgb, var(--ember-accent) 50%, transparent);
   border-radius: var(--ember-radius-sm);
   background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
-  color: var(--ember-accent);
+  /* Текст цвета темы: акцент поверх акцентной заливки давал 4.46 на свету. */
+  color: var(--ember-text);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -543,7 +554,9 @@
 
 /* Приблизительная запись кириллицей — под точной, тише её. */
 .mywords__translit--approx {
-  opacity: 0.75;
+  /* БЕЗ opacity: приблизительная запись и так тише точной — она мельче. Замер
+     показал 4.05 в тёмной и 3.36 в светлой теме при норме 4.5, а это строка,
+     которую и читают те, кто не знает фонетических значков. */
   font-size: 0.875em;
   letter-spacing: 0.3px;
 }

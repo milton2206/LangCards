@@ -12,12 +12,12 @@
 }
 
 .comp__progress {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 0.8125rem;
 }
 
 .comp__prompt {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 0.875rem;
   line-height: 1.45;
 }
@@ -29,7 +29,7 @@
 }
 
 .comp__statement-tr {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 0.875rem;
   line-height: 1.5;
 }
@@ -44,10 +44,10 @@
   flex: 1;
   min-height: 48px;
   padding: 12px 14px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--ember-border);
   border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 0.9375rem;
   font-weight: 700;
 }
@@ -93,7 +93,7 @@
   min-height: 44px;
   border: none;
   border-radius: var(--radius-sm);
-  background-color: var(--accent);
+  background-color: var(--ember-accent);
   color: var(--ember-on-accent);
   font-size: 0.9375rem;
   font-weight: 700;
@@ -120,17 +120,17 @@
 }
 
 .comp__done-score {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 0.9375rem;
 }
 
 .comp__retake {
   min-height: 44px;
   padding: 10px 18px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--ember-border);
   border-radius: 999px;
-  background-color: var(--surface);
-  color: var(--text);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 0.875rem;
   font-weight: 700;
 }

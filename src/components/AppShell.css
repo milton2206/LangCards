@@ -40,9 +40,9 @@
   .app-shell__inner {
     min-height: auto;
     margin-block: 32px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--ember-border);
     border-radius: var(--radius);
-    background-color: var(--bg-elevated);
+    background-color: var(--ember-card);
   }
 }
 

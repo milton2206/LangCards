@@ -68,7 +68,9 @@
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--ember-accent) 30%, transparent);
   background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
-  color: var(--ember-accent);
+  /* Текст цвета темы, а не акцента: акцент поверх заливки из него же давал 3.53
+     на свету при норме 4.5. Метку по-прежнему видно — плашкой и рамкой. */
+  color: var(--ember-text);
   font-size: 0.8125rem;
   font-weight: 700;
 }
@@ -128,12 +130,14 @@
 }
 
 /* Вторая подсказка — мельче основной строки: это запасной путь, а не главный. */
+/* Вторая подсказка — мельче основной строки: это запасной путь, а не главный.
+   БЕЗ opacity: приглушённый текст и так приглушённый, а 0.85 поверх него давали
+   3.90 на свету при норме 4.5. Разницу держат кегль и цвет. */
 .session__no-room-hint {
   margin: 0;
   font-size: 0.75rem;
   line-height: 1.4;
   color: var(--ember-text-muted);
-  opacity: 0.85;
 }
 
 .session__note {
@@ -276,8 +280,13 @@
   background-color: color-mix(in srgb, var(--ember-accent) 10%, var(--ember-surface));
 }
 
+/* Пройденный блок приглушаем, но НЕ до нечитаемости: при opacity 0.55 текст
+   задачи давал 1.27 на светлой теме — строку было физически не прочитать, а это
+   не отключённый контрол, в него по-прежнему можно зайти. Что блок пройден,
+   говорят галочка в кружке и зачёркивание; приглушение здесь третий по счёту
+   сигнал, и ему хватает лёгкого. */
 .session__block.is-done .session__block-btn {
-  opacity: 0.55;
+  opacity: 0.8;
 }
 
 /* Иконка формата — линейная (Ember) в скруглённой плашке. */
@@ -328,7 +337,9 @@
   padding: 2px 8px;
   border-radius: 999px;
   background-color: color-mix(in srgb, var(--ember-accent) 18%, transparent);
-  color: var(--ember-accent);
+  /* Текст цвета темы, а не акцента: акцент поверх заливки из него же давал
+     4.22 на свету при норме 4.5. Метку по-прежнему видно — по плашке. */
+  color: var(--ember-text);
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;

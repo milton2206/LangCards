@@ -120,9 +120,10 @@
   font-weight: 700;
 }
 
+/* БЕЗ opacity: поверх приглушённого текста она давала 3.57 на светлой теме при
+   норме 4.5. Подсказка и так тише заголовка — кеглем. */
 .cards__daily-hint {
   font-size: 0.8125rem;
-  opacity: 0.85;
 }
 
 /* Есть что повторять — заметно, но не тревожно (тёплый янтарь) */
@@ -469,7 +470,9 @@
 
 /* Приблизительная запись кириллицей — под точной, тише её. */
 .cards__translit--approx {
-  opacity: 0.75;
+  /* БЕЗ opacity: приблизительная запись и так тише точной — она мельче. Замер
+     показал 4.05 в тёмной и 3.36 в светлой теме при норме 4.5, а это строка,
+     которую и читают те, кто не знает фонетических значков. */
   font-size: 0.875em;
   letter-spacing: 0.3px;
 }
@@ -831,10 +834,12 @@
     background-color 0.15s;
 }
 
+/* Выбранный режим: цвет держат рамка и заливка, текст — цвета темы. Акцент
+   поверх заливки из него же давал 4.02 на свету при норме 4.5. */
 .cards__mode-chip.is-active {
   border-color: var(--ember-accent);
   background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
-  color: var(--ember-accent);
+  color: var(--ember-text);
 }
 
 /* Вторичная кнопка ручной генерации новой порции */
@@ -858,7 +863,8 @@
   border: 1px solid color-mix(in srgb, var(--ember-accent) 50%, transparent);
   border-radius: var(--ember-radius-sm);
   background-color: color-mix(in srgb, var(--ember-accent) 10%, transparent);
-  color: var(--ember-accent);
+  /* Текст цвета темы: акцент поверх акцентной заливки давал 4.25 на свету. */
+  color: var(--ember-text);
   font-size: 0.875rem;
   font-weight: 700;
 }

@@ -16,16 +16,16 @@
   width: 44px;
   height: 44px;
   min-height: 44px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ember-border);
   border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 1.25rem;
   line-height: 1;
 }
 
 .knownreview__remaining {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -38,8 +38,8 @@
   justify-content: center;
   gap: 20px;
   padding: 28px 22px;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
+  background-color: var(--ember-surface);
+  border: 1px solid var(--ember-border);
   border-radius: var(--radius);
 }
 
@@ -58,10 +58,10 @@
   align-self: flex-start;
   min-height: 52px;
   padding: 12px 28px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ember-border);
   border-radius: var(--radius-sm);
-  background-color: var(--bg-elevated);
-  color: var(--text);
+  background-color: var(--ember-card);
+  color: var(--ember-text);
   font-size: 1rem;
   font-weight: 700;
 }
@@ -69,7 +69,7 @@
 .knownreview__divider {
   width: 100%;
   height: 1px;
-  background-color: var(--border);
+  background-color: var(--ember-border);
 }
 
 .knownreview__answer {
@@ -79,7 +79,7 @@
 }
 
 .knownreview__translit {
-  color: var(--accent);
+  color: var(--ember-accent);
   font-size: 0.9375rem;
   letter-spacing: 0.5px;
 }
@@ -100,7 +100,7 @@
 .knownreview__example-translation {
   font-size: 0.875rem;
   line-height: 1.5;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -133,10 +133,13 @@
   font-weight: 700;
 }
 
+/* Цвет решения — в заливке и рамке, текст цвета темы: олива поверх оливковой
+   заливки давала 4.32 на светлой теме при норме 4.5. «Помню» от «Вернуть»
+   по-прежнему отличается — цветом плашки. */
 .knownreview__btn--remember {
   background-color: color-mix(in srgb, var(--ember-learned) 14%, transparent);
   border-color: color-mix(in srgb, var(--ember-learned) 50%, transparent);
-  color: var(--ember-learned);
+  color: var(--ember-text);
 }
 
 .knownreview__btn--restore {
@@ -161,10 +164,10 @@
   width: 44px;
   height: 44px;
   min-height: 44px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ember-border);
   border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 1.25rem;
   line-height: 1;
 }
@@ -180,7 +183,7 @@
 }
 
 .knownreview__status-hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 0.9375rem;
   max-width: 32ch;
 }
@@ -189,17 +192,19 @@
   margin-top: 12px;
   min-height: 48px;
   padding: 12px 24px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ember-border);
   border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text);
+  background-color: var(--ember-surface);
+  color: var(--ember-text);
   font-size: 1rem;
   font-weight: 600;
 }
 
 /* Приблизительная запись кириллицей — под точной, тише её. */
 .knownreview__translit--approx {
-  opacity: 0.75;
+  /* БЕЗ opacity: приблизительная запись и так тише точной — она мельче. Замер
+     показал 4.05 в тёмной и 3.36 в светлой теме при норме 4.5, а это строка,
+     которую и читают те, кто не знает фонетических значков. */
   font-size: 0.875em;
   letter-spacing: 0.3px;
 }

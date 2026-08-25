@@ -23,27 +23,27 @@
   align-items: center;
   gap: 2px;
   padding: 6px 2px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--ember-border);
   border-radius: var(--radius-sm);
-  background-color: var(--surface);
+  background-color: var(--ember-surface);
 }
 
 .week__dot-day {
   font-size: 0.625rem;
   letter-spacing: 0.3px;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   text-transform: uppercase;
 }
 
 .week__dot-lang {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--ember-text);
 }
 
 /* Сегодняшний день — акцентная рамка */
 .week__dot.is-today {
-  border-color: var(--accent);
+  border-color: var(--ember-accent);
   background-color: color-mix(in srgb, var(--ember-accent) 12%, transparent);
 }
 
@@ -53,7 +53,7 @@
 }
 
 .week__dot.is-off .week__dot-lang {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
 }
 
 /* ---------- Вид Ember (только read-only строка на экране карточки) ---------- */
@@ -113,7 +113,7 @@
 /* ---------- Редактируемый режим: тап по дню меняет язык ---------- */
 .week__dot--edit {
   cursor: pointer;
-  color: var(--text);
+  color: var(--ember-text);
   min-height: 48px;
 }
 
@@ -175,7 +175,7 @@
 
 /* Выбранный для редактирования день — акцентная рамка (важнее приглушения off) */
 .week__dot--edit.is-editing {
-  border-color: var(--accent);
+  border-color: var(--ember-accent);
   background-color: color-mix(in srgb, var(--ember-accent) 16%, transparent);
   opacity: 1;
 }
@@ -187,14 +187,14 @@
   gap: 8px;
   padding: 12px;
   border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background-color: var(--surface);
+  border: 1px solid var(--ember-border);
+  background-color: var(--ember-surface);
 }
 
 .week__picker-title {
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
 }
 
 .week__picker-options {
@@ -206,22 +206,22 @@
 .week__opt {
   min-height: 40px;
   padding: 8px 12px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--ember-border);
   border-radius: 999px;
-  background-color: var(--bg-elevated);
-  color: var(--text);
+  background-color: var(--ember-card);
+  color: var(--ember-text);
   font-size: 0.8125rem;
   font-weight: 700;
 }
 
 .week__opt.is-active {
-  border-color: var(--accent);
+  border-color: var(--ember-accent);
   background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
-  color: var(--accent);
+  color: var(--ember-accent);
 }
 
 .week__hint {
   font-size: 0.75rem;
   line-height: 1.4;
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
 }

@@ -20,7 +20,7 @@
 }
 
 .migrate__text {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 0.9375rem;
   line-height: 1.5;
   max-width: 34ch;
@@ -39,7 +39,7 @@
   min-height: 50px;
   border: none;
   border-radius: var(--radius-sm);
-  background-color: var(--accent);
+  background-color: var(--ember-accent);
   color: var(--ember-on-accent);
   font-size: 1rem;
   font-weight: 700;
@@ -47,16 +47,16 @@
 
 .migrate__ghost {
   min-height: 48px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ember-border);
   border-radius: var(--radius-sm);
-  background-color: var(--surface);
-  color: var(--text-muted);
+  background-color: var(--ember-surface);
+  color: var(--ember-text-muted);
   font-size: 0.9375rem;
   font-weight: 600;
 }
 
 .migrate__hint {
-  color: var(--text-muted);
+  color: var(--ember-text-muted);
   font-size: 0.8125rem;
   max-width: 36ch;
   line-height: 1.45;

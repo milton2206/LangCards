@@ -250,7 +250,9 @@
 
 /* Приблизительная запись кириллицей — под точной, тише её. */
 .review__translit--approx {
-  opacity: 0.75;
+  /* БЕЗ opacity: приблизительная запись и так тише точной — она мельче. Замер
+     показал 4.05 в тёмной и 3.36 в светлой теме при норме 4.5, а это строка,
+     которую и читают те, кто не знает фонетических значков. */
   font-size: 0.875em;
   letter-spacing: 0.3px;
 }
@@ -403,6 +405,13 @@
   padding-bottom: calc(4px + env(safe-area-inset-bottom));
 }
 
+/* ЦВЕТ СМЫСЛА — В ЗАЛИВКЕ И РАМКЕ, А НЕ В ТЕКСТЕ.
+   Раньше текст красился тем же цветом, что и подложка под ним (акцент на
+   заливке 14% из этого же акцента), да ещё с opacity 0.75 и кеглем 11px — три
+   ослабления подряд. Замер: подписи интервалов давали 2.76–4.29 при норме 4.5 и
+   проваливались в ОБЕИХ темах, на самом посещаемом экране приложения.
+   Текст цвета темы поверх той же заливки даёт 11.7–13.1, а «Не помню» от
+   «Легко» по-прежнему отличается — цветом плашки и её рамки. */
 .review__grade {
   display: flex;
   flex-direction: column;
@@ -413,6 +422,7 @@
   padding: 8px 6px;
   border-radius: var(--ember-radius-sm);
   border: 1.5px solid transparent;
+  color: var(--ember-text);
   font-family: var(--font-ui);
 }
 
@@ -421,38 +431,36 @@
   font-weight: 700;
 }
 
+/* Интервал — подпись под оценкой. Без прозрачности (её и не хватало) и кеглем
+   на ступень выше: 11px для второй строки на кнопке слишком мелко. */
 .review__grade-interval {
-  font-size: 0.6875rem;
+  color: var(--ember-text-muted);
+  font-size: 0.75rem;
   font-weight: 600;
-  opacity: 0.75;
 }
 
 /* Не помню — терракотовый акцент (повторить сейчас, требует внимания). */
 .review__grade--again {
   background-color: color-mix(in srgb, var(--ember-accent) 14%, transparent);
   border-color: color-mix(in srgb, var(--ember-accent) 50%, transparent);
-  color: var(--ember-accent);
 }
 
 /* Трудно — тёплый янтарь (тот же тон «осторожно», что и в карточке). */
 .review__grade--hard {
   background-color: color-mix(in srgb, var(--ember-warning) 14%, transparent);
   border-color: color-mix(in srgb, var(--ember-warning) 50%, transparent);
-  color: var(--ember-warning);
 }
 
 /* Нормально — нейтральный (ожидаемый исход, без акцента). */
 .review__grade--good {
   background-color: var(--ember-surface);
   border-color: var(--ember-border);
-  color: var(--ember-text-muted);
 }
 
 /* Легко — оливковый (выучено, положительный исход). */
 .review__grade--easy {
   background-color: color-mix(in srgb, var(--ember-learned) 14%, transparent);
   border-color: color-mix(in srgb, var(--ember-learned) 50%, transparent);
-  color: var(--ember-learned);
 }
 
 /* ---------- Экран «Повторение завершено» ---------- */
