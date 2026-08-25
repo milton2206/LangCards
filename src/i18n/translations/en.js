@@ -1307,8 +1307,8 @@ export default {
     demo: {
       tapHint: "Tap a word in the example — the translation shows below.",
       swipeHint: "Drag the card left or right.",
-      knowConfirm: "“Know” — word removed (this is a demo, your progress is safe).",
-      takeConfirm: "“Take” — word added to learning (this is a demo, your progress is safe).",
+      knowConfirm: "“Know” — the word goes to “Known” (this is a demo, your progress is safe).",
+      takeConfirm: "“Take” — the word goes into learning (this is a demo, your progress is safe).",
       gradeHint: "Rate yourself: easier — less often, harder — more often. Nothing here is saved.",
       glossFallback: "a word from the example",
     },
@@ -1330,8 +1330,8 @@ export default {
         text: "Tap any word in the phrase — we'll show the translation. It sticks better this way than as a list.",
       },
       swipe: {
-        title: "One movement — and done",
-        text: "Left — already know it. Right — take it into your “Learning” list. Drag the card to feel it.",
+        title: "One gesture — and done",
+        text: "Left — “Know”. Right — “Take”, and the word goes into your “Learning” list. Drag the card to feel it.",
       },
       sessionReady: {
         title: "Today's session is ready",
@@ -1356,7 +1356,7 @@ export default {
       },
       d_review: {
         title: "Review on a schedule",
-        text: "Taken words come back for review when it's time. After you answer — rate yourself in meaningful colors.",
+        text: "Taken words come back for review when it's time. After you answer — rate yourself; each answer has its own colour.",
       },
       d_session: {
         title: "Daily session",
@@ -1373,7 +1373,7 @@ export default {
       },
       d_listening: {
         title: "Listening",
-        text: "Short dialogues by ear — with questions and a handy player.",
+        text: "Short dialogues to listen to — with questions and a handy player.",
         points: [
           "Dialogues with comprehension questions",
           "Choose the speech speed",
