@@ -3,6 +3,7 @@ import { pickCurrentCard, MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
 import { useWordLookup } from "../hooks/useWordLookup.js";
 import { apiErrorText } from "../lib/apiClient.js";
+import { READING_LISTENING_ENABLED } from "../lib/features.js";
 import {
   prewarmTts,
   isTtsQuotaExhausted,
@@ -115,13 +116,28 @@ function SecondaryActions({
       <button type="button" className="cards__generate" onClick={onOpenAddWord}>
         ➕ {t("addWord.entry")}
       </button>
-      <button type="button" className="cards__generate" onClick={onOpenReading}>
-        📖 {t("reading.entry")}
-      </button>
-      {/* Ещё один способ позаниматься сегодняшним языком (фаза 6.2) */}
-      <button type="button" className="cards__generate" onClick={onOpenListening}>
-        🎧 {t("listening.entry")}
-      </button>
+      {/* Чтение и аудирование — пока пересобираются, входов нет (см.
+          lib/features.js). Вместо двух кнопок одна спокойная строка: хаб и так
+          стал заметно короче, и человек, который ходил сюда за текстами, должен
+          увидеть, куда они делись, а не решить, что сломалось. Ни кнопок, ни
+          заглушек-обманок: вернуть режимы — значит вернуть флаг. */}
+      {READING_LISTENING_ENABLED ? (
+        <>
+          <button type="button" className="cards__generate" onClick={onOpenReading}>
+            📖 {t("reading.entry")}
+          </button>
+          {/* Ещё один способ позаниматься сегодняшним языком (фаза 6.2) */}
+          <button
+            type="button"
+            className="cards__generate"
+            onClick={onOpenListening}
+          >
+            🎧 {t("listening.entry")}
+          </button>
+        </>
+      ) : (
+        <p className="cards__slots cards__slots--why">{t("cards.modesPaused")}</p>
+      )}
       {/* Тест с вариантами ответа — отдельный режим, вне занятия и вне
           расписания. Живёт здесь, среди прочих «чем ещё заняться»: он ничего не
           записывает и в план дня не входит. */}

@@ -45,6 +45,7 @@ import {
 } from "./lib/userLanguages.js";
 import { computeDailyQuotas } from "./lib/dailyBalance.js";
 import { buildSession } from "./lib/sessionEngine.js";
+import { READING_LISTENING_ENABLED } from "./lib/features.js";
 import {
   loadSessionProgress,
   saveSessionProgress,
@@ -599,9 +600,15 @@ export default function App() {
 
   // Доступность форматов: без сети текст/диалог не сгенерировать — молча
   // пропускаем; диалог требует активных слов.
-  const readingAvailable = online && !restDay;
+  //
+  // READING_LISTENING_ENABLED — тот самый единственный переключатель: пока
+  // чтение и аудирование пересобираются, они для движка просто «недоступный
+  // формат», как и в офлайне. Движок такое состояние умеет с самого начала —
+  // блоки не попадают в план, план остаётся осмысленным, отдельной ветки
+  // «режим скрыт» ему знать не нужно.
+  const readingAvailable = READING_LISTENING_ENABLED && online && !restDay;
   const listeningAvailable =
-    online && !restDay && vocab.takenWords.length > 0;
+    READING_LISTENING_ENABLED && online && !restDay && vocab.takenWords.length > 0;
 
   // Учёт исчерпания тем и отметка суточного лимита живут в localStorage: они
   // переживают перезагрузку, но React об их изменении не знает. Счётчик
@@ -1529,6 +1536,9 @@ export default function App() {
             onOpenSettings={() => setScreen("settings")}
             onOpenMyWords={() => setScreen("mywords")}
             onOpenAddWord={() => setScreen("addword")}
+            // Входы в хабе «Хочу другое». Пока режимы скрыты, кнопок там нет
+            // (см. SecondaryActions в CardScreen) — эти обработчики остаются
+            // нетронутыми и оживают вместе с флагом.
             onOpenReading={() => {
               setSessionBlock(null);
               setScreen("reading");

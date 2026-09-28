@@ -2,6 +2,7 @@ import Flag from "../components/icons/Flag.jsx";
 import Icon from "../components/icons/Icon.jsx";
 import { MAX_ACTIVE_WORDS } from "../hooks/useWordLists.js";
 import { wordStats } from "../lib/wordStats.js";
+import { READING_LISTENING_ENABLED } from "../lib/features.js";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import "./SessionScreen.css";
 
@@ -359,12 +360,20 @@ export default function SessionScreen({
       ) : (
         // Пусто: нечего повторять и форматы недоступны (офлайн/нет слов). Не
         // тупик — предлагаем выбрать занятие вручную.
+        //
+        // Пока чтение и аудирование скрыты, прежний текст врал бы: он объясняет
+        // пустой день тем, что «тексты и диалоги сейчас недоступны», то есть
+        // валит на них то, что убрано нарочно. Причина, по которой нет НОВЫХ
+        // СЛОВ, при этом на месте — её показывает плашка noNewReason выше, так
+        // что человек без объяснения не остаётся.
         !plan?.restDay && (
           <div className="session__empty">
             <div className="session__empty-emoji" aria-hidden="true">
               ✨
             </div>
-            <p className="session__empty-text">{t("session.empty")}</p>
+            <p className="session__empty-text">
+              {t(READING_LISTENING_ENABLED ? "session.empty" : "session.emptyPaused")}
+            </p>
           </div>
         )
       )}

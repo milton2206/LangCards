@@ -90,6 +90,10 @@ export default {
     remaining: "Left in batch: {n}",
     // Room for active words: the ceiling is full — nothing to generate.
     slotsFull: "No room · {max} of {max}",
+    // Reading and listening are hidden while they are rebuilt (see
+    // lib/features.js) — one calm line where the two hub buttons used to be.
+    modesPaused:
+      "Reading and listening are being rebuilt — they will be back with the update.",
     // Short batch: fewer cards arrived than asked for.
     shortBatch: "Only {got} of {asked} words turned out to be new.",
     plural: "pl.",
@@ -437,6 +441,11 @@ export default {
     allDone: "Session complete. Great work!",
     empty:
       "Nothing to review today, and texts and dialogues aren't available right now. You can pick an activity yourself.",
+    // The same empty state while reading and listening are hidden: blaming the
+    // empty day on "unavailable texts and dialogues" would be untrue — they were
+    // put away on purpose.
+    emptyPaused:
+      "Nothing to review today. You can pick an activity yourself — cards and the test are there.",
     manual: "I want something else",
     studyAnyway: "Study anyway",
     backToSession: "To session",
@@ -797,6 +806,10 @@ export default {
     start: "Get started",
     showAll: "Show full history",
     entries: {
+      pausedModes: {
+        title: "Reading and listening are hidden for now",
+        desc: "I am rebuilding this part for a big update, and until it is ready it is better to put it away than to show something half-finished. Cards, reviews and the test work as usual, and today's session is built from those. Words you took from texts and dialogues earlier are still here: they are in My Words and come up for review on schedule. Both modes will be back with the update.",
+      },
       keepKnownAlive: {
         title: "Learned words occasionally come back for a quick check",
         desc: "A word moved to Known used to go there for good — and six months later it could quietly slip away. Now, roughly every two weeks, a \"Check known words\" block appears in your session: five to eight words that have gone unchecked the longest. You see the word, recall the translation, and either say you remember it or send it back to studying. This is not scheduled review: known words keep no intervals, and the check does not come every day — once you have done it, the next one is at least two weeks away. If there is no room in studying, a forgotten word is not lost: it stays among your known words and comes first at the next check.",
