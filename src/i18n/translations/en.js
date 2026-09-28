@@ -803,6 +803,11 @@ export default {
     greetingTitle: "Welcome!",
     greeting:
       "Learn words with cards, read texts, train your listening, and check your level — all in one app. Happy studying!",
+    // While reading and listening are being rebuilt (see lib/features.js): the
+    // first thing someone reads about the app must not promise what isn't there
+    // right now. The level test stays — it works.
+    greetingPaused:
+      "Learn words with cards, review them on schedule, and check your level — all in one app. Happy studying!",
     start: "Get started",
     showAll: "Show full history",
     entries: {

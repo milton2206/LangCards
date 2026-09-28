@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { CHANGELOG } from "../data/changelog.js";
+import { READING_LISTENING_ENABLED } from "../lib/features.js";
 import Icon from "./icons/Icon.jsx";
 import "./Modal.css";
 import "./WhatsNew.css";
@@ -132,7 +133,17 @@ export default function WhatsNew({ mode, onClose }) {
         </header>
 
         {isGreeting ? (
-          <p className="modal__text">{t("whatsnew.greeting")}</p>
+          // Приветствие новичка перечисляет, из чего состоит приложение, поэтому
+          // пока чтение и аудирование пересобираются (см. lib/features.js), у него
+          // свой вариант: первое, что человек о приложении читает, не должно
+          // обещать того, чего он не найдёт. Тест уровня в обоих — он работает.
+          <p className="modal__text">
+            {t(
+              READING_LISTENING_ENABLED
+                ? "whatsnew.greeting"
+                : "whatsnew.greetingPaused",
+            )}
+          </p>
         ) : (
           <div className="whatsnew__sessions">
             {sessions.map((s) => {
