@@ -1349,6 +1349,10 @@ export default {
       sessionReady: {
         title: "Today's session is ready",
         text: "We put together today's plan for you — review, new words, a bit of reading, and a dialogue. It's a little different every day.",
+        // While reading and listening are hidden (see lib/features.js): the list
+        // of formats has to match the preview tiles next to it.
+        textPaused:
+          "We put together today's plan for you — review and new words. Finish it and that's enough for today.",
       },
       d_swipe: {
         title: "The card and the swipe",
@@ -1374,6 +1378,9 @@ export default {
       d_session: {
         title: "Daily session",
         text: "Each day the app assembles a short plan for you: review, new words, a bit of reading, and a dialogue.",
+        // See sessionReady.textPaused — the same while the modes are hidden.
+        textPaused:
+          "Each day the app assembles a short plan for you: review and new words.",
       },
       d_reading: {
         title: "Reading",

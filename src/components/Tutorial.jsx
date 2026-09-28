@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useI18n } from "../i18n/I18nContext.jsx";
 import { useSwipeCard, SWIPE_THRESHOLD } from "../hooks/useSwipeCard.js";
+import { READING_LISTENING_ENABLED } from "../lib/features.js";
 import WordCard, { ExampleBlock } from "./WordCard.jsx";
 import WordLookupSheet from "./WordLookupSheet.jsx";
 import Icon from "./icons/Icon.jsx";
@@ -54,9 +55,9 @@ const DETAILED_STEPS = [
 // Оценки повторения — те же смысловые цвета Ember, что на экране повторения.
 const GRADES = ["again", "hard", "good", "easy"];
 
-// Блоки занятия для превью — ЧЕТЫРЕ базовых типа плана и их иконки ровно те же,
-// что на экране занятия (см. sessionEngine.buildSession и SessionScreen). Имена
-// берём из session.block.* — одна подпись на приложение и туториал, чтобы они не
+// Блоки занятия для превью — базовые типы плана и их иконки ровно те же, что на
+// экране занятия (см. sessionEngine.buildSession и SessionScreen). Имена берём из
+// session.block.* — одна подпись на приложение и туториал, чтобы они не
 // разъезжались при переименовании. Превью показывает ТИПИЧНЫЙ день: без акцента
 // дня, дня отдыха и отметок — это уже разбор экрана, а не знакомство.
 const SESSION_BLOCKS = [
@@ -65,6 +66,32 @@ const SESSION_BLOCKS = [
   { type: "reading", icon: "reading" },
   { type: "listening", icon: "listening" },
 ];
+
+// Пока чтение и аудирование пересобираются (см. lib/features.js), знакомство о
+// них МОЛЧИТ: разбирать формат, которого в приложении сейчас нет, — обещание,
+// которое нельзя потрогать, а превью плана из четырёх блоков вместо двух прямо
+// врёт про сегодняшнее занятие.
+//
+// Наборы не правятся по месту, а ФИЛЬТРУЮТСЯ: шаги и блоки остаются в коде и
+// возвращаются тем же флагом, что и сами режимы. Всё остальное считается от
+// этих массивов (точки прогресса, «последний шаг», переходы), поэтому индексы
+// и счётчики подстраиваются сами — руками их править негде.
+const PAUSED_STEP_IDS = new Set(["d_reading", "d_listening"]);
+const PAUSED_BLOCK_TYPES = new Set(["reading", "listening"]);
+
+// Шаги про занятие ПЕРЕЧИСЛЯЮТ форматы словами («повторение, новые слова,
+// немного чтения и диалог»), и убрать плитки, оставив подпись, значит поставить
+// рядом две плитки и обещание четырёх. У этих шагов есть свой текст на время
+// скрытия — ключ .textPaused вместо .text.
+const STEPS_WITH_PAUSED_TEXT = new Set(["sessionReady", "d_session"]);
+
+const VISIBLE_DETAILED_STEPS = READING_LISTENING_ENABLED
+  ? DETAILED_STEPS
+  : DETAILED_STEPS.filter((step) => !PAUSED_STEP_IDS.has(step.id));
+
+const VISIBLE_SESSION_BLOCKS = READING_LISTENING_ENABLED
+  ? SESSION_BLOCKS
+  : SESSION_BLOCKS.filter((b) => !PAUSED_BLOCK_TYPES.has(b.type));
 
 /**
  * @param {"short"|"detailed"} mode
@@ -83,7 +110,7 @@ export default function Tutorial({
   nativeLang = "ru",
 }) {
   const { t } = useI18n();
-  const steps = mode === "detailed" ? DETAILED_STEPS : SHORT_STEPS;
+  const steps = mode === "detailed" ? VISIBLE_DETAILED_STEPS : SHORT_STEPS;
 
   const [index, setIndex] = useState(0);
   const step = steps[index];
@@ -166,6 +193,12 @@ export default function Tutorial({
     setIndex((i) => Math.max(0, i - 1));
   }
 
+  // Текст шага: у шагов про занятие на время скрытия режимов свой вариант.
+  const stepTextKey =
+    !READING_LISTENING_ENABLED && STEPS_WITH_PAUSED_TEXT.has(step.id)
+      ? "textPaused"
+      : "text";
+
   // Подробная версия — метка группы (разбивка по группам); короткая — «Попробуйте
   // сами» на интерактивных шагах.
   const stepLabel = step.group
@@ -207,7 +240,7 @@ export default function Tutorial({
           <h2 id="tut-title" className="tut__title">
             {t(`tutorial.steps.${step.id}.title`)}
           </h2>
-          <p className="tut__text">{t(`tutorial.steps.${step.id}.text`)}</p>
+          <p className="tut__text">{t(`tutorial.steps.${step.id}.${stepTextKey}`)}</p>
 
           {step.kind === "welcome" && (
             <div className="tut__welcome-lead">
@@ -302,7 +335,7 @@ export default function Tutorial({
                   </span>
                 </div>
                 <div className="tut__session-tiles">
-                  {SESSION_BLOCKS.map((b) => (
+                  {VISIBLE_SESSION_BLOCKS.map((b) => (
                     <div key={b.type} className="tut__tile">
                       <Icon name={b.icon} size={22} />
                       <span>{t(`session.block.${b.type}`)}</span>
